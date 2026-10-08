@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>متجر العطور</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Tajawal', sans-serif; }
+body { background: #f5f3ef; color: #2c2c2c; min-height: 100vh; padding-bottom: 40px; }
+
+.container { max-width: 900px; margin: 0 auto; padding: 20px; }
+.header { text-align: center; padding: 30px 20px; background: linear-gradient(135deg, #1a1a1a, #2c2c2c); color: #d4af37; border-radius: 0 0 24px 24px; margin-bottom: 24px; }
+.header h1 { font-size: 1.8rem; font-weight: 900; letter-spacing: 1px; }
+.header p { color: #999; margin-top: 6px; font-size: 0.9rem; }
+
+.step-title { font-size: 1.3rem; font-weight: 900; color: #1a1a1a; margin-bottom: 16px; text-align: center; }
+.step-title small { display: block; color: #888; font-size: 0.8rem; font-weight: 400; margin-top: 4px; }
+
+.options-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin-bottom: 24px; }
+.option-btn { background: #fff; border: 2px solid #e0dcd0; border-radius: 14px; padding: 20px 12px; cursor: pointer; transition: all 0.2s; text-align: center; font-weight: 700; color: #1a1a1a; font-size: 1rem; }
+.option-btn:hover { border-color: #d4af37; transform: translateY(-2px); box-shadow: 0 6px 16px rgba(212,175,55,0.2); }
+.option-btn.active { background: linear-gradient(135deg, #d4af37, #b8942e); color: #fff; border-color: #b8942e; }
+.option-btn img { width: 70px; height: 70px; object-fit: contain; display: block; margin: 0 auto 8px; border-radius: 8px; }
+.option-btn .price-tag { font-size: 0.75rem; color: #666; font-weight: 500; margin-top: 4px; }
+.option-btn.active .price-tag { color: #fff; opacity: 0.9; }
+
+.nav-bar { display: flex; gap: 10px; justify-content: center; margin-top: 20px; flex-wrap: wrap; }
+.btn { padding: 12px 24px; border: none; border-radius: 12px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: all 0.2s; font-family: inherit; }
+.btn-primary { background: linear-gradient(135deg, #d4af37, #b8942e); color: #fff; }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(212,175,55,0.4); }
+.btn-dark { background: #1a1a1a; color: #fff; }
+.btn-danger { background: #e74c3c; color: #fff; }
+.btn-success { background: #25d366; color: #fff; }
+.btn-sm { padding: 8px 16px; font-size: 0.85rem; }
+
+.perfume-list { display: grid; gap: 12px; }
+.perfume-item { background: #fff; border: 2px solid #e0dcd0; border-radius: 14px; padding: 18px 20px; cursor: pointer; transition: all 0.2s; display: flex; justify-content: space-between; align-items: center; }
+.perfume-item:hover { border-color: #d4af37; transform: translateX(-4px); box-shadow: 0 6px 16px rgba(212,175,55,0.15); }
+.perfume-item .name { font-weight: 800; font-size: 1.05rem; color: #1a1a1a; }
+.perfume-item .brand { font-size: 0.8rem; color: #888; margin-top: 2px; }
+.perfume-item .price { font-weight: 900; color: #b8942e; font-size: 1.1rem; }
+
+.detail-card { background: #fff; border-radius: 18px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); margin-bottom: 20px; }
+.detail-card h2 { font-size: 1.5rem; font-weight: 900; color: #1a1a1a; margin-bottom: 6px; }
+.detail-card .subtitle { color: #888; font-size: 0.9rem; margin-bottom: 18px; }
+.detail-row { display: flex; padding: 10px 0; border-bottom: 1px solid #f0ede6; font-size: 0.95rem; }
+.detail-row:last-child { border-bottom: none; }
+.detail-row .label { font-weight: 700; color: #666; min-width: 110px; }
+.detail-row .value { color: #1a1a1a; flex: 1; }
+
+.notes-section { background: #faf8f3; border-radius: 12px; padding: 16px; margin: 16px 0; }
+.notes-section h4 { color: #b8942e; font-size: 0.9rem; margin-bottom: 10px; }
+.note-item { display: flex; gap: 8px; padding: 6px 0; font-size: 0.9rem; }
+.note-item .note-label { font-weight: 700; color: #666; min-width: 80px; }
+
+.total-box { background: linear-gradient(135deg, #1a1a1a, #2c2c2c); color: #fff; border-radius: 14px; padding: 20px; text-align: center; margin-top: 20px; }
+.total-box .label { font-size: 0.9rem; color: #999; }
+.total-box .amount { font-size: 2rem; font-weight: 900; color: #d4af37; margin-top: 4px; }
+
+.modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; padding: 20px; }
+.modal.open { display: flex; }
+.modal-content { background: #fff; border-radius: 18px; padding: 24px; max-width: 500px; width: 100%; max-height: 90vh; overflow-y: auto; }
+.modal-content h2 { font-size: 1.3rem; margin-bottom: 16px; color: #1a1a1a; }
+
+.form-group { margin-bottom: 14px; }
+.form-group label { display: block; font-weight: 700; font-size: 0.85rem; color: #666; margin-bottom: 6px; }
+.form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 12px; border: 2px solid #e0dcd0; border-radius: 10px; font-size: 0.95rem; font-family: inherit; background: #faf8f3; }
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #d4af37; background: #fff; }
+
+.admin-bar { background: linear-gradient(135deg, #1a1a1a, #2c2c2c); color: #d4af37; padding: 14px 20px; border-radius: 14px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+.admin-bar strong { font-weight: 800; }
+.admin-bar .btns { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.tab-bar { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+.tab-btn { background: #f0ede6; border: none; padding: 10px 16px; border-radius: 10px; font-weight: 700; font-size: 0.85rem; cursor: pointer; color: #666; }
+.tab-btn.active { background: #1a1a1a; color: #d4af37; }
+
+.admin-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #faf8f3; border-radius: 10px; margin-bottom: 8px; gap: 10px; }
+.admin-item .info { flex: 1; }
+.admin-item .info strong { color: #1a1a1a; }
+.admin-item .info small { color: #888; display: block; font-size: 0.75rem; }
+.admin-item .actions { display: flex; gap: 6px; }
+.admin-item img { width: 50px; height: 50px; object-fit: contain; border-radius: 8px; background: #fff; }
+
+.empty { text-align: center; padding: 40px 20px; color: #999; }
+.loading { text-align: center; padding: 40px; color: #d4af37; font-weight: 700; }
+
+.cart-item { display: flex; justify-content: space-between; padding: 12px; background: #faf8f3; border-radius: 10px; margin-bottom: 8px; }
+
+.whatsapp-float { position: fixed; bottom: 20px; left: 20px; background: #25d366; color: #fff; width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 20px rgba(37,211,102,0.5); cursor: pointer; border: none; font-size: 1.5rem; z-index: 99; }
+
+@media (max-width: 600px) {
+  .header h1 { font-size: 1.4rem; }
+  .step-title { font-size: 1.1rem; }
+  .option-btn { padding: 14px 8px; font-size: 0.9rem; }
+  .option-btn img { width: 55px; height: 55px; }
+}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div class="header">
+    <h1>متجر العطور</h1>
+    <p>اختر عطرك المفضل خطوة بخطوة</p>
+  </div>
+  <div class="container" id="mainContainer">
+    <div class="loading">جاري التحميل...</div>
+  </div>
+</div>
+
+<button class="whatsapp-float" onclick="openWhatsApp()" title="تواصل معنا">💬</button>
+
+<!-- Login Modal -->
+<div id="loginModal" class="modal">
+  <div class="modal-content">
+    <h2>🔐 دخول المسؤول</h2>
+    <div class="form-group">
+      <label>البريد الإلكتروني</label>
+      <input type="email" id="login-email" dir="ltr">
+    </div>
+    <div class="form-group">
+      <label>كلمة المرور</label>
+      <input type="password" id="login-password" dir="ltr">
+    </div>
+    <div class="nav-bar">
+      <button class="btn btn-primary" onclick="doLogin()">دخول</button>
+      <button class="btn btn-danger" onclick="closeModal('loginModal')">إغلاق</button>
+    </div>
+  </div>
+</div>
+
+<!-- Category Form Modal -->
+<div id="catFormModal" class="modal">
+  <div class="modal-content">
+    <h2 id="catFormTitle">إضافة</h2>
+    <input type="hidden" id="cat-id">
+    <input type="hidden" id="cat-table">
+    <div class="form-group">
+      <label>الاسم</label>
+      <input type="text" id="cat-name">
+    </div>
+    <div class="form-group" id="cat-price-diff-group" style="display:none;">
+      <label>فرق السعر (₺)</label>
+      <input type="number" id="cat-price-diff" value="0">
+    </div>
+    <div class="form-group">
+      <label>الصورة</label>
+      <input type="file" id="cat-image" accept="image/*">
+      <div id="cat-image-preview" style="margin-top:8px;"></div>
+    </div>
+    <div class="nav-bar">
+      <button class="btn btn-primary" onclick="saveCat()">حفظ</button>
+      <button class="btn btn-danger" onclick="closeModal('catFormModal')">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- Perfume Form Modal -->
+<div id="perfumeFormModal" class="modal">
+  <div class="modal-content">
+    <h2 id="perfumeFormTitle">إضافة عطر</h2>
+    <input type="hidden" id="pf-id">
+    <div class="form-group">
+      <label>اسم العطر</label>
+      <input type="text" id="pf-name">
+    </div>
+    <div class="form-group">
+      <label>الماركة</label>
+      <select id="pf-brand"></select>
+    </div>
+    <div class="form-group">
+      <label>الجنس</label>
+      <select id="pf-gender"></select>
+    </div>
+    <div class="form-group">
+      <label>العائلة العطرية</label>
+      <select id="pf-scent"></select>
+    </div>
+    <div class="form-group">
+      <label>الوصف</label>
+      <textarea id="pf-desc" rows="3"></textarea>
+    </div>
+    <div class="form-group">
+      <label>النوتة العليا</label>
+      <input type="text" id="pf-top">
+    </div>
+    <div class="form-group">
+      <label>النوتة الوسطى</label>
+      <input type="text" id="pf-middle">
+    </div>
+    <div class="form-group">
+      <label>النوتة الأساسية</label>
+      <input type="text" id="pf-base">
+    </div>
+    <div class="form-group">
+      <label>الأسعار (حسب التركيز والحجم)</label>
+      <div id="pf-prices-grid"></div>
+    </div>
+    <div class="nav-bar">
+      <button class="btn btn-primary" onclick="savePerfume()">حفظ</button>
+      <button class="btn btn-danger" onclick="closeModal('perfumeFormModal')">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://xmrdqepjtfycvtgcbkyy.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_MgJhvhCdIg9oC40t--FZxQ_04A8dWkU';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let session = null;
+let isAdmin = false;
+let currentStep = 0;
+let selection = { ml: null, intensity: null, gender: null, perfume: null, bottle: null };
+let cache = { sizes: [], intensities: [], bottles: [], genders: [], scents: [], brands: [], perfumes: [], prices: [] };
+
+// ============ INIT ============
+async function init() {
+  const { data: { session: s } } = await sb.auth.getSession();
+  session = s;
+  isAdmin = !!s;
+  await loadAll();
+  render();
+}
+
+async function loadAll() {
+  const [sizes, intensities, bottles, genders, scents, brands, perfumes, prices] = await Promise.all([
+    sb.from('perfume_sizes').select('*').eq('active', true).order('sort_order'),
+    sb.from('perfume_intensities').select('*').eq('active', true).order('sort_order'),
+    sb.from('perfume_bottles').select('*').eq('active', true).order('sort_order'),
+    sb.from('categories').select('*').eq('type', 'gender').eq('active', true).order('sort_order'),
+    sb.from('categories').select('*').eq('type', 'scent_family').eq('active', true).order('sort_order'),
+    sb.from('categories').select('*').eq('type', 'brand').eq('active', true).order('sort_order'),
+    sb.from('perfumes').select('*').eq('active', true),
+    sb.from('perfume_prices').select('*')
+  ]);
+  cache.sizes = sizes.data || [];
+  cache.intensities = intensities.data || [];
+  cache.bottles = bottles.data || [];
+  cache.genders = genders.data || [];
+  cache.scents = scents.data || [];
+  cache.brands = brands.data || [];
+  cache.perfumes = perfumes.data || [];
+  cache.prices = prices.data || [];
+}
+
+// ============ RENDER ============
+function render() {
+  const c = document.getElementById('mainContainer');
+  let html = '';
+
+  if (isAdmin) {
+    html += `<div class="admin-bar">
+      <strong>👑 وضع المسؤول</strong>
+      <div class="btns">
+        <button class="btn btn-sm btn-primary" onclick="openAdmin()">لوحة التحكم</button>
+        <button class="btn btn-sm btn-danger" onclick="doLogout()">خروج</button>
+      </div>
+    </div>`;
+  }
+
+  if (currentStep === 0) html += renderStepSize();
+  else if (currentStep === 1) html += renderStepIntensity();
+  else if (currentStep === 2) html += renderStepGender();
+  else if (currentStep === 3) html += renderStepPerfume();
+  else if (currentStep === 4) html += renderStepDetail();
+  else if (currentStep === 5) html += renderStepBottle();
+
+  c.innerHTML = html;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function renderStepSize() {
+  if (cache.sizes.length === 0) return '<div class="empty">لا توجد أحجام. يرجى إضافتها من لوحة التحكم.</div>';
+  return `<div class="step-title">اختر الحجم<small>الخطوة 1 من 6</small></div>
+    <div class="options-grid">
+      ${cache.sizes.map(s => `<div class="option-btn" onclick="pick('ml', ${s.id})">${s.label}</div>`).join('')}
+    </div>`;
+}
+
+function renderStepIntensity() {
+  return `<div class="step-title">اختر التركيز<small>الخطوة 2 من 6</small></div>
+    <div class="options-grid">
+      ${cache.intensities.map(i => `<div class="option-btn" onclick="pick('intensity', ${i.id})">${i.name}</div>`).join('')}
+    </div>
+    <div class="nav-bar"><button class="btn btn-dark" onclick="goBack()">رجوع</button></div>`;
+}
+
+function renderStepGender() {
+  if (cache.genders.length === 0) return '<div class="empty">لا توجد فئات جنس. يرجى إضافتها من لوحة التحكم.</div>';
+  return `<div class="step-title">لمن العطر؟<small>الخطوة 3 من 6</small></div>
+    <div class="options-grid">
+      ${cache.genders.map(g => `<div class="option-btn" onclick="pick('gender', ${g.id})">${g.label}</div>`).join('')}
+    </div>
+    <div class="nav-bar"><button class="btn btn-dark" onclick="goBack()">رجوع</button></div>`;
+}
+
+function renderStepPerfume() {
+  const list = cache.perfumes.filter(p => p.gender_id === selection.gender);
+  if (list.length === 0) return `<div class="step-title">لا توجد عطور متاحة</div><div class="nav-bar"><button class="btn btn-dark" onclick="goBack()">رجوع</button></div>`;
+  return `<div class="step-title">اختر العطر<small>الخطوة 4 من 6</small></div>
+    <div class="perfume-list">
+      ${list.map(p => {
+        const brand = cache.brands.find(b => b.id === p.brand_id);
+        return `<div class="perfume-item" onclick="pickPerfume('${p.id}')">
+          <div><div class="name">${p.name}</div><div class="brand">${brand?.label || ''}</div></div>
+          <div class="price">→</div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="nav-bar"><button class="btn btn-dark" onclick="goBack()">رجوع</button></div>`;
+}
+
+function renderStepDetail() {
+  const p = cache.perfumes.find(x => x.id === selection.perfume);
+  if (!p) return '<div class="empty">خطأ</div>';
+  const brand = cache.brands.find(b => b.id === p.brand_id);
+  const gender = cache.genders.find(g => g.id === p.gender_id);
+  const scent = cache.scents.find(s => s.id === p.scent_family_id);
+  const price = getBasePrice(selection.perfume, selection.intensity, selection.ml);
+  const mlLabel = cache.sizes.find(s => s.id === selection.ml)?.label || '';
+  const intLabel = cache.intensities.find(i => i.id === selection.intensity)?.name || '';
+
+  return `<div class="step-title">تفاصيل العطر<small>الخطوة 5 من 6</small></div>
+    <div class="detail-card">
+      <h2>${p.name}</h2>
+      <div class="subtitle">${brand?.label || ''}</div>
+      <div class="detail-row"><span class="label">الجنس</span><span class="value">${gender?.label || ''}</span></div>
+      <div class="detail-row"><span class="label">العائلة</span><span class="value">${scent?.label || ''}</span></div>
+      <div class="detail-row"><span class="label">الحجم</span><span class="value">${mlLabel}</span></div>
+      <div class="detail-row"><span class="label">التركيز</span><span class="value">${intLabel}</span></div>
+      ${p.description ? `<div class="detail-row"><span class="label">الوصف</span><span class="value">${p.description}</span></div>` : ''}
+      ${(p.notes_top || p.notes_middle || p.notes_base) ? `
+        <div class="notes-section">
+          <h4>🌿 المكونات العطرية</h4>
+          ${p.notes_top ? `<div class="note-item"><span class="note-label">العليا:</span><span>${p.notes_top}</span></div>` : ''}
+          ${p.notes_middle ? `<div class="note-item"><span class="note-label">الوسطى:</span><span>${p.notes_middle}</span></div>` : ''}
+          ${p.notes_base ? `<div class="note-item"><span class="note-label">الأساسية:</span><span>${p.notes_base}</span></div>` : ''}
+        </div>` : ''}
+      <div class="total-box">
+        <div class="label">السعر الأساسي</div>
+        <div class="amount">${price} ₺</div>
+      </div>
+    </div>
+    <div class="nav-bar">
+      <button class="btn btn-dark" onclick="goBack()">رجوع</button>
+      <button class="btn btn-primary" onclick="currentStep=5;render()">التالي: اختر الشيشة</button>
+    </div>`;
+}
+
+function renderStepBottle() {
+  const bottles = cache.bottles.filter(b => b.size_id === selection.ml);
+  const basePrice = getBasePrice(selection.perfume, selection.intensity, selection.ml);
+  if (bottles.length === 0) return '<div class="empty">لا توجد قوارير لهذا الحجم</div>';
+  return `<div class="step-title">اختر القارورة<small>الخطوة 6 من 6</small></div>
+    <div class="options-grid">
+      ${bottles.map(b => `<div class="option-btn" onclick="pickBottle(${b.id})">
+        ${b.image_url ? `<img src="${b.image_url}">` : ''}
+        <div>${b.name}</div>
+        <div class="price-tag">${b.price_diff > 0 ? '+' + b.price_diff + ' ₺' : 'مجاناً'}</div>
+      </div>`).join('')}
+    </div>
+    ${selection.bottle ? `
+      <div class="total-box">
+        <div class="label">الإجمالي</div>
+        <div class="amount">${basePrice + (cache.bottles.find(x => x.id === selection.bottle)?.price_diff || 0)} ₺</div>
+      </div>
+      <div class="nav-bar">
+        <button class="btn btn-success" onclick="addToCart()">🛒 أضف إلى السلة</button>
+      </div>` : ''}
+    <div class="nav-bar"><button class="btn btn-dark" onclick="goBack()">رجوع</button></div>`;
+}
+
+// ============ LOGIC ============
+function pick(field, id) {
+  selection[field] = id;
+  if (field === 'ml') currentStep = 1;
+  else if (field === 'intensity') currentStep = 2;
+  else if (field === 'gender') currentStep = 3;
+  render();
+}
+
+function pickPerfume(id) {
+  selection.perfume = id;
+  currentStep = 4;
+  render();
+}
+
+function pickBottle(id) {
+  selection.bottle = id;
+  render();
+}
+
+function goBack() {
+  if (currentStep > 0) currentStep--;
+  render();
+}
+
+function getBasePrice(perfumeId, intensityId, sizeId) {
+  const row = cache.prices.find(p => p.intensity_id === intensityId && p.size_id === sizeId);
+  return row?.price || 0;
+}
+
+function addToCart() {
+  const p = cache.perfumes.find(x => x.id === selection.perfume);
+  const b = cache.bottles.find(x => x.id === selection.bottle);
+  const base = getBasePrice(selection.perfume, selection.intensity, selection.ml);
+  const total = base + (b?.price_diff || 0);
+  const mlLabel = cache.sizes.find(s => s.id === selection.ml)?.label;
+  const intLabel = cache.intensities.find(i => i.id === selection.intensity)?.name;
+  let cart = JSON.parse(localStorage.getItem('perfume_cart') || '[]');
+  cart.push({
+    perfume: p.name, ml: mlLabel, intensity: intLabel,
+    bottle: b.name, bottle_price_diff: b.price_diff, total, added: new Date().toISOString()
+  });
+  localStorage.setItem('perfume_cart', JSON.stringify(cart));
+  alert('✅ تمت الإضافة إلى السلة');
+  openWhatsApp();
+}
+
+function openWhatsApp() {
+  let cart = JSON.parse(localStorage.getItem('perfume_cart') || '[]');
+  if (cart.length === 0) { window.open('https://wa.me/905388444275', '_blank'); return; }
+  let msg = 'طلب جديد:\n\n';
+  let total = 0;
+  cart.forEach(c => {
+    msg += `• ${c.perfume} - ${c.ml} - ${c.intensity} - ${c.bottle}\n  ${c.total} ₺\n`;
+    total += c.total;
+  });
+  msg += `\nالإجمالي: ${total} ₺`;
+  window.open('https://wa.me/905388444275?text=' + encodeURIComponent(msg), '_blank');
+}
+
+// ============ AUTH ============
+function openLogin() { document.getElementById('loginModal').classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+async function doLogin() {
+  const email = document.getElementById('login-email').value;
+  const password = document.getElementById('login-password').value;
+  const { data, error } = await sb.auth.signInWithPassword({ email, password });
+  if (error) { alert('خطأ: ' + error.message); return; }
+  session = data.session;
+  isAdmin = true;
+  closeModal('loginModal');
+  render();
+}
+
+async function doLogout() {
+  await sb.auth.signOut();
+  session = null; isAdmin = false;
+  render();
+}
+
+// ============ ADMIN ============
+function openAdmin() {
+  const c = document.getElementById('mainContainer');
+  c.innerHTML = `
+    <div class="admin-bar"><strong>👑 لوحة التحكم</strong>
+      <button class="btn btn-sm btn-dark" onclick="currentStep=0;render()">عودة للموقع</button>
+    </div>
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="showTab('sizes', this)">الأحجام</button>
+      <button class="tab-btn" onclick="showTab('intensities', this)">التركيزات</button>
+      <button class="tab-btn" onclick="showTab('bottles', this)">القوارير</button>
+      <button class="tab-btn" onclick="showTab('genders', this)">الجنس</button>
+      <button class="tab-btn" onclick="showTab('scents', this)">العائلات</button>
+      <button class="tab-btn" onclick="showTab('brands', this)">الماركات</button>
+      <button class="tab-btn" onclick="showTab('perfumes', this)">العطور</button>
+      <button class="tab-btn" onclick="showTab('prices', this)">الأسعار</button>
+    </div>
+    <div id="adminContent"></div>
+  `;
+  showTab('sizes');
+}
+
+function showTab(tab, btn) {
+  if (btn) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  const c = document.getElementById('adminContent');
+  if (tab === 'sizes' || tab === 'intensities' || tab === 'bottles') {
+    c.innerHTML = renderTableTab(tab);
+  } else if (tab === 'genders' || tab === 'scents' || tab === 'brands') {
+    const typeMap = { genders: 'gender', scents: 'scent_family', brands: 'brand' };
+    c.innerHTML = renderCatTab(typeMap[tab]);
+  } else if (tab === 'perfumes') {
+    c.innerHTML = renderPerfumesTab();
+  } else if (tab === 'prices') {
+    c.innerHTML = renderPricesTab();
+  }
+}
+
+function renderTableTab(tab) {
+  const tableMap = { sizes: 'perfume_sizes', intensities: 'perfume_intensities', bottles: 'perfume_bottles' };
+  const data = cache[tab];
+  const nameField = tab === 'sizes' ? 'label' : 'name';
+  return `<button class="btn btn-primary" onclick="openCatForm('${tableMap[tab]}')">+ إضافة</button>
+    <div style="margin-top:16px;">
+    ${data.map(item => `
+      <div class="admin-item">
+        ${item.image_url ? `<img src="${item.image_url}">` : ''}
+        <div class="info"><strong>${item[nameField]}</strong>
+          <small>ترتيب: ${item.sort_order}${item.price_diff !== undefined ? ' | فرق: ' + item.price_diff + ' ₺' : ''}</small>
+        </div>
+        <div class="actions">
+          <button class="btn btn-sm btn-dark" onclick="editCat('${tableMap[tab]}', ${item.id})">✎</button>
+          <button class="btn btn-sm btn-danger" onclick="delCat('${tableMap[tab]}', ${item.id})">🗑</button>
+        </div>
+      </div>`).join('')}
+    </div>`;
+}
+
+function renderCatTab(type) {
+  const items = cache[type === 'gender' ? 'genders' : type === 'scent_family' ? 'scents' : 'brands'];
+  return `<button class="btn btn-primary" onclick="openCatForm('categories', '${type}')">+ إضافة</button>
+    <div style="margin-top:16px;">
+    ${items.map(item => `
+      <div class="admin-item">
+        <div class="info"><strong>${item.label}</strong><small>ترتيب: ${item.sort_order}</small></div>
+        <div class="actions">
+          <button class="btn btn-sm btn-dark" onclick="editCat('categories', ${item.id})">✎</button>
+          <button class="btn btn-sm btn-danger" onclick="delCat('categories', ${item.id})">🗑</button>
+        </div>
+      </div>`).join('')}
+    </div>`;
+}
+
+function renderPerfumesTab() {
+  return `<button class="btn btn-primary" onclick="openPerfumeForm()">+ إضافة عطر</button>
+    <div style="margin-top:16px;">
+    ${cache.perfumes.map(p => {
+      const brand = cache.brands.find(b => b.id === p.brand_id);
+      return `<div class="admin-item">
+        <div class="info"><strong>${p.name}</strong><small>${brand?.label || ''}</small></div>
+        <div class="actions">
+          <button class="btn btn-sm btn-dark" onclick="editPerfume('${p.id}')">✎</button>
+          <button class="btn btn-sm btn-danger" onclick="delPerfume('${p.id}')">🗑</button>
+        </div>
+      </div>`;
+    }).join('')}
+    </div>`;
+}
+
+function renderPricesTab() {
+  return `<p style="margin-bottom:16px;color:#666;">الأسعار حسب التركيز والحجم</p>
+    ${cache.intensities.map(i => `
+      <div style="margin-bottom:16px;padding:14px;background:#faf8f3;border-radius:10px;">
+        <strong style="color:#b8942e;">${i.name}</strong>
+        ${cache.sizes.map(s => {
+          const row = cache.prices.find(p => p.intensity_id === i.id && p.size_id === s.id);
+          return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;">
+            <span style="min-width:60px;">${s.label}</span>
+            <input type="number" value="${row?.price || 0}" onchange="updatePrice(${i.id}, ${s.id}, this.value)" style="padding:6px 10px;border:2px solid #e0dcd0;border-radius:8px;width:120px;">
+            <span>₺</span>
+          </div>`;
+        }).join('')}
+      </div>`).join('')}`;
+}
+
+async function updatePrice(intensityId, sizeId, val) {
+  const price = parseFloat(val) || 0;
+  const existing = cache.prices.find(p => p.intensity_id === intensityId && p.size_id === sizeId);
+  if (existing) {
+    await sb.from('perfume_prices').update({ price }).eq('id', existing.id);
+    existing.price = price;
+  } else {
+    const { data } = await sb.from('perfume_prices').insert([{ intensity_id: intensityId, size_id: sizeId, price }]).select();
+    if (data) cache.prices.push(data[0]);
+  }
+  alert('✅ تم الحفظ');
+}
+
+// ============ CAT FORM ============
+let catImageFile = null;
+function openCatForm(table, type) {
+  catImageFile = null;
+  document.getElementById('catFormTitle').innerText = 'إضافة';
+  document.getElementById('cat-id').value = '';
+  document.getElementById('cat-table').value = table;
+  document.getElementById('cat-name').value = '';
+  document.getElementById('cat-price-diff').value = '0';
+  document.getElementById('cat-image').value = '';
+  document.getElementById('cat-image-preview').innerHTML = '';
+  document.getElementById('cat-price-diff-group').style.display = table === 'perfume_bottles' ? 'block' : 'none';
+  if (type) document.getElementById('cat-table').dataset.type = type;
+  document.getElementById('catFormModal').classList.add('open');
+}
+
+function editCat(table, id) {
+  let item;
+  if (table === 'perfume_sizes') item = cache.sizes.find(x => x.id === id);
+  else if (table === 'perfume_intensities') item = cache.intensities.find(x => x.id === id);
+  else if (table === 'perfume_bottles') item = cache.bottles.find(x => x.id === id);
+  else item = [...cache.genders, ...cache.scents, ...cache.brands].find(x => x.id === id);
+  if (!item) return;
+  catImageFile = null;
+  document.getElementById('catFormTitle').innerText = 'تعديل';
+  document.getElementById('cat-id').value = id;
+  document.getElementById('cat-table').value = table;
+  document.getElementById('cat-name').value = item.label || item.name;
+  document.getElementById('cat-price-diff').value = item.price_diff || 0;
+  document.getElementById('cat-price-diff-group').style.display = table === 'perfume_bottles' ? 'block' : 'none';
+  document.getElementById('cat-image-preview').innerHTML = item.image_url ? `<img src="${item.image_url}" style="max-width:100px;border-radius:8px;">` : '';
+  document.getElementById('catFormModal').classList.add('open');
+}
+
+async function saveCat() {
+  const table = document.getElementById('cat-table').value;
+  const id = document.getElementById('cat-id').value;
+  const name = document.getElementById('cat-name').value.trim();
+  const priceDiff = parseFloat(document.getElementById('cat-price-diff').value) || 0;
+  const fileInput = document.getElementById('cat-image');
+  if (!name) { alert('الاسم مطلوب'); return; }
+
+  let imageUrl = null;
+  if (fileInput.files[0]) {
+    const file = fileInput.files[0];
+    const base64 = await fileToBase64(file);
+    const res = await fetch('/api/b2-upload', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + session.access_token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ base64, contentType: file.type, site: 'perfume' })
+    });
+    const data = await res.json();
+    if (data.key) imageUrl = '/api/b2-image?key=' + encodeURIComponent(data.key);
+  }
+
+  const payload = {};
+  if (table === 'perfume_sizes') payload.label = name;
+  else if (table === 'perfume_intensities') payload.name = name;
+  else if (table === 'perfume_bottles') { payload.name = name; payload.price_diff = priceDiff; }
+  else payload.label = name;
+
+  if (table === 'categories') payload.type = document.getElementById('cat-table').dataset.type || 'gender';
+  if (imageUrl) payload.image_url = imageUrl;
+
+  let err;
+  if (id) {
+    const r = await sb.from(table).update(payload).eq('id', id);
+    err = r.error;
+  } else {
+    payload.sort_order = 999;
+    payload.active = true;
+    const r = await sb.from(table).insert([payload]);
+    err = r.error;
+  }
+  if (err) { alert('خطأ: ' + err.message); return; }
+  await loadAll();
+  closeModal('catFormModal');
+  const activeTab = document.querySelector('.tab-btn.active')?.innerText || 'الأحجام';
+  const tabMap = { 'الأحجام': 'sizes', 'التركيزات': 'intensities', 'القوارير': 'bottles', 'الجنس': 'genders', 'العائلات': 'scents', 'الماركات': 'brands' };
+  showTab(tabMap[activeTab] || 'sizes');
+}
+
+async function delCat(table, id) {
+  if (!confirm('تأكيد الحذف؟')) return;
+  const { error } = await sb.from(table).delete().eq('id', id);
+  if (error) { alert('خطأ: ' + error.message); return; }
+  await loadAll();
+  const activeTab = document.querySelector('.tab-btn.active')?.innerText || 'الأحجام';
+  const tabMap = { 'الأحجام': 'sizes', 'التركيزات': 'intensities', 'القوارير': 'bottles', 'الجنس': 'genders', 'العائلات': 'scents', 'الماركات': 'brands' };
+  showTab(tabMap[activeTab] || 'sizes');
+}
+
+// ============ PERFUME FORM ============
+function openPerfumeForm() {
+  document.getElementById('perfumeFormTitle').innerText = 'إضافة عطر';
+  document.getElementById('pf-id').value = '';
+  document.getElementById('pf-name').value = '';
+  document.getElementById('pf-desc').value = '';
+  document.getElementById('pf-top').value = '';
+  document.getElementById('pf-middle').value = '';
+  document.getElementById('pf-base').value = '';
+  fillSelect('pf-brand', cache.brands);
+  fillSelect('pf-gender', cache.genders);
+  fillSelect('pf-scent', cache.scents);
+  renderPricesGrid();
+  document.getElementById('perfumeFormModal').classList.add('open');
+}
+
+function editPerfume(id) {
+  const p = cache.perfumes.find(x => x.id === id);
+  if (!p) return;
+  document.getElementById('perfumeFormTitle').innerText = 'تعديل عطر';
+  document.getElementById('pf-id').value = p.id;
+  document.getElementById('pf-name').value = p.name;
+  fillSelect('pf-brand', cache.brands, p.brand_id);
+  fillSelect('pf-gender', cache.genders, p.gender_id);
+  fillSelect('pf-scent', cache.scents, p.scent_family_id);
+  document.getElementById('pf-desc').value = p.description || '';
+  document.getElementById('pf-top').value = p.notes_top || '';
+  document.getElementById('pf-middle').value = p.notes_middle || '';
+  document.getElementById('pf-base').value = p.notes_base || '';
+  renderPricesGrid();
+  document.getElementById('perfumeFormModal').classList.add('open');
+}
+
+function fillSelect(id, items, selected) {
+  const sel = document.getElementById(id);
+  sel.innerHTML = items.map(i => `<option value="${i.id}" ${i.id === selected ? 'selected' : ''}>${i.label || i.name}</option>`).join('');
+}
+
+function renderPricesGrid() {
+  const c = document.getElementById('pf-prices-grid');
+  c.innerHTML = '<small style="color:#888;">يتم تعديل الأسعار من تبويب "الأسعار"</small>';
+}
+
+async function savePerfume() {
+  const id = document.getElementById('pf-id').value;
+  const payload = {
+    name: document.getElementById('pf-name').value.trim(),
+    brand_id: parseInt(document.getElementById('pf-brand').value),
+    gender_id: parseInt(document.getElementById('pf-gender').value),
+    scent_family_id: parseInt(document.getElementById('pf-scent').value),
+    description: document.getElementById('pf-desc').value.trim(),
+    notes_top: document.getElementById('pf-top').value.trim(),
+    notes_middle: document.getElementById('pf-middle').value.trim(),
+    notes_base: document.getElementById('pf-base').value.trim(),
+    active: true
+  };
+  if (!payload.name) { alert('الاسم مطلوب'); return; }
+  let err;
+  if (id) {
+    const r = await sb.from('perfumes').update(payload).eq('id', id);
+    err = r.error;
+  } else {
+    payload.id = 'perfume_' + Date.now();
+    const r = await sb.from('perfumes').insert([payload]);
+    err = r.error;
+  }
+  if (err) { alert('خطأ: ' + err.message); return; }
+  await loadAll();
+  closeModal('perfumeFormModal');
+  showTab('perfumes');
+}
+
+async function delPerfume(id) {
+  if (!confirm('تأكيد الحذف؟')) return;
+  const { error } = await sb.from('perfumes').delete().eq('id', id);
+  if (error) { alert('خطأ: ' + error.message); return; }
+  await loadAll();
+  showTab('perfumes');
+}
+
+// ============ HELPERS ============
+function fileToBase64(file) {
+  return new Promise((resolve) => {
+    const r = new FileReader();
+    r.onload = e => resolve(e.target.result);
+    r.readAsDataURL(file);
+  });
+}
+
+// Admin access: type "admin" in search
+document.addEventListener('keydown', (e) => {
+  if (e.ctrlKey && e.shiftKey && e.key === 'A') {
+    e.preventDefault();
+    if (isAdmin) openAdmin();
+    else openLogin();
+  }
+});
+
+init();
+</script>
+</body>
+</html>
