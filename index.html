@@ -87,8 +87,6 @@ body { background: #f5f3ef; color: #2c2c2c; min-height: 100vh; padding-bottom: 4
 .empty { text-align: center; padding: 40px 20px; color: #999; }
 .loading { text-align: center; padding: 40px; color: #d4af37; font-weight: 700; }
 
-.cart-item { display: flex; justify-content: space-between; padding: 12px; background: #faf8f3; border-radius: 10px; margin-bottom: 8px; }
-
 .whatsapp-float { position: fixed; bottom: 20px; left: 20px; background: #25d366; color: #fff; width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 20px rgba(37,211,102,0.5); cursor: pointer; border: none; font-size: 1.5rem; z-index: 99; }
 
 #secretDot { position: fixed; bottom: 5px; right: 5px; width: 20px; height: 20px; cursor: pointer; z-index: 9999; }
@@ -153,7 +151,7 @@ body { background: #f5f3ef; color: #2c2c2c; min-height: 100vh; padding-bottom: 4
       <label>الحجم المرتبط</label>
       <select id="cat-size"></select>
     </div>
-    <div class="form-group">
+    <div class="form-group" id="cat-image-group">
       <label>الصورة</label>
       <input type="file" id="cat-image" accept="image/*">
       <div id="cat-image-preview" style="margin-top:8px;"></div>
@@ -579,9 +577,7 @@ async function updatePrice(intensityId, sizeId, val) {
 }
 
 // ============ CAT FORM ============
-let catImageFile = null;
 function openCatForm(table, type) {
-  catImageFile = null;
   document.getElementById('catFormTitle').innerText = 'إضافة';
   document.getElementById('cat-id').value = '';
   document.getElementById('cat-table').value = table;
@@ -591,6 +587,7 @@ function openCatForm(table, type) {
   document.getElementById('cat-image-preview').innerHTML = '';
   document.getElementById('cat-price-diff-group').style.display = table === 'perfume_bottles' ? 'block' : 'none';
   document.getElementById('cat-size-group').style.display = table === 'perfume_bottles' ? 'block' : 'none';
+  document.getElementById('cat-image-group').style.display = table === 'categories' ? 'none' : 'block';
   if (table === 'perfume_bottles') {
     const sel = document.getElementById('cat-size');
     sel.innerHTML = cache.sizes.map(s => `<option value="${s.id}">${s.label}</option>`).join('');
@@ -606,7 +603,6 @@ function editCat(table, id) {
   else if (table === 'perfume_bottles') item = cache.bottles.find(x => x.id === id);
   else item = [...cache.genders, ...cache.scents, ...cache.brands].find(x => x.id === id);
   if (!item) return;
-  catImageFile = null;
   document.getElementById('catFormTitle').innerText = 'تعديل';
   document.getElementById('cat-id').value = id;
   document.getElementById('cat-table').value = table;
@@ -614,6 +610,7 @@ function editCat(table, id) {
   document.getElementById('cat-price-diff').value = item.price_diff || 0;
   document.getElementById('cat-price-diff-group').style.display = table === 'perfume_bottles' ? 'block' : 'none';
   document.getElementById('cat-size-group').style.display = table === 'perfume_bottles' ? 'block' : 'none';
+  document.getElementById('cat-image-group').style.display = table === 'categories' ? 'none' : 'block';
   if (table === 'perfume_bottles') {
     const sel = document.getElementById('cat-size');
     sel.innerHTML = cache.sizes.map(s => `<option value="${s.id}" ${s.id === item.size_id ? 'selected' : ''}>${s.label}</option>`).join('');
@@ -631,7 +628,7 @@ async function saveCat() {
   if (!name) { alert('الاسم مطلوب'); return; }
 
   let imageUrl = null;
-  if (fileInput.files[0]) {
+  if (table !== 'categories' && fileInput.files[0]) {
     const file = fileInput.files[0];
     const base64 = await fileToBase64(file);
     const res = await fetch('/api/b2-upload', {
@@ -651,18 +648,23 @@ async function saveCat() {
     payload.price_diff = priceDiff;
     payload.size_id = parseInt(document.getElementById('cat-size').value);
   }
-  else payload.label = name;
+  else {
+    payload.label = name;
+    payload.value = name.toLowerCase().replace(/\s+/g, '_');
+  }
 
   if (table === 'categories') payload.type = document.getElementById('cat-table').dataset.type || 'gender';
-  if (imageUrl) payload.image_url = imageUrl;
+  if (imageUrl && table !== 'categories') payload.image_url = imageUrl;
 
   let err;
   if (id) {
     const r = await sb.from(table).update(payload).eq('id', id);
     err = r.error;
   } else {
-    payload.sort_order = 999;
-    payload.active = true;
+    if (table !== 'categories') {
+      payload.sort_order = 999;
+      payload.active = true;
+    }
     const r = await sb.from(table).insert([payload]);
     err = r.error;
   }
@@ -767,7 +769,7 @@ function fileToBase64(file) {
 }
 
 // ============ ADMIN ACCESS ============
-// 1. Ctrl + Shift (A'sız)
+// 1. Ctrl + Shift
 document.addEventListener('keyup', (e) => {
   if (e.ctrlKey && e.shiftKey && !e.altKey && !e.metaKey &&
       e.key !== 'Control' && e.key !== 'Shift') {
@@ -784,7 +786,7 @@ if (new URLSearchParams(window.location.search).get('admin') === '1') {
   }, 500);
 }
 
-// 3. Gizli nokta butonu (sağ alt köşe, 5 kere tıkla)
+// 3. Gizli nokta (5 kere tıkla)
 let secretClickCount = 0;
 let secretClickTimer = null;
 document.addEventListener('click', (e) => {
