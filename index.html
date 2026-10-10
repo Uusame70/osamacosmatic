@@ -87,6 +87,12 @@ body { background: #f5f3ef; color: #2c2c2c; min-height: 100vh; padding-bottom: 4
 .empty { text-align: center; padding: 40px 20px; color: #999; }
 .loading { text-align: center; padding: 40px; color: #d4af37; font-weight: 700; }
 
+.price-table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 12px; overflow: hidden; margin-top: 12px; }
+.price-table th, .price-table td { padding: 10px; text-align: center; border-bottom: 1px solid #f0ede6; font-size: 0.9rem; }
+.price-table th { background: #1a1a1a; color: #d4af37; font-weight: 700; }
+.price-table td input { width: 90px; padding: 6px 8px; border: 2px solid #e0dcd0; border-radius: 6px; text-align: center; font-family: inherit; font-size: 0.9rem; }
+.price-table td input:focus { outline: none; border-color: #d4af37; }
+
 .whatsapp-float { position: fixed; bottom: 20px; left: 20px; background: #25d366; color: #fff; width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 20px rgba(37,211,102,0.5); cursor: pointer; border: none; font-size: 1.5rem; z-index: 99; }
 
 #secretDot { position: fixed; bottom: 5px; right: 5px; width: 20px; height: 20px; cursor: pointer; z-index: 9999; }
@@ -96,6 +102,7 @@ body { background: #f5f3ef; color: #2c2c2c; min-height: 100vh; padding-bottom: 4
   .step-title { font-size: 1.1rem; }
   .option-btn { padding: 14px 8px; font-size: 0.9rem; }
   .option-btn img { width: 55px; height: 55px; }
+  .price-table td input { width: 70px; }
 }
 </style>
 </head>
@@ -217,6 +224,7 @@ let isAdmin = false;
 let currentStep = 0;
 let selection = { ml: null, intensity: null, gender: null, perfume: null, bottle: null };
 let cache = { sizes: [], intensities: [], bottles: [], genders: [], scents: [], brands: [], perfumes: [], prices: [] };
+let selectedPricePerfume = null;
 
 // ============ INIT ============
 async function init() {
@@ -401,7 +409,11 @@ function goBack() {
 }
 
 function getBasePrice(perfumeId, intensityId, sizeId) {
-  const row = cache.prices.find(p => p.intensity_id === intensityId && p.size_id === sizeId);
+  const row = cache.prices.find(p =>
+    p.perfume_id === perfumeId &&
+    p.intensity_id === intensityId &&
+    p.size_id === sizeId
+  );
   return row?.price || 0;
 }
 
@@ -548,32 +560,55 @@ function renderPerfumesTab() {
 }
 
 function renderPricesTab() {
-  return `<p style="margin-bottom:16px;color:#666;">الأسعار حسب التركيز والحجم</p>
-    ${cache.intensities.map(i => `
-      <div style="margin-bottom:16px;padding:14px;background:#faf8f3;border-radius:10px;">
-        <strong style="color:#b8942e;">${i.name}</strong>
-        ${cache.sizes.map(s => {
-          const row = cache.prices.find(p => p.intensity_id === i.id && p.size_id === s.id);
-          return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;">
-            <span style="min-width:60px;">${s.label}</span>
-            <input type="number" value="${row?.price || 0}" onchange="updatePrice(${i.id}, ${s.id}, this.value)" style="padding:6px 10px;border:2px solid #e0dcd0;border-radius:8px;width:120px;">
-            <span>₺</span>
-          </div>`;
-        }).join('')}
-      </div>`).join('')}`;
+  if (cache.perfumes.length === 0) {
+    return '<div class="empty">لا توجد عطور. أضف عطراً أولاً.</div>';
+  }
+  const perf = selectedPricePerfume || cache.perfumes[0].id;
+  const p = cache.perfumes.find(x => x.id === perf);
+  return `
+    <div class="form-group">
+      <label>اختر العطر</label>
+      <select onchange="selectedPricePerfume=this.value;showTab('prices')">
+        ${cache.perfumes.map(x => `<option value="${x.id}" ${x.id === perf ? 'selected' : ''}>${x.name}</option>`).join('')}
+      </select>
+    </div>
+    <p style="margin:16px 0;color:#666;">أسعار "${p?.name}" حسب التركيز والحجم:</p>
+    <table class="price-table">
+      <thead>
+        <tr>
+          <th>الحجم</th>
+          ${cache.intensities.map(i => `<th>${i.name}</th>`).join('')}
+        </tr>
+      </thead>
+      <tbody>
+        ${cache.sizes.map(s => `
+          <tr>
+            <td><strong>${s.label}</strong></td>
+            ${cache.intensities.map(i => {
+              const row = cache.prices.find(pp => pp.perfume_id === perf && pp.intensity_id === i.id && pp.size_id === s.id);
+              return `<td><input type="number" value="${row?.price || 0}" onchange="updatePrice('${perf}', ${i.id}, ${s.id}, this.value)"></td>`;
+            }).join('')}
+          </tr>`).join('')}
+      </tbody>
+    </table>`;
 }
 
-async function updatePrice(intensityId, sizeId, val) {
+async function updatePrice(perfumeId, intensityId, sizeId, val) {
   const price = parseFloat(val) || 0;
-  const existing = cache.prices.find(p => p.intensity_id === intensityId && p.size_id === sizeId);
+  const existing = cache.prices.find(p =>
+    p.perfume_id === perfumeId &&
+    p.intensity_id === intensityId &&
+    p.size_id === sizeId
+  );
   if (existing) {
     await sb.from('perfume_prices').update({ price }).eq('id', existing.id);
     existing.price = price;
   } else {
-    const { data } = await sb.from('perfume_prices').insert([{ intensity_id: intensityId, size_id: sizeId, price }]).select();
+    const { data } = await sb.from('perfume_prices')
+      .insert([{ perfume_id: perfumeId, intensity_id: intensityId, size_id: sizeId, price }])
+      .select();
     if (data) cache.prices.push(data[0]);
   }
-  alert('✅ تم الحفظ');
 }
 
 // ============ CAT FORM ============
@@ -769,7 +804,6 @@ function fileToBase64(file) {
 }
 
 // ============ ADMIN ACCESS ============
-// 1. Ctrl + Shift
 document.addEventListener('keyup', (e) => {
   if (e.ctrlKey && e.shiftKey && !e.altKey && !e.metaKey &&
       e.key !== 'Control' && e.key !== 'Shift') {
@@ -778,7 +812,6 @@ document.addEventListener('keyup', (e) => {
   }
 });
 
-// 2. URL ile: ?admin=1
 if (new URLSearchParams(window.location.search).get('admin') === '1') {
   setTimeout(() => {
     if (isAdmin) openAdmin();
@@ -786,7 +819,6 @@ if (new URLSearchParams(window.location.search).get('admin') === '1') {
   }, 500);
 }
 
-// 3. Gizli nokta (5 kere tıkla)
 let secretClickCount = 0;
 let secretClickTimer = null;
 document.addEventListener('click', (e) => {
