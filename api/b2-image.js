@@ -1,4 +1,3 @@
-// api/b2-image.js
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 
 const B2_KEY_ID = process.env.B2_KEY_ID || '0052a17b1b477e60000000001';
