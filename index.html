@@ -33,9 +33,12 @@ body { background: #f5f3ef; color: #2c2c2c; min-height: 100vh; padding-bottom: 4
 .perfume-list { display: grid; gap: 12px; }
 .perfume-item { background: #fff; border: 2px solid #e0dcd0; border-radius: 14px; padding: 18px 20px; cursor: pointer; transition: all 0.2s; display: flex; justify-content: space-between; align-items: center; }
 .perfume-item:hover { border-color: #d4af37; transform: translateX(-4px); box-shadow: 0 6px 16px rgba(212,175,55,0.15); }
+.perfume-item.active { background: linear-gradient(135deg, #d4af37, #b8942e); color: #fff; border-color: #b8942e; }
+.perfume-item.active .name, .perfume-item.active .brand { color: #fff; }
 .perfume-item .name { font-weight: 800; font-size: 1.05rem; color: #1a1a1a; }
 .perfume-item .brand { font-size: 0.8rem; color: #888; margin-top: 2px; }
 .perfume-item .price { font-weight: 900; color: #b8942e; font-size: 1.1rem; }
+.perfume-item.active .price { color: #fff; }
 .detail-card { background: #fff; border-radius: 18px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); margin-bottom: 20px; }
 .detail-card h2 { font-size: 1.5rem; font-weight: 900; color: #1a1a1a; margin-bottom: 6px; }
 .detail-card .subtitle { color: #888; font-size: 0.9rem; margin-bottom: 18px; }
@@ -79,12 +82,52 @@ body { background: #f5f3ef; color: #2c2c2c; min-height: 100vh; padding-bottom: 4
 .price-table td input:focus { outline: none; border-color: #d4af37; }
 .whatsapp-float { position: fixed; bottom: 20px; left: 20px; background: #25d366; color: #fff; width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 20px rgba(37,211,102,0.5); cursor: pointer; border: none; font-size: 1.5rem; z-index: 99; }
 #secretDot { position: fixed; bottom: 5px; right: 5px; width: 20px; height: 20px; cursor: pointer; z-index: 9999; }
+
+/* ═══ BREADCRUMB ═══ */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 15px;
+  background: linear-gradient(135deg, #1a1a1a, #2c2c2c);
+  border-radius: 14px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.breadcrumb-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.1);
+  color: #999;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.breadcrumb-item.active {
+  background: linear-gradient(135deg, #d4af37, #b8942e);
+  color: #fff;
+}
+.breadcrumb-item:not(.active):hover {
+  background: rgba(212,175,55,0.2);
+}
+.bc-icon { font-size: 1rem; }
+.bc-label { max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bc-arrow { color: #666; font-size: 0.9rem; }
+
 @media (max-width: 600px) {
   .header h1 { font-size: 1.4rem; }
   .step-title { font-size: 1.1rem; }
   .option-btn { padding: 14px 8px; font-size: 0.9rem; }
   .option-btn img { width: 55px; height: 55px; }
   .price-table td input { width: 70px; }
+  .breadcrumb { gap: 4px; padding: 8px; }
+  .breadcrumb-item { padding: 4px 8px; font-size: 0.75rem; }
+  .bc-label { max-width: 60px; }
 }
 </style>
 </head>
@@ -210,6 +253,9 @@ async function init() {
   session = s;
   isAdmin = !!s;
   await loadAll();
+  // 50ml'yi otomatik seç
+  const size50 = cache.sizes.find(s => s.label.includes('50'));
+  if (size50) selection.ml = size50.id;
   render();
 }
 
@@ -248,50 +294,70 @@ function render() {
     </div>`;
   }
 
-  if (currentStep === 0) html += renderStepSize();
-  else if (currentStep === 1) html += renderStepIntensity();
-  else if (currentStep === 2) html += renderStepGender();
-  else if (currentStep === 3) html += renderStepPerfume();
-  else if (currentStep === 4) html += renderStepDetail();
-  else if (currentStep === 5) html += renderStepBottle();
+  html += renderBreadcrumb();
+
+  if (currentStep === 0) html += renderStepGender();
+  else if (currentStep === 1) html += renderStepPerfume();
+  else if (currentStep === 2) html += renderStepIntensity();
+  else if (currentStep === 3) html += renderStepBottle();
 
   c.innerHTML = html;
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function renderStepSize() {
-  if (cache.sizes.length === 0) return '<div class="empty">لا توجد أحجام. يرجى إضافتها من لوحة التحكم.</div>';
-  return `<div class="step-title">اختر الحجم<small>الخطوة 1 من 6</small></div>
-    <div class="options-grid">
-      ${cache.sizes.map(s => `<div class="option-btn" onclick="pick('ml', ${s.id})">${s.label}</div>`).join('')}
+function renderBreadcrumb() {
+  const gender = cache.genders.find(g => g.id === selection.gender);
+  const perfume = cache.perfumes.find(p => p.id === selection.perfume);
+  const intensity = cache.intensities.find(i => i.id === selection.intensity);
+  const bottle = cache.bottles.find(b => b.id === selection.bottle);
+
+  const items = [
+    { icon: '👤', label: gender?.label || 'الجنس', active: !!gender, step: 0 },
+    { icon: '🌸', label: perfume?.name || 'العطر', active: !!perfume, step: 1 },
+    { icon: '💧', label: intensity?.name || 'التركيز', active: !!intensity, step: 2 },
+    { icon: '🍾', label: bottle?.name || 'زجاجة', active: !!bottle, step: 3 }
+  ];
+
+  let html = '<div class="breadcrumb">';
+  items.forEach((item, idx) => {
+    const cls = item.active ? 'active' : '';
+    html += `<div class="breadcrumb-item ${cls}" onclick="jumpToStep(${item.step})">
+      <span class="bc-icon">${item.icon}</span>
+      <span class="bc-label">${item.label}</span>
     </div>`;
+    if (idx < items.length - 1) html += '<span class="bc-arrow">←</span>';
+  });
+  html += '</div>';
+  return html;
 }
 
-function renderStepIntensity() {
-  return `<div class="step-title">اختر التركيز<small>الخطوة 2 من 6</small></div>
-    <div class="options-grid">
-      ${cache.intensities.map(i => `<div class="option-btn" onclick="pick('intensity', ${i.id})">${i.name}</div>`).join('')}
-    </div>
-    <div class="nav-bar"><button class="btn btn-dark" onclick="goBack()">رجوع</button></div>`;
+function jumpToStep(step) {
+  if (step <= currentStep) {
+    currentStep = step;
+    if (step < 1) { selection.perfume = null; selection.intensity = null; selection.bottle = null; }
+    if (step < 2) { selection.intensity = null; selection.bottle = null; }
+    if (step < 3) { selection.bottle = null; }
+    render();
+  }
 }
 
 function renderStepGender() {
   if (cache.genders.length === 0) return '<div class="empty">لا توجد فئات جنس. يرجى إضافتها من لوحة التحكم.</div>';
-  return `<div class="step-title">لمن العطر؟<small>الخطوة 3 من 6</small></div>
+  return `<div class="step-title">لمن العطر؟<small>١ / ٤</small></div>
     <div class="options-grid">
-      ${cache.genders.map(g => `<div class="option-btn" onclick="pick('gender', ${g.id})">${g.label}</div>`).join('')}
-    </div>
-    <div class="nav-bar"><button class="btn btn-dark" onclick="goBack()">رجوع</button></div>`;
+      ${cache.genders.map(g => `<div class="option-btn ${selection.gender === g.id ? 'active' : ''}" onclick="pick('gender', ${g.id})">${g.label}</div>`).join('')}
+    </div>`;
 }
 
 function renderStepPerfume() {
   const list = cache.perfumes.filter(p => p.gender_id === selection.gender);
   if (list.length === 0) return `<div class="step-title">لا توجد عطور متاحة</div><div class="nav-bar"><button class="btn btn-dark" onclick="goBack()">رجوع</button></div>`;
-  return `<div class="step-title">اختر العطر<small>الخطوة 4 من 6</small></div>
+  return `<div class="step-title">اختر العطر<small>٢ / ٤</small></div>
     <div class="perfume-list">
       ${list.map(p => {
         const brand = cache.brands.find(b => b.id === p.brand_id);
-        return `<div class="perfume-item" onclick="pickPerfume('${p.id}')">
+        const cls = selection.perfume === p.id ? 'active' : '';
+        return `<div class="perfume-item ${cls}" onclick="pickPerfume('${p.id}')">
           <div><div class="name">${p.name}</div><div class="brand">${brand?.label || ''}</div></div>
           <div class="price">→</div>
         </div>`;
@@ -300,23 +366,39 @@ function renderStepPerfume() {
     <div class="nav-bar"><button class="btn btn-dark" onclick="goBack()">رجوع</button></div>`;
 }
 
-function renderStepDetail() {
+function renderStepIntensity() {
+  return `<div class="step-title">اختر التركيز<small>٣ / ٤</small></div>
+    <div class="options-grid">
+      ${cache.intensities.map(i => `<div class="option-btn ${selection.intensity === i.id ? 'active' : ''}" onclick="pick('intensity', ${i.id})">${i.name}</div>`).join('')}
+    </div>
+    <div class="nav-bar"><button class="btn btn-dark" onclick="goBack()">رجوع</button></div>`;
+}
+
+function renderStepBottle() {
   const p = cache.perfumes.find(x => x.id === selection.perfume);
   if (!p) return '<div class="empty">خطأ</div>';
+  const bottles = cache.bottles.filter(b => b.size_id === selection.ml);
+  const basePrice = getBasePrice(selection.perfume, selection.intensity, selection.ml);
   const brand = cache.brands.find(b => b.id === p.brand_id);
-  const gender = cache.genders.find(g => g.id === p.gender_id);
   const scent = cache.scents.find(s => s.id === p.scent_family_id);
-  const price = getBasePrice(selection.perfume, selection.intensity, selection.ml);
-  const mlLabel = cache.sizes.find(s => s.id === selection.ml)?.label || '';
+  const gender = cache.genders.find(g => g.id === p.gender_id);
   const intLabel = cache.intensities.find(i => i.id === selection.intensity)?.name || '';
+  const selectedBottle = cache.bottles.find(x => x.id === selection.bottle);
+  const total = basePrice + (selectedBottle?.price_diff || 0);
 
-  return `<div class="step-title">تفاصيل العطر<small>الخطوة 5 من 6</small></div>
+  if (bottles.length === 0) return `
+    <div class="step-title">زجاجة<small>٤ / ٤</small></div>
+    <div class="empty">لا توجد زجاجات متاحة</div>
+    <div class="nav-bar"><button class="btn btn-dark" onclick="goBack()">رجوع</button></div>`;
+
+  return `<div class="step-title">زجاجة<small>٤ / ٤</small></div>
+
     <div class="detail-card">
       <h2>${p.name}</h2>
       <div class="subtitle">${brand?.label || ''}</div>
       <div class="detail-row"><span class="label">الجنس</span><span class="value">${gender?.label || ''}</span></div>
       <div class="detail-row"><span class="label">العائلة</span><span class="value">${scent?.label || ''}</span></div>
-      <div class="detail-row"><span class="label">الحجم</span><span class="value">${mlLabel}</span></div>
+      <div class="detail-row"><span class="label">الحجم</span><span class="value">50ml</span></div>
       <div class="detail-row"><span class="label">التركيز</span><span class="value">${intLabel}</span></div>
       ${p.description ? `<div class="detail-row"><span class="label">الوصف</span><span class="value">${p.description}</span></div>` : ''}
       ${(p.notes_top || p.notes_middle || p.notes_base) ? `
@@ -326,22 +408,8 @@ function renderStepDetail() {
           ${p.notes_middle ? `<div class="note-item"><span class="note-label">الوسطى:</span><span>${p.notes_middle}</span></div>` : ''}
           ${p.notes_base ? `<div class="note-item"><span class="note-label">الأساسية:</span><span>${p.notes_base}</span></div>` : ''}
         </div>` : ''}
-      <div class="total-box">
-        <div class="label">السعر الأساسي</div>
-        <div class="amount">${price} ₺</div>
-      </div>
     </div>
-    <div class="nav-bar">
-      <button class="btn btn-dark" onclick="goBack()">رجوع</button>
-      <button class="btn btn-primary" onclick="currentStep=5;render()">التالي: اختر القارورة</button>
-    </div>`;
-}
 
-function renderStepBottle() {
-  const bottles = cache.bottles.filter(b => b.size_id === selection.ml);
-  const basePrice = getBasePrice(selection.perfume, selection.intensity, selection.ml);
-  if (bottles.length === 0) return '<div class="empty">لا توجد قوارير لهذا الحجم</div>';
-  return `<div class="step-title">اختر القارورة<small>الخطوة 6 من 6</small></div>
     <div class="options-grid">
       ${bottles.map(b => `<div class="option-btn ${selection.bottle === b.id ? 'active' : ''}" onclick="pickBottle(${b.id})">
         ${b.image_url ? `<img src="${b.image_url}">` : ''}
@@ -349,28 +417,29 @@ function renderStepBottle() {
         <div class="price-tag">${b.price_diff > 0 ? '+' + b.price_diff + ' ₺' : 'مجاناً'}</div>
       </div>`).join('')}
     </div>
+
     ${selection.bottle ? `
       <div class="total-box">
         <div class="label">الإجمالي</div>
-        <div class="amount">${basePrice + (cache.bottles.find(x => x.id === selection.bottle)?.price_diff || 0)} ₺</div>
+        <div class="amount">${total} ₺</div>
       </div>
       <div class="nav-bar">
         <button class="btn btn-success" onclick="addToCart()">🛒 أضف إلى السلة</button>
       </div>` : ''}
+
     <div class="nav-bar"><button class="btn btn-dark" onclick="goBack()">رجوع</button></div>`;
 }
 
 function pick(field, id) {
   selection[field] = id;
-  if (field === 'ml') currentStep = 1;
-  else if (field === 'intensity') currentStep = 2;
-  else if (field === 'gender') currentStep = 3;
+  if (field === 'gender') currentStep = 1;
+  else if (field === 'intensity') currentStep = 3;
   render();
 }
 
 function pickPerfume(id) {
   selection.perfume = id;
-  currentStep = 4;
+  currentStep = 2;
   render();
 }
 
@@ -380,7 +449,12 @@ function pickBottle(id) {
 }
 
 function goBack() {
-  if (currentStep > 0) currentStep--;
+  if (currentStep > 0) {
+    currentStep--;
+    if (currentStep < 1) { selection.perfume = null; selection.intensity = null; selection.bottle = null; }
+    else if (currentStep < 2) { selection.intensity = null; selection.bottle = null; }
+    else if (currentStep < 3) { selection.bottle = null; }
+  }
   render();
 }
 
@@ -398,11 +472,10 @@ function addToCart() {
   const b = cache.bottles.find(x => x.id === selection.bottle);
   const base = getBasePrice(selection.perfume, selection.intensity, selection.ml);
   const total = base + (b?.price_diff || 0);
-  const mlLabel = cache.sizes.find(s => s.id === selection.ml)?.label;
   const intLabel = cache.intensities.find(i => i.id === selection.intensity)?.name;
   let cart = JSON.parse(localStorage.getItem('perfume_cart') || '[]');
   cart.push({
-    perfume: p.name, ml: mlLabel, intensity: intLabel,
+    perfume: p.name, ml: '50ml', intensity: intLabel,
     bottle: b.name, bottle_price_diff: b.price_diff, total, added: new Date().toISOString()
   });
   localStorage.setItem('perfume_cart', JSON.stringify(cart));
@@ -808,4 +881,3 @@ init();
 </script>
 </body>
 </html>
-
