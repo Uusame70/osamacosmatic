@@ -29,6 +29,7 @@ body { background: #f5f3ef; color: #2c2c2c; min-height: 100vh; padding-bottom: 4
 .btn-dark { background: #1a1a1a; color: #fff; }
 .btn-danger { background: #e74c3c; color: #fff; }
 .btn-success { background: #25d366; color: #fff; }
+.btn-warning { background: #f39c12; color: #fff; }
 .btn-sm { padding: 8px 16px; font-size: 0.85rem; }
 .perfume-list { display: grid; gap: 12px; }
 .perfume-item { background: #fff; border: 2px solid #e0dcd0; border-radius: 14px; padding: 18px 20px; cursor: pointer; transition: all 0.2s; display: flex; justify-content: space-between; align-items: center; }
@@ -82,42 +83,13 @@ body { background: #f5f3ef; color: #2c2c2c; min-height: 100vh; padding-bottom: 4
 .price-table td input:focus { outline: none; border-color: #d4af37; }
 .whatsapp-float { position: fixed; bottom: 20px; left: 20px; background: #25d366; color: #fff; width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 20px rgba(37,211,102,0.5); cursor: pointer; border: none; font-size: 1.5rem; z-index: 99; }
 #secretDot { position: fixed; bottom: 5px; right: 5px; width: 20px; height: 20px; cursor: pointer; z-index: 9999; }
-
-.breadcrumb {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 12px 15px;
-  background: linear-gradient(135deg, #1a1a1a, #2c2c2c);
-  border-radius: 14px;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-}
-.breadcrumb-item {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 6px 12px;
-  border-radius: 20px;
-  background: rgba(255,255,255,0.1);
-  color: #999;
-  font-size: 0.85rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.breadcrumb-item.active {
-  background: linear-gradient(135deg, #d4af37, #b8942e);
-  color: #fff;
-}
-.breadcrumb-item:not(.active):hover {
-  background: rgba(212,175,55,0.2);
-}
+.breadcrumb { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 12px 15px; background: linear-gradient(135deg, #1a1a1a, #2c2c2c); border-radius: 14px; margin-bottom: 20px; flex-wrap: wrap; }
+.breadcrumb-item { display: flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: 20px; background: rgba(255,255,255,0.1); color: #999; font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+.breadcrumb-item.active { background: linear-gradient(135deg, #d4af37, #b8942e); color: #fff; }
+.breadcrumb-item:not(.active):hover { background: rgba(212,175,55,0.2); }
 .bc-icon { font-size: 1rem; }
 .bc-label { max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .bc-arrow { color: #666; font-size: 0.9rem; }
-
 @media (max-width: 600px) {
   .header h1 { font-size: 1.4rem; }
   .step-title { font-size: 1.1rem; }
@@ -129,7 +101,110 @@ body { background: #f5f3ef; color: #2c2c2c; min-height: 100vh; padding-bottom: 4
   .bc-label { max-width: 60px; }
 }
 </style>
-  const SUPABASE_URL = 'https://xmrdqepjtfycvtgcbkyy.supabase.co';
+</head>
+<body>
+
+<div id="app">
+  <div class="header">
+    <h1>متجر العطور</h1>
+    <p>اختر عطرك المفضل خطوة بخطوة</p>
+  </div>
+  <div class="container" id="mainContainer">
+    <div class="loading">جاري التحميل...</div>
+  </div>
+</div>
+
+<button class="whatsapp-float" onclick="openWhatsApp()" title="تواصل معنا">💬</button>
+<div id="secretDot"></div>
+
+<div id="loginModal" class="modal">
+  <div class="modal-content">
+    <h2>🔐 دخول المسؤول</h2>
+    <div class="form-group">
+      <label>البريد الإلكتروني</label>
+      <input type="email" id="login-email" dir="ltr">
+    </div>
+    <div class="form-group">
+      <label>كلمة المرور</label>
+      <input type="password" id="login-password" dir="ltr">
+    </div>
+    <div class="nav-bar">
+      <button class="btn btn-primary" onclick="doLogin()">دخول</button>
+      <button class="btn btn-danger" onclick="closeModal('loginModal')">إغلاق</button>
+    </div>
+  </div>
+</div>
+
+<div id="catFormModal" class="modal">
+  <div class="modal-content">
+    <h2 id="catFormTitle">إضافة</h2>
+    <input type="hidden" id="cat-id">
+    <input type="hidden" id="cat-table">
+    <div class="form-group">
+      <label>الاسم</label>
+      <input type="text" id="cat-name">
+    </div>
+    <div class="form-group" id="cat-price-diff-group" style="display:none;">
+      <label>فرق السعر (₺)</label>
+      <input type="number" id="cat-price-diff" value="0">
+    </div>
+    <div class="form-group" id="cat-size-group" style="display:none;">
+      <label>الحجم المرتبط</label>
+      <select id="cat-size"></select>
+    </div>
+    <div class="form-group" id="cat-image-group">
+      <label>الصورة</label>
+      <input type="file" id="cat-image" accept="image/*">
+      <div id="cat-image-preview" style="margin-top:8px;"></div>
+    </div>
+    <div class="nav-bar">
+      <button class="btn btn-primary" onclick="saveCat()">حفظ</button>
+      <button class="btn btn-danger" onclick="closeModal('catFormModal')">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<div id="perfumeFormModal" class="modal">
+  <div class="modal-content">
+    <h2 id="perfumeFormTitle">إضافة عطر</h2>
+    <input type="hidden" id="pf-id">
+    <div class="form-group">
+      <label>اسم العطر</label>
+      <input type="text" id="pf-name">
+    </div>
+    <div class="form-group">
+      <label>الماركة</label>
+      <select id="pf-brand"></select>
+    </div>
+    <div class="form-group">
+      <label>الجنس</label>
+      <select id="pf-gender"></select>
+    </div>
+    <div class="form-group">
+      <label>الوصف</label>
+      <textarea id="pf-desc" rows="3"></textarea>
+    </div>
+    <div class="form-group">
+      <label>النوتة العليا</label>
+      <input type="text" id="pf-top">
+    </div>
+    <div class="form-group">
+      <label>النوتة الوسطى</label>
+      <input type="text" id="pf-middle">
+    </div>
+    <div class="form-group">
+      <label>النوتة الأساسية</label>
+      <input type="text" id="pf-base">
+    </div>
+    <div class="nav-bar">
+      <button class="btn btn-primary" onclick="savePerfume()">حفظ</button>
+      <button class="btn btn-danger" onclick="closeModal('perfumeFormModal')">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://xmrdqepjtfycvtgcbkyy.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MgJhvhCdIg9oC40t--FZxQ_04A8dWkU';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -205,13 +280,7 @@ function render() {
   let html = '';
 
   if (isAdmin) {
-    html += `<div class="admin-bar">
-      <strong>👑 وضع المسؤول</strong>
-      <div class="btns">
-        <button class="btn btn-sm btn-primary" onclick="openAdmin()">لوحة التحكم</button>
-        <button class="btn btn-sm btn-danger" onclick="doLogout()">خروج</button>
-      </div>
-    </div>`;
+    html += '<div class="admin-bar"><strong>👑 وضع المسؤول</strong><div class="btns"><button class="btn btn-sm btn-primary" onclick="openAdmin()">لوحة التحكم</button><button class="btn btn-sm btn-danger" onclick="doLogout()">خروج</button></div></div>';
   }
 
   html += renderBreadcrumb();
@@ -241,17 +310,13 @@ function renderBreadcrumb() {
   let html = '<div class="breadcrumb">';
   items.forEach((item, idx) => {
     const cls = item.active ? 'active' : '';
-    html += `<div class="breadcrumb-item ${cls}" onclick="jumpToStep(${item.step})">
-      <span class="bc-icon">${item.icon}</span>
-      <span class="bc-label">${item.label}</span>
-    </div>`;
+    html += '<div class="breadcrumb-item ' + cls + '" onclick="jumpToStep(' + item.step + ')"><span class="bc-icon">' + item.icon + '</span><span class="bc-label">' + item.label + '</span></div>';
     if (idx < items.length - 1) html += '<span class="bc-arrow">←</span>';
   });
   html += '</div>';
   return html;
 }
 
-// ⚡ GÜNCELLENDİ: Seçimler silinmiyor
 function jumpToStep(step) {
   if (step <= currentStep) {
     currentStep = step;
@@ -261,35 +326,27 @@ function jumpToStep(step) {
 
 function renderStepGender() {
   if (cache.genders.length === 0) return '<div class="empty">لا توجد فئات جنس. يرجى إضافتها من لوحة التحكم.</div>';
-  return `<div class="step-title">لمن العطر؟<small>١ / ٤</small></div>
-    <div class="options-grid">
-      ${cache.genders.map(g => `<div class="option-btn ${selection.gender === g.id ? 'active' : ''}" onclick="pick('gender', ${g.id})">${g.label}</div>`).join('')}
-    </div>`;
+  return '<div class="step-title">لمن العطر؟<small>١ / ٤</small></div><div class="options-grid">' +
+    cache.genders.map(g => '<div class="option-btn ' + (selection.gender === g.id ? 'active' : '') + '" onclick="pick(\'gender\', ' + g.id + ')">' + g.label + '</div>').join('') +
+    '</div>';
 }
 
 function renderStepPerfume() {
   const list = cache.perfumes.filter(p => p.gender_id === selection.gender);
-  if (list.length === 0) return `<div class="step-title">لا توجد عطور متاحة</div><div class="nav-bar"><button class="btn btn-dark" onclick="goBack()">رجوع</button></div>`;
-  return `<div class="step-title">اختر العطر<small>٢ / ٤</small></div>
-    <div class="perfume-list">
-      ${list.map(p => {
-        const brand = cache.brands.find(b => b.id === p.brand_id);
-        const cls = selection.perfume === p.id ? 'active' : '';
-        return `<div class="perfume-item ${cls}" onclick="pickPerfume('${p.id}')">
-          <div><div class="name">${p.name}</div><div class="brand">${brand?.label || ''}</div></div>
-          <div class="price">→</div>
-        </div>`;
-      }).join('')}
-    </div>
-    <div class="nav-bar"><button class="btn btn-dark" onclick="goBack()">رجوع</button></div>`;
+  if (list.length === 0) return '<div class="step-title">لا توجد عطور متاحة</div><div class="nav-bar"><button class="btn btn-dark" onclick="goBack()">رجوع</button></div>';
+  return '<div class="step-title">اختر العطر<small>٢ / ٤</small></div><div class="perfume-list">' +
+    list.map(p => {
+      const brand = cache.brands.find(b => b.id === p.brand_id);
+      const cls = selection.perfume === p.id ? 'active' : '';
+      return '<div class="perfume-item ' + cls + '" onclick="pickPerfume(\'' + p.id + '\')"><div><div class="name">' + p.name + '</div><div class="brand">' + (brand?.label || '') + '</div></div><div class="price">→</div></div>';
+    }).join('') +
+    '</div><div class="nav-bar"><button class="btn btn-dark" onclick="goBack()">رجوع</button></div>';
 }
 
 function renderStepIntensity() {
-  return `<div class="step-title">اختر التركيز<small>٣ / ٤</small></div>
-    <div class="options-grid">
-      ${cache.intensities.map(i => `<div class="option-btn ${selection.intensity === i.id ? 'active' : ''}" onclick="pick('intensity', ${i.id})">${i.name}</div>`).join('')}
-    </div>
-    <div class="nav-bar"><button class="btn btn-dark" onclick="goBack()">رجوع</button></div>`;
+  return '<div class="step-title">اختر التركيز<small>٣ / ٤</small></div><div class="options-grid">' +
+    cache.intensities.map(i => '<div class="option-btn ' + (selection.intensity === i.id ? 'active' : '') + '" onclick="pick(\'intensity\', ' + i.id + ')">' + i.name + '</div>').join('') +
+    '</div><div class="nav-bar"><button class="btn btn-dark" onclick="goBack()">رجوع</button></div>';
 }
 
 function renderStepBottle() {
@@ -303,55 +360,39 @@ function renderStepBottle() {
   const selectedBottle = cache.bottles.find(x => x.id === selection.bottle);
   const total = basePrice + (selectedBottle?.price_diff || 0);
 
-  if (bottles.length === 0) return `
-    <div class="step-title">زجاجة<small>٤ / ٤</small></div>
-    <div class="empty">لا توجد زجاجات متاحة</div>
-    <div class="nav-bar"><button class="btn btn-dark" onclick="goBack()">رجوع</button></div>`;
+  if (bottles.length === 0) {
+    return '<div class="step-title">زجاجة<small>٤ / ٤</small></div><div class="empty">لا توجد زجاجات متاحة</div><div class="nav-bar"><button class="btn btn-dark" onclick="goBack()">رجوع</button></div>';
+  }
 
-  return `<div class="step-title">زجاجة<small>٤ / ٤</small></div>
-
-    <div class="detail-card">
-      <h2>${p.name}</h2>
-      <div class="subtitle">${brand?.label || ''}</div>
-      <div class="detail-row"><span class="label">الجنس</span><span class="value">${gender?.label || ''}</span></div>
-      <div class="detail-row"><span class="label">الحجم</span><span class="value">50ml</span></div>
-      <div class="detail-row"><span class="label">التركيز</span><span class="value">${intLabel}</span></div>
-      ${p.description ? `<div class="detail-row"><span class="label">الوصف</span><span class="value">${p.description}</span></div>` : ''}
-      ${(p.notes_top || p.notes_middle || p.notes_base) ? `
-        <div class="notes-section">
-          <h4>🌿 المكونات العطرية</h4>
-          ${p.notes_top ? `<div class="note-item"><span class="note-label">العليا:</span><span>${p.notes_top}</span></div>` : ''}
-          ${p.notes_middle ? `<div class="note-item"><span class="note-label">الوسطى:</span><span>${p.notes_middle}</span></div>` : ''}
-          ${p.notes_base ? `<div class="note-item"><span class="note-label">الأساسية:</span><span>${p.notes_base}</span></div>` : ''}
-        </div>` : ''}
-    </div>
-
-    <div class="options-grid">
-      ${bottles.map(b => `<div class="option-btn ${selection.bottle === b.id ? 'active' : ''}" onclick="pickBottle(${b.id})">
-        ${b.image_url ? `<img src="${b.image_url}">` : ''}
-        <div>${b.name}</div>
-        <div class="price-tag">${b.price_diff > 0 ? '+' + b.price_diff + ' ₺' : 'مجاناً'}</div>
-      </div>`).join('')}
-    </div>
-
-    ${selection.bottle ? `
-      <div class="total-box">
-        <div class="label">الإجمالي</div>
-        <div class="amount">${total} ₺</div>
-      </div>
-      <div class="nav-bar">
-        <button class="btn btn-success" onclick="addToCart()">🛒 أضف إلى السلة</button>
-      </div>` : ''}
-
-    <div class="nav-bar"><button class="btn btn-dark" onclick="goBack()">رجوع</button></div>`;
+  return '<div class="step-title">زجاجة<small>٤ / ٤</small></div>' +
+    '<div class="detail-card">' +
+    '<h2>' + p.name + '</h2>' +
+    '<div class="subtitle">' + (brand?.label || '') + '</div>' +
+    '<div class="detail-row"><span class="label">الجنس</span><span class="value">' + (gender?.label || '') + '</span></div>' +
+    '<div class="detail-row"><span class="label">الحجم</span><span class="value">50ml</span></div>' +
+    '<div class="detail-row"><span class="label">التركيز</span><span class="value">' + intLabel + '</span></div>' +
+    (p.description ? '<div class="detail-row"><span class="label">الوصف</span><span class="value">' + p.description + '</span></div>' : '') +
+    ((p.notes_top || p.notes_middle || p.notes_base) ?
+      '<div class="notes-section"><h4>🌿 المكونات العطرية</h4>' +
+      (p.notes_top ? '<div class="note-item"><span class="note-label">العليا:</span><span>' + p.notes_top + '</span></div>' : '') +
+      (p.notes_middle ? '<div class="note-item"><span class="note-label">الوسطى:</span><span>' + p.notes_middle + '</span></div>' : '') +
+      (p.notes_base ? '<div class="note-item"><span class="note-label">الأساسية:</span><span>' + p.notes_base + '</span></div>' : '') +
+      '</div>' : '') +
+    '</div>' +
+    '<div class="options-grid">' +
+    bottles.map(b => '<div class="option-btn ' + (selection.bottle === b.id ? 'active' : '') + '" onclick="pickBottle(' + b.id + ')">' +
+      (b.image_url ? '<img src="' + b.image_url + '">' : '') +
+      '<div>' + b.name + '</div>' +
+      '<div class="price-tag">' + (b.price_diff > 0 ? '+' + b.price_diff + ' ₺' : 'مجاناً') + '</div></div>').join('') +
+    '</div>' +
+    (selection.bottle ?
+      '<div class="total-box"><div class="label">الإجمالي</div><div class="amount">' + total + ' ₺</div></div><div class="nav-bar"><button class="btn btn-success" onclick="addToCart()">🛒 أضف إلى السلة</button></div>' : '') +
+    '<div class="nav-bar"><button class="btn btn-dark" onclick="goBack()">رجوع</button></div>';
 }
 
-// ⚡ GÜNCELLENDİ: Farklı seçim yapılırsa sonraki seçimler temizlenir
 function pick(field, id) {
   if (field === 'gender' && selection.gender !== id) {
-    selection.perfume = null;
-    selection.intensity = null;
-    selection.bottle = null;
+    selection.perfume = null; selection.intensity = null; selection.bottle = null;
   }
   if (field === 'intensity' && selection.intensity !== id) {
     selection.bottle = null;
@@ -362,7 +403,6 @@ function pick(field, id) {
   render();
 }
 
-// ⚡ GÜNCELLENDİ: Farklı parfüm seçilirse sonraki seçimler temizlenir
 function pickPerfume(id) {
   if (selection.perfume !== id) {
     selection.intensity = null;
@@ -378,7 +418,6 @@ function pickBottle(id) {
   render();
 }
 
-// ⚡ GÜNCELLENDİ: Seçimler silinmiyor
 function goBack() {
   if (currentStep > 0) {
     currentStep--;
@@ -388,9 +427,7 @@ function goBack() {
 
 function getBasePrice(perfumeId, intensityId, sizeId) {
   const row = cache.prices.find(p =>
-    p.perfume_id === perfumeId &&
-    p.intensity_id === intensityId &&
-    p.size_id === sizeId
+    p.perfume_id === perfumeId && p.intensity_id === intensityId && p.size_id === sizeId
   );
   return row?.price || 0;
 }
@@ -402,10 +439,7 @@ function addToCart() {
   const total = base + (b?.price_diff || 0);
   const intLabel = cache.intensities.find(i => i.id === selection.intensity)?.name;
   let cart = JSON.parse(localStorage.getItem('perfume_cart') || '[]');
-  cart.push({
-    perfume: p.name, ml: '50ml', intensity: intLabel,
-    bottle: b.name, bottle_price_diff: b.price_diff, total, added: new Date().toISOString()
-  });
+  cart.push({ perfume: p.name, ml: '50ml', intensity: intLabel, bottle: b.name, bottle_price_diff: b.price_diff, total, added: new Date().toISOString() });
   localStorage.setItem('perfume_cart', JSON.stringify(cart));
   alert('✅ تمت الإضافة إلى السلة');
   openWhatsApp();
@@ -417,10 +451,10 @@ function openWhatsApp() {
   let msg = 'طلب جديد:\n\n';
   let total = 0;
   cart.forEach(c => {
-    msg += `• ${c.perfume} - ${c.ml} - ${c.intensity} - ${c.bottle}\n  ${c.total} ₺\n`;
+    msg += '• ' + c.perfume + ' - ' + c.ml + ' - ' + c.intensity + ' - ' + c.bottle + '\n  ' + c.total + ' ₺\n';
     total += c.total;
   });
-  msg += `\nالإجمالي: ${total} ₺`;
+  msg += '\nالإجمالي: ' + total + ' ₺';
   window.open('https://wa.me/905388444275?text=' + encodeURIComponent(msg), '_blank');
 }
 
@@ -444,27 +478,21 @@ async function doLogout() {
   render();
 }
 
-// ⚡ GÜNCELLENDİ: Admin açılırken tüm öğeleri (aktif+pasif) yükle
 async function openAdmin() {
   await loadAllAdmin();
   const c = document.getElementById('mainContainer');
-  c.innerHTML = `
-    <div class="admin-bar"><strong>👑 لوحة التحكم</strong>
-      <button class="btn btn-sm btn-dark" onclick="currentStep=0;render()">عودة للموقع</button>
-    </div>
-    <div class="tab-bar">
-      <button class="tab-btn active" onclick="showTab('sizes', this)">${t('tab_sizes')}</button>
-      <button class="tab-btn" onclick="showTab('intensities', this)">${t('tab_intensities')}</button>
-      <button class="tab-btn" onclick="showTab('bottles', this)">${t('tab_bottles')}</button>
-      <button class="tab-btn" onclick="showTab('genders', this)">${t('tab_genders')}</button>
-      <button class="tab-btn" onclick="showTab('scents', this)">${t('tab_scents')}</button>
-      <button class="tab-btn" onclick="showTab('brands', this)">${t('tab_brands')}</button>
-      <button class="tab-btn" onclick="showTab('perfumes', this)">${t('tab_perfumes')}</button>
-      <button class="tab-btn" onclick="showTab('prices', this)">${t('tab_prices')}</button>
-      <button class="tab-btn" onclick="showTab('texts', this)">${t('tab_texts')}</button>
-    </div>
-    <div id="adminContent"></div>
-  `;
+  c.innerHTML = '<div class="admin-bar"><strong>👑 لوحة التحكم</strong><button class="btn btn-sm btn-dark" onclick="currentStep=0;render()">عودة للموقع</button></div>' +
+    '<div class="tab-bar">' +
+    '<button class="tab-btn active" onclick="showTab(\'sizes\', this)">' + t('tab_sizes') + '</button>' +
+    '<button class="tab-btn" onclick="showTab(\'intensities\', this)">' + t('tab_intensities') + '</button>' +
+    '<button class="tab-btn" onclick="showTab(\'bottles\', this)">' + t('tab_bottles') + '</button>' +
+    '<button class="tab-btn" onclick="showTab(\'genders\', this)">' + t('tab_genders') + '</button>' +
+    '<button class="tab-btn" onclick="showTab(\'scents\', this)">' + t('tab_scents') + '</button>' +
+    '<button class="tab-btn" onclick="showTab(\'brands\', this)">' + t('tab_brands') + '</button>' +
+    '<button class="tab-btn" onclick="showTab(\'perfumes\', this)">' + t('tab_perfumes') + '</button>' +
+    '<button class="tab-btn" onclick="showTab(\'prices\', this)">' + t('tab_prices') + '</button>' +
+    '<button class="tab-btn" onclick="showTab(\'texts\', this)">' + t('tab_texts') + '</button>' +
+    '</div><div id="adminContent"></div>';
   showTab('sizes');
 }
 
@@ -474,119 +502,87 @@ function showTab(tab, btn) {
     btn.classList.add('active');
   }
   const c = document.getElementById('adminContent');
-  if (tab === 'sizes' || tab === 'intensities' || tab === 'bottles') {
-    c.innerHTML = renderTableTab(tab);
-  } else if (tab === 'genders' || tab === 'scents' || tab === 'brands') {
+  if (tab === 'sizes' || tab === 'intensities' || tab === 'bottles') c.innerHTML = renderTableTab(tab);
+  else if (tab === 'genders' || tab === 'scents' || tab === 'brands') {
     const typeMap = { genders: 'gender', scents: 'scent_family', brands: 'brand' };
     c.innerHTML = renderCatTab(typeMap[tab]);
-  } else if (tab === 'perfumes') {
-    c.innerHTML = renderPerfumesTab();
-  } else if (tab === 'prices') {
-    c.innerHTML = renderPricesTab();
-  } else if (tab === 'texts') {
-    c.innerHTML = renderTextsTab();
-  }
+  } else if (tab === 'perfumes') c.innerHTML = renderPerfumesTab();
+  else if (tab === 'prices') c.innerHTML = renderPricesTab();
+  else if (tab === 'texts') c.innerHTML = renderTextsTab();
 }
 
 function renderTextsTab() {
   const labels = {
-    tab_sizes: 'اسم تبويب الأحجام',
-    tab_intensities: 'اسم تبويب التركيزات',
-    tab_bottles: 'اسم تبويب القوارير',
-    tab_genders: 'اسم تبويب الجنس',
-    tab_scents: 'اسم تبويب العائلات',
-    tab_brands: 'اسم تبويب الماركات',
-    tab_perfumes: 'اسم تبويب العطور',
-    tab_prices: 'اسم تبويب الأسعار',
+    tab_sizes: 'اسم تبويب الأحجام', tab_intensities: 'اسم تبويب التركيزات',
+    tab_bottles: 'اسم تبويب القوارير', tab_genders: 'اسم تبويب الجنس',
+    tab_scents: 'اسم تبويب العائلات', tab_brands: 'اسم تبويب الماركات',
+    tab_perfumes: 'اسم تبويب العطور', tab_prices: 'اسم تبويب الأسعار',
     tab_texts: 'اسم تبويب النصوص'
   };
   let html = '<p style="color:#666;margin-bottom:16px;">عدّل أسماء التبويبات في لوحة التحكم</p>';
   for (const [key, label] of Object.entries(labels)) {
     const val = cache.settings[key] || DEFAULT_SETTINGS[key] || '';
-    html += `<div class="form-group">
-      <label>${label}</label>
-      <input type="text" value="${val.replace(/"/g, '&quot;')}" 
-        onchange="updateSetting('${key}', this.value)">
-    </div>`;
+    html += '<div class="form-group"><label>' + label + '</label><input type="text" value="' + val.replace(/"/g, '&quot;') + '" onchange="updateSetting(\'' + key + '\', this.value)"></div>';
   }
   return html;
 }
 
 async function updateSetting(key, value) {
-  const { error } = await sb.from('perfume_settings')
-    .upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
+  const { error } = await sb.from('perfume_settings').upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
   if (error) { alert('خطأ: ' + error.message); return; }
   cache.settings[key] = value;
   openAdmin();
 }
 
-// ⚡ GÜNCELLENDİ: Gizle/Göster butonu eklendi
 function renderTableTab(tab) {
   const tableMap = { sizes: 'perfume_sizes', intensities: 'perfume_intensities', bottles: 'perfume_bottles' };
   const data = cache[tab];
   const nameField = tab === 'sizes' ? 'label' : 'name';
-  return `<button class="btn btn-primary" onclick="openCatForm('${tableMap[tab]}')">+ إضافة</button>
-    <div style="margin-top:16px;">
-    ${data.map(item => `
-      <div class="admin-item" style="${!item.active ? 'opacity:0.5;' : ''}">
-        ${item.image_url ? `<img src="${item.image_url}">` : ''}
-        <div class="info"><strong>${item[nameField]}</strong>
-          <small>ترتيب: ${item.sort_order}${item.price_diff !== undefined ? ' | فرق: ' + item.price_diff + ' ₺' : ''}${item.size_id ? ' | الحجم: ' + (cache.sizes.find(s => s.id === item.size_id)?.label || '') : ''}</small>
-        </div>
-        <div class="actions">
-          <button class="btn btn-sm ${item.active ? 'btn-warning' : 'btn-success'}" onclick="toggleActive('${tableMap[tab]}', ${item.id}, ${item.active})" title="${item.active ? 'إخفاء' : 'إظهار'}">${item.active ? '👁' : '👁‍🗨'}</button>
-          <button class="btn btn-sm btn-dark" onclick="editCat('${tableMap[tab]}', ${item.id})">✎</button>
-          <button class="btn btn-sm btn-danger" onclick="delCat('${tableMap[tab]}', ${item.id})">🗑</button>
-        </div>
-      </div>`).join('')}
-    </div>`;
+  return '<button class="btn btn-primary" onclick="openCatForm(\'' + tableMap[tab] + '\')">+ إضافة</button><div style="margin-top:16px;">' +
+    data.map(item => '<div class="admin-item" style="' + (!item.active ? 'opacity:0.5;' : '') + '">' +
+      (item.image_url ? '<img src="' + item.image_url + '">' : '') +
+      '<div class="info"><strong>' + item[nameField] + '</strong><small>ترتيب: ' + item.sort_order + (item.price_diff !== undefined ? ' | فرق: ' + item.price_diff + ' ₺' : '') + (item.size_id ? ' | الحجم: ' + (cache.sizes.find(s => s.id === item.size_id)?.label || '') : '') + '</small></div>' +
+      '<div class="actions">' +
+      '<button class="btn btn-sm ' + (item.active ? 'btn-warning' : 'btn-success') + '" onclick="toggleActive(\'' + tableMap[tab] + '\', ' + item.id + ', ' + item.active + ')" title="' + (item.active ? 'إخفاء' : 'إظهار') + '">' + (item.active ? '👁' : '👁‍🗨') + '</button>' +
+      '<button class="btn btn-sm btn-dark" onclick="editCat(\'' + tableMap[tab] + '\', ' + item.id + ')">✎</button>' +
+      '<button class="btn btn-sm btn-danger" onclick="delCat(\'' + tableMap[tab] + '\', ' + item.id + ')">🗑</button>' +
+      '</div></div>').join('') +
+    '</div>';
 }
 
-// ⚡ GÜNCELLENDİ: Gizle/Göster butonu eklendi
 function renderCatTab(type) {
   const items = cache[type === 'gender' ? 'genders' : type === 'scent_family' ? 'scents' : 'brands'];
-  return `<button class="btn btn-primary" onclick="openCatForm('categories', '${type}')">+ إضافة</button>
-    <div style="margin-top:16px;">
-    ${items.map(item => `
-      <div class="admin-item" style="${!item.active ? 'opacity:0.5;' : ''}">
-        <div class="info"><strong>${item.label}</strong><small>ترتيب: ${item.sort_order}</small></div>
-        <div class="actions">
-          <button class="btn btn-sm ${item.active ? 'btn-warning' : 'btn-success'}" onclick="toggleActive('categories', ${item.id}, ${item.active})" title="${item.active ? 'إخفاء' : 'إظهار'}">${item.active ? '👁' : '👁‍🗨'}</button>
-          <button class="btn btn-sm btn-dark" onclick="editCat('categories', ${item.id})">✎</button>
-          <button class="btn btn-sm btn-danger" onclick="delCat('categories', ${item.id})">🗑</button>
-        </div>
-      </div>`).join('')}
-    </div>`;
+  return '<button class="btn btn-primary" onclick="openCatForm(\'categories\', \'' + type + '\')">+ إضافة</button><div style="margin-top:16px;">' +
+    items.map(item => '<div class="admin-item" style="' + (!item.active ? 'opacity:0.5;' : '') + '">' +
+      '<div class="info"><strong>' + item.label + '</strong><small>ترتيب: ' + item.sort_order + '</small></div>' +
+      '<div class="actions">' +
+      '<button class="btn btn-sm ' + (item.active ? 'btn-warning' : 'btn-success') + '" onclick="toggleActive(\'categories\', ' + item.id + ', ' + item.active + ')" title="' + (item.active ? 'إخفاء' : 'إظهار') + '">' + (item.active ? '👁' : '👁‍🗨') + '</button>' +
+      '<button class="btn btn-sm btn-dark" onclick="editCat(\'categories\', ' + item.id + ')">✎</button>' +
+      '<button class="btn btn-sm btn-danger" onclick="delCat(\'categories\', ' + item.id + ')">🗑</button>' +
+      '</div></div>').join('') +
+    '</div>';
 }
 
-// ⚡ GÜNCELLENDİ: Gizle/Göster butonu eklendi
 function renderPerfumesTab() {
-  return `<button class="btn btn-primary" onclick="openPerfumeForm()">+ إضافة عطر</button>
-    <div style="margin-top:16px;">
-    ${cache.perfumes.map(p => {
+  return '<button class="btn btn-primary" onclick="openPerfumeForm()">+ إضافة عطر</button><div style="margin-top:16px;">' +
+    cache.perfumes.map(p => {
       const brand = cache.brands.find(b => b.id === p.brand_id);
-      return `<div class="admin-item" style="${!p.active ? 'opacity:0.5;' : ''}">
-        <div class="info"><strong>${p.name}</strong><small>${brand?.label || ''}</small></div>
-        <div class="actions">
-          <button class="btn btn-sm ${p.active ? 'btn-warning' : 'btn-success'}" onclick="toggleActive('perfumes', '${p.id}', ${p.active})" title="${p.active ? 'إخفاء' : 'إظهار'}">${p.active ? '👁' : '👁‍🗨'}</button>
-          <button class="btn btn-sm btn-dark" onclick="editPerfume('${p.id}')">✎</button>
-          <button class="btn btn-sm btn-danger" onclick="delPerfume('${p.id}')">🗑</button>
-        </div>
-      </div>`;
-    }).join('')}
-    </div>`;
+      return '<div class="admin-item" style="' + (!p.active ? 'opacity:0.5;' : '') + '">' +
+        '<div class="info"><strong>' + p.name + '</strong><small>' + (brand?.label || '') + '</small></div>' +
+        '<div class="actions">' +
+        '<button class="btn btn-sm ' + (p.active ? 'btn-warning' : 'btn-success') + '" onclick="toggleActive(\'perfumes\', \'' + p.id + '\', ' + p.active + ')" title="' + (p.active ? 'إخفاء' : 'إظهار') + '">' + (p.active ? '👁' : '👁‍🗨') + '</button>' +
+        '<button class="btn btn-sm btn-dark" onclick="editPerfume(\'' + p.id + '\')">✎</button>' +
+        '<button class="btn btn-sm btn-danger" onclick="delPerfume(\'' + p.id + '\')">🗑</button>' +
+        '</div></div>';
+    }).join('') +
+    '</div>';
 }
 
-// ⚡ YENİ: Gizle/Göster fonksiyonu
 async function toggleActive(table, id, currentActive) {
   const newActive = !currentActive;
   const { error } = await sb.from(table).update({ active: newActive }).eq('id', id);
   if (error) { alert('خطأ: ' + error.message); return; }
-  // Cache'i güncelle
-  const cacheMap = {
-    'perfume_sizes': 'sizes', 'perfume_intensities': 'intensities',
-    'perfume_bottles': 'bottles', 'categories': null, 'perfumes': 'perfumes'
-  };
+  const cacheMap = { 'perfume_sizes': 'sizes', 'perfume_intensities': 'intensities', 'perfume_bottles': 'bottles', 'perfumes': 'perfumes' };
   const key = cacheMap[table];
   if (key && cache[key]) {
     const item = cache[key].find(x => x.id === id);
@@ -596,7 +592,6 @@ async function toggleActive(table, id, currentActive) {
       if (x.id === id) x.active = newActive;
     });
   }
-  // Aktif tab'ı yenile
   const activeTab = document.querySelector('.tab-btn.active')?.innerText || '';
   const tabMap = {
     [t('tab_sizes')]: 'sizes', [t('tab_intensities')]: 'intensities',
@@ -608,53 +603,32 @@ async function toggleActive(table, id, currentActive) {
 }
 
 function renderPricesTab() {
-  if (cache.perfumes.length === 0) {
-    return '<div class="empty">لا توجد عطور. أضف عطراً أولاً.</div>';
-  }
+  if (cache.perfumes.length === 0) return '<div class="empty">لا توجد عطور. أضف عطراً أولاً.</div>';
   const perf = selectedPricePerfume || cache.perfumes[0].id;
   const p = cache.perfumes.find(x => x.id === perf);
-  return `
-    <div class="form-group">
-      <label>اختر العطر</label>
-      <select onchange="selectedPricePerfume=this.value;showTab('prices')">
-        ${cache.perfumes.map(x => `<option value="${x.id}" ${x.id === perf ? 'selected' : ''}>${x.name}</option>`).join('')}
-      </select>
-    </div>
-    <p style="margin:16px 0;color:#666;">أسعار "${p?.name}" حسب التركيز والحجم:</p>
-    <table class="price-table">
-      <thead>
-        <tr>
-          <th>الحجم</th>
-          ${cache.intensities.map(i => `<th>${i.name}</th>`).join('')}
-        </tr>
-      </thead>
-      <tbody>
-        ${cache.sizes.map(s => `
-          <tr>
-            <td><strong>${s.label}</strong></td>
-            ${cache.intensities.map(i => {
-              const row = cache.prices.find(pp => pp.perfume_id === perf && pp.intensity_id === i.id && pp.size_id === s.id);
-              return `<td><input type="number" value="${row?.price || 0}" onchange="updatePrice('${perf}', ${i.id}, ${s.id}, this.value)"></td>`;
-            }).join('')}
-          </tr>`).join('')}
-      </tbody>
-    </table>`;
+  return '<div class="form-group"><label>اختر العطر</label><select onchange="selectedPricePerfume=this.value;showTab(\'prices\')">' +
+    cache.perfumes.map(x => '<option value="' + x.id + '" ' + (x.id === perf ? 'selected' : '') + '>' + x.name + '</option>').join('') +
+    '</select></div><p style="margin:16px 0;color:#666;">أسعار "' + (p?.name || '') + '" حسب التركيز والحجم:</p>' +
+    '<table class="price-table"><thead><tr><th>الحجم</th>' +
+    cache.intensities.map(i => '<th>' + i.name + '</th>').join('') +
+    '</tr></thead><tbody>' +
+    cache.sizes.map(s => '<tr><td><strong>' + s.label + '</strong></td>' +
+      cache.intensities.map(i => {
+        const row = cache.prices.find(pp => pp.perfume_id === perf && pp.intensity_id === i.id && pp.size_id === s.id);
+        return '<td><input type="number" value="' + (row?.price || 0) + '" onchange="updatePrice(\'' + perf + '\', ' + i.id + ', ' + s.id + ', this.value)"></td>';
+      }).join('') +
+      '</tr>').join('') +
+    '</tbody></table>';
 }
 
 async function updatePrice(perfumeId, intensityId, sizeId, val) {
   const price = parseFloat(val) || 0;
-  const existing = cache.prices.find(p =>
-    p.perfume_id === perfumeId &&
-    p.intensity_id === intensityId &&
-    p.size_id === sizeId
-  );
+  const existing = cache.prices.find(p => p.perfume_id === perfumeId && p.intensity_id === intensityId && p.size_id === sizeId);
   if (existing) {
     await sb.from('perfume_prices').update({ price }).eq('id', existing.id);
     existing.price = price;
   } else {
-    const { data } = await sb.from('perfume_prices')
-      .insert([{ perfume_id: perfumeId, intensity_id: intensityId, size_id: sizeId, price }])
-      .select();
+    const { data } = await sb.from('perfume_prices').insert([{ perfume_id: perfumeId, intensity_id: intensityId, size_id: sizeId, price }]).select();
     if (data) cache.prices.push(data[0]);
   }
 }
@@ -672,7 +646,7 @@ function openCatForm(table, type) {
   document.getElementById('cat-image-group').style.display = table === 'categories' ? 'none' : 'block';
   if (table === 'perfume_bottles') {
     const sel = document.getElementById('cat-size');
-    sel.innerHTML = cache.sizes.map(s => `<option value="${s.id}">${s.label}</option>`).join('');
+    sel.innerHTML = cache.sizes.map(s => '<option value="' + s.id + '">' + s.label + '</option>').join('');
   }
   if (type) document.getElementById('cat-table').dataset.type = type;
   document.getElementById('catFormModal').classList.add('open');
@@ -695,9 +669,9 @@ function editCat(table, id) {
   document.getElementById('cat-image-group').style.display = table === 'categories' ? 'none' : 'block';
   if (table === 'perfume_bottles') {
     const sel = document.getElementById('cat-size');
-    sel.innerHTML = cache.sizes.map(s => `<option value="${s.id}" ${s.id === item.size_id ? 'selected' : ''}>${s.label}</option>`).join('');
+    sel.innerHTML = cache.sizes.map(s => '<option value="' + s.id + '" ' + (s.id === item.size_id ? 'selected' : '') + '>' + s.label + '</option>').join('');
   }
-  document.getElementById('cat-image-preview').innerHTML = item.image_url ? `<img src="${item.image_url}" style="max-width:100px;border-radius:8px;">` : '';
+  document.getElementById('cat-image-preview').innerHTML = item.image_url ? '<img src="' + item.image_url + '" style="max-width:100px;border-radius:8px;">' : '';
   document.getElementById('catFormModal').classList.add('open');
 }
 
@@ -730,10 +704,7 @@ async function saveCat() {
     payload.price_diff = priceDiff;
     payload.size_id = parseInt(document.getElementById('cat-size').value);
   }
-  else {
-    payload.label = name;
-    payload.value = name.toLowerCase().replace(/\s+/g, '_');
-  }
+  else { payload.label = name; payload.value = name.toLowerCase().replace(/\s+/g, '_'); }
 
   if (table === 'categories') payload.type = document.getElementById('cat-table').dataset.type || 'gender';
   if (imageUrl && table !== 'categories') payload.image_url = imageUrl;
@@ -808,7 +779,7 @@ function editPerfume(id) {
 
 function fillSelect(id, items, selected) {
   const sel = document.getElementById(id);
-  sel.innerHTML = items.map(i => `<option value="${i.id}" ${i.id === selected ? 'selected' : ''}>${i.label || i.name}</option>`).join('');
+  sel.innerHTML = items.map(i => '<option value="' + i.id + '" ' + (i.id === selected ? 'selected' : '') + '>' + (i.label || i.name) + '</option>').join('');
 }
 
 async function savePerfume() {
@@ -856,8 +827,7 @@ function fileToBase64(file) {
 }
 
 document.addEventListener('keyup', (e) => {
-  if (e.ctrlKey && e.shiftKey && !e.altKey && !e.metaKey &&
-      e.key !== 'Control' && e.key !== 'Shift') {
+  if (e.ctrlKey && e.shiftKey && !e.altKey && !e.metaKey && e.key !== 'Control' && e.key !== 'Shift') {
     if (isAdmin) openAdmin();
     else openLogin();
   }
