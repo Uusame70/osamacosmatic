@@ -83,7 +83,6 @@ body { background: #f5f3ef; color: #2c2c2c; min-height: 100vh; padding-bottom: 4
 .whatsapp-float { position: fixed; bottom: 20px; left: 20px; background: #25d366; color: #fff; width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 20px rgba(37,211,102,0.5); cursor: pointer; border: none; font-size: 1.5rem; z-index: 99; }
 #secretDot { position: fixed; bottom: 5px; right: 5px; width: 20px; height: 20px; cursor: pointer; z-index: 9999; }
 
-/* ═══ BREADCRUMB ═══ */
 .breadcrumb {
   display: flex;
   align-items: center;
@@ -210,10 +209,6 @@ body { background: #f5f3ef; color: #2c2c2c; min-height: 100vh; padding-bottom: 4
       <select id="pf-gender"></select>
     </div>
     <div class="form-group">
-      <label>العائلة العطرية</label>
-      <select id="pf-scent"></select>
-    </div>
-    <div class="form-group">
       <label>الوصف</label>
       <textarea id="pf-desc" rows="3"></textarea>
     </div>
@@ -245,22 +240,28 @@ let session = null;
 let isAdmin = false;
 let currentStep = 0;
 let selection = { ml: null, intensity: null, gender: null, perfume: null, bottle: null };
-let cache = { sizes: [], intensities: [], bottles: [], genders: [], scents: [], brands: [], perfumes: [], prices: [] };
+let cache = { sizes: [], intensities: [], bottles: [], genders: [], scents: [], brands: [], perfumes: [], prices: [], settings: {} };
 let selectedPricePerfume = null;
+
+const DEFAULT_SETTINGS = {
+  tab_sizes: 'الأحجام', tab_intensities: 'التركيزات', tab_bottles: 'القوارير',
+  tab_genders: 'الجنس', tab_scents: 'العائلات', tab_brands: 'الماركات',
+  tab_perfumes: 'العطور', tab_prices: 'الأسعار', tab_texts: 'النصوص'
+};
+function t(key) { return cache.settings[key] || DEFAULT_SETTINGS[key] || key; }
 
 async function init() {
   const { data: { session: s } } = await sb.auth.getSession();
   session = s;
   isAdmin = !!s;
   await loadAll();
-  // 50ml'yi otomatik seç
   const size50 = cache.sizes.find(s => s.label.includes('50'));
   if (size50) selection.ml = size50.id;
   render();
 }
 
 async function loadAll() {
-  const [sizes, intensities, bottles, genders, scents, brands, perfumes, prices] = await Promise.all([
+  const [sizes, intensities, bottles, genders, scents, brands, perfumes, prices, settings] = await Promise.all([
     sb.from('perfume_sizes').select('*').eq('active', true).order('sort_order'),
     sb.from('perfume_intensities').select('*').eq('active', true).order('sort_order'),
     sb.from('perfume_bottles').select('*').eq('active', true).order('sort_order'),
@@ -268,7 +269,8 @@ async function loadAll() {
     sb.from('categories').select('*').eq('type', 'scent_family').eq('active', true).order('sort_order'),
     sb.from('categories').select('*').eq('type', 'brand').eq('active', true).order('sort_order'),
     sb.from('perfumes').select('*').eq('active', true),
-    sb.from('perfume_prices').select('*')
+    sb.from('perfume_prices').select('*'),
+    sb.from('perfume_settings').select('key, value')
   ]);
   cache.sizes = sizes.data || [];
   cache.intensities = intensities.data || [];
@@ -278,6 +280,8 @@ async function loadAll() {
   cache.brands = brands.data || [];
   cache.perfumes = perfumes.data || [];
   cache.prices = prices.data || [];
+  cache.settings = {};
+  (settings.data || []).forEach(s => { cache.settings[s.key] = s.value; });
 }
 
 function render() {
@@ -380,7 +384,6 @@ function renderStepBottle() {
   const bottles = cache.bottles.filter(b => b.size_id === selection.ml);
   const basePrice = getBasePrice(selection.perfume, selection.intensity, selection.ml);
   const brand = cache.brands.find(b => b.id === p.brand_id);
-  const scent = cache.scents.find(s => s.id === p.scent_family_id);
   const gender = cache.genders.find(g => g.id === p.gender_id);
   const intLabel = cache.intensities.find(i => i.id === selection.intensity)?.name || '';
   const selectedBottle = cache.bottles.find(x => x.id === selection.bottle);
@@ -397,7 +400,6 @@ function renderStepBottle() {
       <h2>${p.name}</h2>
       <div class="subtitle">${brand?.label || ''}</div>
       <div class="detail-row"><span class="label">الجنس</span><span class="value">${gender?.label || ''}</span></div>
-      <div class="detail-row"><span class="label">العائلة</span><span class="value">${scent?.label || ''}</span></div>
       <div class="detail-row"><span class="label">الحجم</span><span class="value">50ml</span></div>
       <div class="detail-row"><span class="label">التركيز</span><span class="value">${intLabel}</span></div>
       ${p.description ? `<div class="detail-row"><span class="label">الوصف</span><span class="value">${p.description}</span></div>` : ''}
@@ -523,14 +525,15 @@ function openAdmin() {
       <button class="btn btn-sm btn-dark" onclick="currentStep=0;render()">عودة للموقع</button>
     </div>
     <div class="tab-bar">
-      <button class="tab-btn active" onclick="showTab('sizes', this)">الأحجام</button>
-      <button class="tab-btn" onclick="showTab('intensities', this)">التركيزات</button>
-      <button class="tab-btn" onclick="showTab('bottles', this)">القوارير</button>
-      <button class="tab-btn" onclick="showTab('genders', this)">الجنس</button>
-      <button class="tab-btn" onclick="showTab('scents', this)">العائلات</button>
-      <button class="tab-btn" onclick="showTab('brands', this)">الماركات</button>
-      <button class="tab-btn" onclick="showTab('perfumes', this)">العطور</button>
-      <button class="tab-btn" onclick="showTab('prices', this)">الأسعار</button>
+      <button class="tab-btn active" onclick="showTab('sizes', this)">${t('tab_sizes')}</button>
+      <button class="tab-btn" onclick="showTab('intensities', this)">${t('tab_intensities')}</button>
+      <button class="tab-btn" onclick="showTab('bottles', this)">${t('tab_bottles')}</button>
+      <button class="tab-btn" onclick="showTab('genders', this)">${t('tab_genders')}</button>
+      <button class="tab-btn" onclick="showTab('scents', this)">${t('tab_scents')}</button>
+      <button class="tab-btn" onclick="showTab('brands', this)">${t('tab_brands')}</button>
+      <button class="tab-btn" onclick="showTab('perfumes', this)">${t('tab_perfumes')}</button>
+      <button class="tab-btn" onclick="showTab('prices', this)">${t('tab_prices')}</button>
+      <button class="tab-btn" onclick="showTab('texts', this)">${t('tab_texts')}</button>
     </div>
     <div id="adminContent"></div>
   `;
@@ -552,7 +555,41 @@ function showTab(tab, btn) {
     c.innerHTML = renderPerfumesTab();
   } else if (tab === 'prices') {
     c.innerHTML = renderPricesTab();
+  } else if (tab === 'texts') {
+    c.innerHTML = renderTextsTab();
   }
+}
+
+function renderTextsTab() {
+  const labels = {
+    tab_sizes: 'اسم تبويب الأحجام',
+    tab_intensities: 'اسم تبويب التركيزات',
+    tab_bottles: 'اسم تبويب القوارير',
+    tab_genders: 'اسم تبويب الجنس',
+    tab_scents: 'اسم تبويب العائلات',
+    tab_brands: 'اسم تبويب الماركات',
+    tab_perfumes: 'اسم تبويب العطور',
+    tab_prices: 'اسم تبويب الأسعار',
+    tab_texts: 'اسم تبويب النصوص'
+  };
+  let html = '<p style="color:#666;margin-bottom:16px;">عدّل أسماء التبويبات في لوحة التحكم</p>';
+  for (const [key, label] of Object.entries(labels)) {
+    const val = cache.settings[key] || DEFAULT_SETTINGS[key] || '';
+    html += `<div class="form-group">
+      <label>${label}</label>
+      <input type="text" value="${val.replace(/"/g, '&quot;')}" 
+        onchange="updateSetting('${key}', this.value)">
+    </div>`;
+  }
+  return html;
+}
+
+async function updateSetting(key, value) {
+  const { error } = await sb.from('perfume_settings')
+    .upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
+  if (error) { alert('خطأ: ' + error.message); return; }
+  cache.settings[key] = value;
+  openAdmin();
 }
 
 function renderTableTab(tab) {
@@ -777,7 +814,6 @@ function openPerfumeForm() {
   document.getElementById('pf-base').value = '';
   fillSelect('pf-brand', cache.brands);
   fillSelect('pf-gender', cache.genders);
-  fillSelect('pf-scent', cache.scents);
   document.getElementById('perfumeFormModal').classList.add('open');
 }
 
@@ -789,7 +825,6 @@ function editPerfume(id) {
   document.getElementById('pf-name').value = p.name;
   fillSelect('pf-brand', cache.brands, p.brand_id);
   fillSelect('pf-gender', cache.genders, p.gender_id);
-  fillSelect('pf-scent', cache.scents, p.scent_family_id);
   document.getElementById('pf-desc').value = p.description || '';
   document.getElementById('pf-top').value = p.notes_top || '';
   document.getElementById('pf-middle').value = p.notes_middle || '';
@@ -808,7 +843,6 @@ async function savePerfume() {
     name: document.getElementById('pf-name').value.trim(),
     brand_id: parseInt(document.getElementById('pf-brand').value),
     gender_id: parseInt(document.getElementById('pf-gender').value),
-    scent_family_id: parseInt(document.getElementById('pf-scent').value),
     description: document.getElementById('pf-desc').value.trim(),
     notes_top: document.getElementById('pf-top').value.trim(),
     notes_middle: document.getElementById('pf-middle').value.trim(),
