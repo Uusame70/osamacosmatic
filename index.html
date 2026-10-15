@@ -23,7 +23,7 @@ body { background: #f5f3ef; color: #2c2c2c; min-height: 100vh; padding-bottom: 4
 .option-btn .price-tag { font-size: 0.75rem; color: #666; font-weight: 500; margin-top: 4px; }
 .option-btn.active .price-tag { color: #fff; opacity: 0.9; }
 .nav-bar { display: flex; gap: 10px; justify-content: center; margin-top: 20px; flex-wrap: wrap; }
-.btn { padding: 12px 24px; border: none; border-radius: 12px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: all 0.2s; font-family: inherit; }
+.btn { padding: 12px 24px; border: none; border-radius: 12px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: all 0.2s; font-family: inherit; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
 .btn-primary { background: linear-gradient(135deg, #d4af37, #b8942e); color: #fff; }
 .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(212,175,55,0.4); }
 .btn-dark { background: #1a1a1a; color: #fff; }
@@ -38,8 +38,8 @@ body { background: #f5f3ef; color: #2c2c2c; min-height: 100vh; padding-bottom: 4
 .perfume-item.active .name, .perfume-item.active .brand { color: #fff; }
 .perfume-item .name { font-weight: 800; font-size: 1.05rem; color: #1a1a1a; }
 .perfume-item .brand { font-size: 0.8rem; color: #888; margin-top: 2px; }
-.perfume-item .price { font-weight: 900; color: #b8942e; font-size: 1.1rem; }
-.perfume-item.active .price { color: #fff; }
+.perfume-item .arrow-icon { color: #b8942e; }
+.perfume-item.active .arrow-icon { color: #fff; }
 .detail-card { background: #fff; border-radius: 18px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); margin-bottom: 20px; }
 .detail-card h2 { font-size: 1.5rem; font-weight: 900; color: #1a1a1a; margin-bottom: 6px; }
 .detail-card .subtitle { color: #888; font-size: 0.9rem; margin-bottom: 18px; }
@@ -48,7 +48,7 @@ body { background: #f5f3ef; color: #2c2c2c; min-height: 100vh; padding-bottom: 4
 .detail-row .label { font-weight: 700; color: #666; min-width: 110px; }
 .detail-row .value { color: #1a1a1a; flex: 1; }
 .notes-section { background: #faf8f3; border-radius: 12px; padding: 16px; margin: 16px 0; }
-.notes-section h4 { color: #b8942e; font-size: 0.9rem; margin-bottom: 10px; }
+.notes-section h4 { color: #b8942e; font-size: 0.9rem; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
 .note-item { display: flex; gap: 8px; padding: 6px 0; font-size: 0.9rem; }
 .note-item .note-label { font-weight: 700; color: #666; min-width: 80px; }
 .total-box { background: linear-gradient(135deg, #1a1a1a, #2c2c2c); color: #fff; border-radius: 14px; padding: 20px; text-align: center; margin-top: 20px; }
@@ -63,10 +63,10 @@ body { background: #f5f3ef; color: #2c2c2c; min-height: 100vh; padding-bottom: 4
 .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 12px; border: 2px solid #e0dcd0; border-radius: 10px; font-size: 0.95rem; font-family: inherit; background: #faf8f3; }
 .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #d4af37; background: #fff; }
 .admin-bar { background: linear-gradient(135deg, #1a1a1a, #2c2c2c); color: #d4af37; padding: 14px 20px; border-radius: 14px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
-.admin-bar strong { font-weight: 800; }
+.admin-bar strong { font-weight: 800; display: inline-flex; align-items: center; gap: 6px; }
 .admin-bar .btns { display: flex; gap: 8px; flex-wrap: wrap; }
 .tab-bar { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
-.tab-btn { background: #f0ede6; border: none; padding: 10px 16px; border-radius: 10px; font-weight: 700; font-size: 0.85rem; cursor: pointer; color: #666; }
+.tab-btn { background: #f0ede6; border: none; padding: 10px 16px; border-radius: 10px; font-weight: 700; font-size: 0.85rem; cursor: pointer; color: #666; font-family: inherit; }
 .tab-btn.active { background: #1a1a1a; color: #d4af37; }
 .admin-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #faf8f3; border-radius: 10px; margin-bottom: 8px; gap: 10px; }
 .admin-item .info { flex: 1; }
@@ -81,15 +81,70 @@ body { background: #f5f3ef; color: #2c2c2c; min-height: 100vh; padding-bottom: 4
 .price-table th { background: #1a1a1a; color: #d4af37; font-weight: 700; }
 .price-table td input { width: 90px; padding: 6px 8px; border: 2px solid #e0dcd0; border-radius: 6px; text-align: center; font-family: inherit; font-size: 0.9rem; }
 .price-table td input:focus { outline: none; border-color: #d4af37; }
-.whatsapp-float { position: fixed; bottom: 20px; left: 20px; background: #25d366; color: #fff; width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 20px rgba(37,211,102,0.5); cursor: pointer; border: none; font-size: 1.5rem; z-index: 99; }
+.whatsapp-float { position: fixed; bottom: 20px; left: 20px; background: #25d366; color: #fff; width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 20px rgba(37,211,102,0.5); cursor: pointer; border: none; z-index: 99; }
+.whatsapp-float svg { width: 28px; height: 28px; stroke: #fff; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 #secretDot { position: fixed; bottom: 5px; right: 5px; width: 20px; height: 20px; cursor: pointer; z-index: 9999; }
-.breadcrumb { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 12px 15px; background: linear-gradient(135deg, #1a1a1a, #2c2c2c); border-radius: 14px; margin-bottom: 20px; flex-wrap: wrap; }
-.breadcrumb-item { display: flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: 20px; background: rgba(255,255,255,0.1); color: #999; font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: all 0.2s; }
-.breadcrumb-item.active { background: linear-gradient(135deg, #d4af37, #b8942e); color: #fff; }
-.breadcrumb-item:not(.active):hover { background: rgba(212,175,55,0.2); }
-.bc-icon { font-size: 1rem; }
+
+/* ═══ SVG İKONLAR ═══ */
+.svg-icon {
+  width: 1.1em;
+  height: 1.1em;
+  vertical-align: middle;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex-shrink: 0;
+  display: inline-block;
+}
+.svg-icon-fill {
+  width: 1.1em;
+  height: 1.1em;
+  vertical-align: middle;
+  fill: currentColor;
+  flex-shrink: 0;
+  display: inline-block;
+}
+
+/* ═══ BREADCRUMB ═══ */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 15px;
+  background: linear-gradient(135deg, #1a1a1a, #2c2c2c);
+  border-radius: 14px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.breadcrumb-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.1);
+  color: #999;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.breadcrumb-item.active {
+  background: linear-gradient(135deg, #d4af37, #b8942e);
+  color: #fff;
+}
+.breadcrumb-item:not(.active):hover {
+  background: rgba(212,175,55,0.2);
+}
+.bc-icon { display: inline-flex; align-items: center; justify-content: center; }
+.bc-icon .svg-icon { width: 16px; height: 16px; }
 .bc-label { max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.bc-arrow { color: #666; font-size: 0.9rem; }
+.bc-arrow { color: #666; display: inline-flex; align-items: center; }
+.bc-arrow .svg-icon { width: 14px; height: 14px; }
+
 @media (max-width: 600px) {
   .header h1 { font-size: 1.4rem; }
   .step-title { font-size: 1.1rem; }
@@ -114,12 +169,14 @@ body { background: #f5f3ef; color: #2c2c2c; min-height: 100vh; padding-bottom: 4
   </div>
 </div>
 
-<button class="whatsapp-float" onclick="openWhatsApp()" title="تواصل معنا">💬</button>
+<button class="whatsapp-float" onclick="openWhatsApp()" title="تواصل معنا">
+  <svg viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
+</button>
 <div id="secretDot"></div>
 
 <div id="loginModal" class="modal">
   <div class="modal-content">
-    <h2>🔐 دخول المسؤول</h2>
+    <h2 id="loginTitle">دخول المسؤول</h2>
     <div class="form-group">
       <label>البريد الإلكتروني</label>
       <input type="email" id="login-email" dir="ltr">
@@ -204,6 +261,30 @@ body { background: #f5f3ef; color: #2c2c2c; min-height: 100vh; padding-bottom: 4
 </div>
 
 <script>
+// ══════════════════════════════════════════════
+// SVG İKONLAR
+// ══════════════════════════════════════════════
+const SVG = {
+  user: '<svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>',
+  perfume: '<svg class="svg-icon" viewBox="0 0 24 24"><path d="M10 2v3"/><path d="M14 2v3"/><rect x="7" y="8" width="10" height="13" rx="2"/><path d="M9 8V6a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>',
+  drop: '<svg class="svg-icon" viewBox="0 0 24 24"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg>',
+  bottle: '<svg class="svg-icon" viewBox="0 0 24 24"><path d="M9 2h6v3H9z"/><path d="M8 5h8l1 4v11a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V9z"/><path d="M8 12h8"/></svg>',
+  eye: '<svg class="svg-icon" viewBox="0 0 24 24" style="width:16px;height:16px;"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>',
+  eyeOff: '<svg class="svg-icon" viewBox="0 0 24 24" style="width:16px;height:16px;"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>',
+  edit: '<svg class="svg-icon" viewBox="0 0 24 24" style="width:16px;height:16px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>',
+  trash: '<svg class="svg-icon" viewBox="0 0 24 24" style="width:16px;height:16px;"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>',
+  cart: '<svg class="svg-icon" viewBox="0 0 24 24" style="width:16px;height:16px;"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>',
+  plus: '<svg class="svg-icon" viewBox="0 0 24 24" style="width:16px;height:16px;"><path d="M5 12h14"/><path d="M12 5v14"/></svg>',
+  arrowLeft: '<svg class="svg-icon" viewBox="0 0 24 24" style="width:14px;height:14px;"><polyline points="15 18 9 12 15 6"/></svg>',
+  arrowRight: '<svg class="svg-icon" viewBox="0 0 24 24" style="width:18px;height:18px;"><polyline points="9 18 15 12 9 6"/></svg>',
+  crown: '<svg class="svg-icon" viewBox="0 0 24 24" style="width:18px;height:18px;"><path d="M2 18h20"/><path d="M4 18V8l4 4 4-8 4 8 4-4v10"/></svg>',
+  lock: '<svg class="svg-icon" viewBox="0 0 24 24" style="width:18px;height:18px;"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>',
+  leaf: '<svg class="svg-icon" viewBox="0 0 24 24" style="width:16px;height:16px;"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>'
+};
+
+// ══════════════════════════════════════════════
+// SUPABASE
+// ══════════════════════════════════════════════
 const SUPABASE_URL = 'https://xmrdqepjtfycvtgcbkyy.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_MgJhvhCdIg9oC40t--FZxQ_04A8dWkU';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -280,7 +361,7 @@ function render() {
   let html = '';
 
   if (isAdmin) {
-    html += '<div class="admin-bar"><strong>👑 وضع المسؤول</strong><div class="btns"><button class="btn btn-sm btn-primary" onclick="openAdmin()">لوحة التحكم</button><button class="btn btn-sm btn-danger" onclick="doLogout()">خروج</button></div></div>';
+    html += '<div class="admin-bar"><strong>' + SVG.crown + ' وضع المسؤول</strong><div class="btns"><button class="btn btn-sm btn-primary" onclick="openAdmin()">لوحة التحكم</button><button class="btn btn-sm btn-danger" onclick="doLogout()">خروج</button></div></div>';
   }
 
   html += renderBreadcrumb();
@@ -301,17 +382,17 @@ function renderBreadcrumb() {
   const bottle = cache.bottles.find(b => b.id === selection.bottle);
 
   const items = [
-    { icon: '👤', label: gender?.label || 'الجنس', active: !!gender, step: 0 },
-    { icon: '🌸', label: perfume?.name || 'العطر', active: !!perfume, step: 1 },
-    { icon: '💧', label: intensity?.name || 'التركيز', active: !!intensity, step: 2 },
-    { icon: '🍾', label: bottle?.name || 'زجاجة', active: !!bottle, step: 3 }
+    { icon: SVG.user, label: gender?.label || 'الجنس', active: !!gender, step: 0 },
+    { icon: SVG.perfume, label: perfume?.name || 'العطر', active: !!perfume, step: 1 },
+    { icon: SVG.drop, label: intensity?.name || 'التركيز', active: !!intensity, step: 2 },
+    { icon: SVG.bottle, label: bottle?.name || 'زجاجة', active: !!bottle, step: 3 }
   ];
 
   let html = '<div class="breadcrumb">';
   items.forEach((item, idx) => {
     const cls = item.active ? 'active' : '';
     html += '<div class="breadcrumb-item ' + cls + '" onclick="jumpToStep(' + item.step + ')"><span class="bc-icon">' + item.icon + '</span><span class="bc-label">' + item.label + '</span></div>';
-    if (idx < items.length - 1) html += '<span class="bc-arrow">←</span>';
+    if (idx < items.length - 1) html += '<span class="bc-arrow">' + SVG.arrowLeft + '</span>';
   });
   html += '</div>';
   return html;
@@ -321,7 +402,13 @@ function jumpToStep(step) {
   if (step <= currentStep) {
     currentStep = step;
     render();
+    return;
   }
+  if (step >= 1 && !selection.gender) return;
+  if (step >= 2 && !selection.perfume) return;
+  if (step >= 3 && !selection.intensity) return;
+  currentStep = step;
+  render();
 }
 
 function renderStepGender() {
@@ -338,7 +425,7 @@ function renderStepPerfume() {
     list.map(p => {
       const brand = cache.brands.find(b => b.id === p.brand_id);
       const cls = selection.perfume === p.id ? 'active' : '';
-      return '<div class="perfume-item ' + cls + '" onclick="pickPerfume(\'' + p.id + '\')"><div><div class="name">' + p.name + '</div><div class="brand">' + (brand?.label || '') + '</div></div><div class="price">→</div></div>';
+      return '<div class="perfume-item ' + cls + '" onclick="pickPerfume(\'' + p.id + '\')"><div><div class="name">' + p.name + '</div><div class="brand">' + (brand?.label || '') + '</div></div><div class="arrow-icon">' + SVG.arrowRight + '</div></div>';
     }).join('') +
     '</div><div class="nav-bar"><button class="btn btn-dark" onclick="goBack()">رجوع</button></div>';
 }
@@ -373,7 +460,7 @@ function renderStepBottle() {
     '<div class="detail-row"><span class="label">التركيز</span><span class="value">' + intLabel + '</span></div>' +
     (p.description ? '<div class="detail-row"><span class="label">الوصف</span><span class="value">' + p.description + '</span></div>' : '') +
     ((p.notes_top || p.notes_middle || p.notes_base) ?
-      '<div class="notes-section"><h4>🌿 المكونات العطرية</h4>' +
+      '<div class="notes-section"><h4>' + SVG.leaf + ' المكونات العطرية</h4>' +
       (p.notes_top ? '<div class="note-item"><span class="note-label">العليا:</span><span>' + p.notes_top + '</span></div>' : '') +
       (p.notes_middle ? '<div class="note-item"><span class="note-label">الوسطى:</span><span>' + p.notes_middle + '</span></div>' : '') +
       (p.notes_base ? '<div class="note-item"><span class="note-label">الأساسية:</span><span>' + p.notes_base + '</span></div>' : '') +
@@ -386,7 +473,7 @@ function renderStepBottle() {
       '<div class="price-tag">' + (b.price_diff > 0 ? '+' + b.price_diff + ' ₺' : 'مجاناً') + '</div></div>').join('') +
     '</div>' +
     (selection.bottle ?
-      '<div class="total-box"><div class="label">الإجمالي</div><div class="amount">' + total + ' ₺</div></div><div class="nav-bar"><button class="btn btn-success" onclick="addToCart()">🛒 أضف إلى السلة</button></div>' : '') +
+      '<div class="total-box"><div class="label">الإجمالي</div><div class="amount">' + total + ' ₺</div></div><div class="nav-bar"><button class="btn btn-success" onclick="addToCart()">' + SVG.cart + ' أضف إلى السلة</button></div>' : '') +
     '<div class="nav-bar"><button class="btn btn-dark" onclick="goBack()">رجوع</button></div>';
 }
 
@@ -481,7 +568,7 @@ async function doLogout() {
 async function openAdmin() {
   await loadAllAdmin();
   const c = document.getElementById('mainContainer');
-  c.innerHTML = '<div class="admin-bar"><strong>👑 لوحة التحكم</strong><button class="btn btn-sm btn-dark" onclick="currentStep=0;render()">عودة للموقع</button></div>' +
+  c.innerHTML = '<div class="admin-bar"><strong>' + SVG.crown + ' لوحة التحكم</strong><button class="btn btn-sm btn-dark" onclick="currentStep=0;render()">عودة للموقع</button></div>' +
     '<div class="tab-bar">' +
     '<button class="tab-btn active" onclick="showTab(\'sizes\', this)">' + t('tab_sizes') + '</button>' +
     '<button class="tab-btn" onclick="showTab(\'intensities\', this)">' + t('tab_intensities') + '</button>' +
@@ -538,41 +625,41 @@ function renderTableTab(tab) {
   const tableMap = { sizes: 'perfume_sizes', intensities: 'perfume_intensities', bottles: 'perfume_bottles' };
   const data = cache[tab];
   const nameField = tab === 'sizes' ? 'label' : 'name';
-  return '<button class="btn btn-primary" onclick="openCatForm(\'' + tableMap[tab] + '\')">+ إضافة</button><div style="margin-top:16px;">' +
+  return '<button class="btn btn-primary" onclick="openCatForm(\'' + tableMap[tab] + '\')">' + SVG.plus + ' إضافة</button><div style="margin-top:16px;">' +
     data.map(item => '<div class="admin-item" style="' + (!item.active ? 'opacity:0.5;' : '') + '">' +
       (item.image_url ? '<img src="' + item.image_url + '">' : '') +
       '<div class="info"><strong>' + item[nameField] + '</strong><small>ترتيب: ' + item.sort_order + (item.price_diff !== undefined ? ' | فرق: ' + item.price_diff + ' ₺' : '') + (item.size_id ? ' | الحجم: ' + (cache.sizes.find(s => s.id === item.size_id)?.label || '') : '') + '</small></div>' +
       '<div class="actions">' +
-      '<button class="btn btn-sm ' + (item.active ? 'btn-warning' : 'btn-success') + '" onclick="toggleActive(\'' + tableMap[tab] + '\', ' + item.id + ', ' + item.active + ')" title="' + (item.active ? 'إخفاء' : 'إظهار') + '">' + (item.active ? '👁' : '👁‍🗨') + '</button>' +
-      '<button class="btn btn-sm btn-dark" onclick="editCat(\'' + tableMap[tab] + '\', ' + item.id + ')">✎</button>' +
-      '<button class="btn btn-sm btn-danger" onclick="delCat(\'' + tableMap[tab] + '\', ' + item.id + ')">🗑</button>' +
+      '<button class="btn btn-sm ' + (item.active ? 'btn-warning' : 'btn-success') + '" onclick="toggleActive(\'' + tableMap[tab] + '\', ' + item.id + ', ' + item.active + ')" title="' + (item.active ? 'إخفاء' : 'إظهار') + '">' + (item.active ? SVG.eye : SVG.eyeOff) + '</button>' +
+      '<button class="btn btn-sm btn-dark" onclick="editCat(\'' + tableMap[tab] + '\', ' + item.id + ')">' + SVG.edit + '</button>' +
+      '<button class="btn btn-sm btn-danger" onclick="delCat(\'' + tableMap[tab] + '\', ' + item.id + ')">' + SVG.trash + '</button>' +
       '</div></div>').join('') +
     '</div>';
 }
 
 function renderCatTab(type) {
   const items = cache[type === 'gender' ? 'genders' : type === 'scent_family' ? 'scents' : 'brands'];
-  return '<button class="btn btn-primary" onclick="openCatForm(\'categories\', \'' + type + '\')">+ إضافة</button><div style="margin-top:16px;">' +
+  return '<button class="btn btn-primary" onclick="openCatForm(\'categories\', \'' + type + '\')">' + SVG.plus + ' إضافة</button><div style="margin-top:16px;">' +
     items.map(item => '<div class="admin-item" style="' + (!item.active ? 'opacity:0.5;' : '') + '">' +
       '<div class="info"><strong>' + item.label + '</strong><small>ترتيب: ' + item.sort_order + '</small></div>' +
       '<div class="actions">' +
-      '<button class="btn btn-sm ' + (item.active ? 'btn-warning' : 'btn-success') + '" onclick="toggleActive(\'categories\', ' + item.id + ', ' + item.active + ')" title="' + (item.active ? 'إخفاء' : 'إظهار') + '">' + (item.active ? '👁' : '👁‍🗨') + '</button>' +
-      '<button class="btn btn-sm btn-dark" onclick="editCat(\'categories\', ' + item.id + ')">✎</button>' +
-      '<button class="btn btn-sm btn-danger" onclick="delCat(\'categories\', ' + item.id + ')">🗑</button>' +
+      '<button class="btn btn-sm ' + (item.active ? 'btn-warning' : 'btn-success') + '" onclick="toggleActive(\'categories\', ' + item.id + ', ' + item.active + ')" title="' + (item.active ? 'إخفاء' : 'إظهار') + '">' + (item.active ? SVG.eye : SVG.eyeOff) + '</button>' +
+      '<button class="btn btn-sm btn-dark" onclick="editCat(\'categories\', ' + item.id + ')">' + SVG.edit + '</button>' +
+      '<button class="btn btn-sm btn-danger" onclick="delCat(\'categories\', ' + item.id + ')">' + SVG.trash + '</button>' +
       '</div></div>').join('') +
     '</div>';
 }
 
 function renderPerfumesTab() {
-  return '<button class="btn btn-primary" onclick="openPerfumeForm()">+ إضافة عطر</button><div style="margin-top:16px;">' +
+  return '<button class="btn btn-primary" onclick="openPerfumeForm()">' + SVG.plus + ' إضافة عطر</button><div style="margin-top:16px;">' +
     cache.perfumes.map(p => {
       const brand = cache.brands.find(b => b.id === p.brand_id);
       return '<div class="admin-item" style="' + (!p.active ? 'opacity:0.5;' : '') + '">' +
         '<div class="info"><strong>' + p.name + '</strong><small>' + (brand?.label || '') + '</small></div>' +
         '<div class="actions">' +
-        '<button class="btn btn-sm ' + (p.active ? 'btn-warning' : 'btn-success') + '" onclick="toggleActive(\'perfumes\', \'' + p.id + '\', ' + p.active + ')" title="' + (p.active ? 'إخفاء' : 'إظهار') + '">' + (p.active ? '👁' : '👁‍🗨') + '</button>' +
-        '<button class="btn btn-sm btn-dark" onclick="editPerfume(\'' + p.id + '\')">✎</button>' +
-        '<button class="btn btn-sm btn-danger" onclick="delPerfume(\'' + p.id + '\')">🗑</button>' +
+        '<button class="btn btn-sm ' + (p.active ? 'btn-warning' : 'btn-success') + '" onclick="toggleActive(\'perfumes\', \'' + p.id + '\', ' + p.active + ')" title="' + (p.active ? 'إخفاء' : 'إظهار') + '">' + (p.active ? SVG.eye : SVG.eyeOff) + '</button>' +
+        '<button class="btn btn-sm btn-dark" onclick="editPerfume(\'' + p.id + '\')">' + SVG.edit + '</button>' +
+        '<button class="btn btn-sm btn-danger" onclick="delPerfume(\'' + p.id + '\')">' + SVG.trash + '</button>' +
         '</div></div>';
     }).join('') +
     '</div>';
