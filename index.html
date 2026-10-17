@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#1a2942">
     <title>متجر ميار كوزمتيك</title>
+    
+    <!-- DÜZELTME: Favicon eklendi -->
+    <link rel="icon" type="image/png" href="/android-chrome-192x192.png">
+    <link rel="apple-touch-icon" href="/android-chrome-192x192.png">
+
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
     <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <style>
@@ -39,9 +44,26 @@
 
         .shipping-bar { background: linear-gradient(90deg, var(--gold-dark), var(--gold), var(--gold-light), var(--gold), var(--gold-dark)); background-size: 200% 100%; color: var(--navy); text-align: center; padding: 10px 15px; font-size: 0.85rem; font-weight: 800; letter-spacing: 0.3px; animation: shimmer 4s ease-in-out infinite; position: relative; z-index: 101; display: flex; align-items: center; justify-content: center; gap: 8px; }
 
+        /* DÜZELTME: Hero bölümü relative yapıldı ki logo sağ üste yerleşebilsin */
         .hero { background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 60%, var(--sky-dark) 100%); padding: 35px 20px 45px; text-align: center; position: relative; overflow: hidden; border-radius: 0 0 30px 30px; box-shadow: var(--shadow-lg); }
         .hero::before { content: ''; position: absolute; top: -50%; right: -20%; width: 400px; height: 400px; background: radial-gradient(circle, rgba(212,175,55,0.15) 0%, transparent 70%); border-radius: 50%; animation: pulse 6s ease-in-out infinite; }
         .hero::after { content: ''; position: absolute; bottom: -30%; left: -20%; width: 350px; height: 350px; background: radial-gradient(circle, rgba(135,206,235,0.15) 0%, transparent 70%); border-radius: 50%; animation: pulse 8s ease-in-out infinite; }
+
+        /* DÜZELTME: Sağ üstteki logo için yeni CSS */
+        .hero-logo {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+            z-index: 10;
+            display: none; /* Başlangıçta gizli, JS ile açılacak */
+        }
+        @media (max-width: 500px) {
+            .hero-logo { width: 60px; height: 60px; top: 15px; right: 15px; }
+        }
         
         .hero-title { font-size: 1.6rem; font-weight: 900; background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 50%, var(--gold) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 6px; letter-spacing: 1px; position: relative; z-index: 1; animation: slideUp 0.6s ease; }
         .hero-subtitle { font-size: 0.95rem; color: var(--sky-light); font-weight: 500; position: relative; z-index: 1; animation: slideUp 0.8s ease; }
@@ -140,7 +162,9 @@
     </div>
 
     <section class="hero">
-        <img class="hero-logo-img" id="heroLogoImg" alt="Logo" style="width:100px;margin:0 auto 14px;display:none;border-radius:50%;">
+        <!-- DÜZELTME: Logo eklendi -->
+        <img class="hero-logo" id="heroLogo" alt="Logo">
+        
         <h1 class="hero-title" id="heroTitle">متجر ميار كوزمتيك</h1>
         <div class="hero-divider" style="width:60px;height:3px;background:var(--gold);margin:12px auto;border-radius:3px;"></div>
         <p class="hero-subtitle" id="heroSubtitle">جمالك يبدأ من هنا</p>
@@ -303,6 +327,7 @@
         let bottles = [];
         let prices = [];
         let brands = [];
+        let siteSettings = { logo_url: '' }; // DÜZELTME: Logo için değişken eklendi
 
         let selectedCategory = 'ALL';
         let searchQuery = '';
@@ -326,11 +351,30 @@
                 sessionToken = session?.access_token || null;
             }
 
+            await loadSiteSettings(); // DÜZELTME: Logoyu yükle
             await loadAllData();
             renderCategories();
             applyLocalFilter();
             updateCartUI();
             hideLoadingScreen();
+        }
+
+        // DÜZELTME: Site ayarlarını (logo) çeken fonksiyon geri eklendi
+        async function loadSiteSettings() {
+            if (!_supabase) return;
+            try {
+                const { data } = await _supabase.from('site_settings').select('*').eq('id', 1).maybeSingle();
+                if (data) {
+                    if (data.logo_url) {
+                        siteSettings.logo_url = data.logo_url;
+                        const logoEl = document.getElementById('heroLogo');
+                        logoEl.src = data.logo_url;
+                        logoEl.style.display = 'block';
+                    }
+                    if (data.hero_title) document.getElementById('heroTitle').innerText = data.hero_title;
+                    if (data.hero_subtitle) document.getElementById('heroSubtitle').innerText = data.hero_subtitle;
+                }
+            } catch(e) { console.error('Settings yüklenemedi', e); }
         }
 
         async function loadAllData() {
@@ -409,7 +453,6 @@
 
                 const groupId = parseInt(selectedCategory.replace('perfume_group_', ''));
                 
-                // DÜZELTME: Direkt parfümün cinsiyet ID'sine göre filtrele
                 let filteredPerfumes = currentPerfumes.filter(p => p.gender_id === groupId);
 
                 if (searchQuery) {
@@ -699,7 +742,6 @@
             if (groupId) group = perfumeGroups.find(g => g.id === groupId);
             document.getElementById('gf-name').value = group.label;
 
-            // DÜZELTME: Parfüm seçme listesi kaldırıldı
             document.getElementById('gf-perfumes').innerHTML = '<p style="color:#888; font-size:0.9rem;">يتم ربط العطور بهذه المجموعة تلقائياً بناءً على الجنس المحدد في بطاقة العطر.</p>';
 
             openModal('groupFormModal');
