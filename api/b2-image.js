@@ -10,10 +10,7 @@ const B2_REGION = process.env.B2_REGION || 'us-east-005';
 const s3 = new S3Client({
   endpoint: B2_ENDPOINT,
   region: B2_REGION,
-  credentials: {
-    accessKeyId: B2_KEY_ID,
-    secretAccessKey: B2_APP_KEY
-  }
+  credentials: { accessKeyId: B2_KEY_ID, secretAccessKey: B2_APP_KEY }
 });
 
 export default async function handler(req, res) {
@@ -38,7 +35,9 @@ export default async function handler(req, res) {
     res.status(200).send(buffer);
   } catch (err) {
     console.error('B2 proxy error:', err);
-    if (err.name === 'NoSuchKey' || err.$metadata?.httpStatusCode === 404) {
+    // Eğer B2 limiti dolduysa veya dosya bulunamadıysa (Burası çok önemli)
+    if (err.name === 'NoSuchKey' || err.$metadata?.httpStatusCode === 404 || err.message.includes('cap exceeded')) {
+      // Resim bulunamadığında veya B2 limiti dolduğunda (fallback olarak) boş bir resim göstermek yerine yönlendirebiliriz.
       return res.status(404).send('Image not found');
     }
     res.status(500).send('Proxy error: ' + err.message);
