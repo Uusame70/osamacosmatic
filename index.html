@@ -15,7 +15,7 @@
             --navy: #1a2942; --navy-light: #2c3e50;
             --cream: #FAFAF8; --white: #FFFFFF;
             --text: #2c3e50; --text-light: #7f8c8d;
-            --danger: #e74c3c; --success: #27ae60;
+            --danger: #e74c3c; --success: #27ae60; --warning: #f39c12;
             --shadow-sm: 0 2px 8px rgba(26,41,66,0.06);
             --shadow-md: 0 4px 16px rgba(26,41,66,0.08);
             --shadow-lg: 0 8px 32px rgba(26,41,66,0.12);
@@ -45,11 +45,11 @@
         .hero::after { content: ''; position: absolute; bottom: -30%; left: -20%; width: 350px; height: 350px; background: radial-gradient(circle, rgba(135,206,235,0.15) 0%, transparent 70%); border-radius: 50%; animation: pulse 8s ease-in-out infinite; }
 
         .hero-logo { position: absolute; top: 20px; right: 20px; width: 80px; height: 80px; object-fit: contain; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3)); z-index: 10; display: none; }
-        @media (max-width: 500px) { .hero-logo { width: 60px; height: 60px; top: 15px; right: 15px; } }
         
         .hero-title { font-size: 1.6rem; font-weight: 900; background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 50%, var(--gold) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 6px; letter-spacing: 1px; position: relative; z-index: 1; }
         .hero-subtitle { font-size: 0.95rem; color: var(--sky-light); font-weight: 500; position: relative; z-index: 1; }
 
+        /* Hero Banner Slider */
         .slider-container { max-width: 1200px; margin: -30px auto 0; padding: 0 15px; position: relative; z-index: 10; }
         .slider { position: relative; border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-lg); aspect-ratio: 16/6; background: var(--navy); }
         .slider-track { display: flex; height: 100%; transition: transform 0.5s ease; }
@@ -61,7 +61,6 @@
         .slider-dots { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; z-index: 3; }
         .slider-dot { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,0.5); border: 2px solid rgba(255,255,255,0.8); cursor: pointer; transition: all 0.2s; }
         .slider-dot.active { background: var(--gold); border-color: var(--gold); transform: scale(1.2); }
-        @media (max-width: 500px) { .slider { aspect-ratio: 16/9; } .slider-nav { width: 34px; height: 34px; } }
 
         header { background-color: var(--white); padding: 12px 15px; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-sm); border-bottom: 2px solid var(--gold); margin-top: 20px; }
         .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 10px; }
@@ -75,23 +74,23 @@
 
         .container { max-width: 1200px; margin: 20px auto; padding: 0 15px; }
 
-        .categories-bar { display: flex; gap: 10px; overflow-x: auto; padding: 14px 15px; background: var(--white); scrollbar-width: thin; border-bottom: 1px solid #e8ecf0; position: sticky; top: 94px; z-index: 55; box-shadow: 0 2px 8px rgba(26,41,66,0.06); }
+        /* Kategori Barı */
+        .categories-bar { display: flex; gap: 10px; overflow-x: auto; padding: 14px 15px; background: var(--white); scrollbar-width: thin; border-bottom: 1px solid #e8ecf0; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(26,41,66,0.06); }
         .categories-bar::-webkit-scrollbar { height: 3px; }
         .categories-bar::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 4px; }
         .cat-btn { background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%); color: var(--gold); border: 2px solid var(--gold); padding: 9px 20px; border-radius: 25px; white-space: nowrap; font-size: 0.88rem; font-weight: 800; cursor: pointer; transition: all 0.25s; font-family: inherit; box-shadow: 0 2px 6px rgba(26,41,66,0.15); display: inline-flex; align-items: center; gap: 6px; }
         .cat-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(212,175,55,0.3); }
         .cat-btn.active { background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%); color: var(--navy); border-color: var(--gold-light); box-shadow: 0 4px 14px rgba(212,175,55,0.5); }
 
+        /* Parfüm Listesi */
         .perfume-row { background: var(--white); border: 2px solid #e0dcd0; border-radius: var(--radius-md); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: all 0.2s; margin-bottom: 12px; }
         .perfume-row:hover { border-color: var(--gold); transform: translateX(-4px); box-shadow: var(--shadow-md); }
         .perfume-row .info .name { font-weight: 800; font-size: 1.1rem; color: var(--navy); }
         .perfume-row .info .brand { font-size: 0.85rem; color: var(--text-light); margin-top: 4px; }
         .perfume-row .arrow { color: var(--gold); font-size: 1.2rem; font-weight: 900; }
 
+        /* Ürün Grid ve Kartlar */
         .products-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
-        @media (max-width: 900px) { .products-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; } }
-        @media (max-width: 500px) { .products-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; } .perfume-row { padding: 14px; } }
-
         .product-card { background: var(--white); border-radius: var(--radius-md); overflow: hidden; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; position: relative; border: 1px solid rgba(212,175,55,0.1); transition: all 0.3s; }
         .product-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-6px); border-color: var(--gold); }
         .product-card img { width: 100%; height: 220px; object-fit: contain; background: linear-gradient(135deg, #f8fafc, #eef4f8); cursor: pointer; transition: transform 0.4s; }
@@ -99,6 +98,15 @@
         .product-info { padding: 14px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
         .product-title { font-size: 1rem; margin-bottom: 8px; color: var(--navy); font-weight: 700; cursor: pointer; line-height: 1.4; }
         .product-price { font-size: 1.15rem; font-weight: 900; color: var(--gold-dark); }
+        
+        /* Yeni Şık Admin Butonları (Kart İçinde) */
+        .admin-actions { display: flex; gap: 6px; margin-top: 10px; }
+        .admin-actions button { flex: 1; padding: 8px 0; border-radius: 8px; font-size: 1rem; display: flex; align-items: center; justify-content: center; }
+        .btn-hide { background: #f39c12; color: #fff; }
+        .btn-edit { background: #f1c40f; color: #fff; }
+        .btn-del { background: #e74c3c; color: #fff; }
+        .btn-wa { background: #25d366; color: #fff; }
+        .btn-add-cart { background: #25d366; color: #fff; font-weight: 800; flex: 2; }
 
         button { cursor: pointer; padding: 10px 14px; border: none; border-radius: var(--radius-sm); background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%); color: var(--white); font-weight: 700; font-size: 0.85rem; touch-action: manipulation; font-family: inherit; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
         button:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(26,41,66,0.2); }
@@ -109,8 +117,7 @@
         .modal { display: none; position: fixed; inset: 0; background: rgba(26,41,66,0.7); backdrop-filter: blur(4px); justify-content: center; align-items: flex-end; z-index: 1000; padding: 15px; }
         .modal.open { display: flex; animation: fadeIn 0.2s ease; }
         .modal-content { background: var(--white); padding: 24px; border-radius: var(--radius-lg) var(--radius-lg) 0 0; width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow-lg); border-top: 4px solid var(--gold); animation: slideUp 0.3s ease; }
-        @media (min-width: 601px) { .modal { align-items: center; } .modal-content { border-radius: var(--radius-lg); } }
-
+        
         .modal-header-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; }
         .modal-content h2 { font-size: 1.4rem; font-weight: 900; color: var(--navy); }
         
@@ -131,9 +138,15 @@
         .btn-add { background: #25d366; color: #fff; border: none; padding: 16px 24px; border-radius: 14px; font-weight: 800; font-size: 1rem; cursor: pointer; flex: 1; display: flex; justify-content: center;}
         .btn-add:disabled { background: #ccc; cursor: not-allowed; }
 
-        .admin-bar { background: linear-gradient(135deg, var(--navy), var(--navy-light)); color: var(--gold); padding: 14px 20px; border-radius: var(--radius-md); margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
-        .admin-tab { background: #fff; border: 1px solid #ddd; padding: 8px 16px; border-radius: 8px; cursor: pointer; white-space: nowrap; font-family: inherit; font-weight: 700; }
-        .admin-tab.active { background: var(--navy); color: #fff; }
+        /* Yönetim Paneli (Daha Şık) */
+        .admin-bar { background: linear-gradient(135deg, var(--navy), var(--navy-light)); color: var(--gold); padding: 14px 20px; border-radius: var(--radius-md); margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; box-shadow: var(--shadow-md); }
+        .admin-bar strong { display: flex; align-items: center; gap: 6px; font-size: 1.1rem; }
+        .admin-tab-bar { display: flex; gap: 8px; overflow-x: auto; margin-bottom: 20px; background: var(--white); padding: 10px; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); }
+        .admin-tab { background: transparent; border: 1px solid #ddd; padding: 8px 16px; border-radius: 8px; cursor: pointer; white-space: nowrap; font-family: inherit; font-weight: 700; color: var(--text); }
+        .admin-tab.active { background: var(--navy); color: var(--gold); border-color: var(--navy); }
+        
+        .admin-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #faf8f3; border-radius: 10px; margin-bottom: 8px; border: 1px solid #e0dcd0; }
+        .admin-item img { width: 50px; height: 50px; object-fit: cover; border-radius: 8px; background: #fff; border: 1px solid #eee; }
         
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; font-weight: 700; margin-bottom: 6px; font-size: 0.9rem; color: var(--navy); }
@@ -145,6 +158,24 @@
         
         #whatsappFloat { position: fixed; bottom: 90px; left: 20px; z-index: 99; background: linear-gradient(135deg, #25d366, #1ebd59); color: white; border: none; border-radius: 50%; width: 56px; height: 56px; padding: 0; cursor: pointer; box-shadow: 0 6px 20px rgba(37,211,102,0.5); display: flex; align-items: center; justify-content: center; transition: all 0.3s; animation: pulse 2s ease-in-out infinite; }
         #whatsappFloat .icon { width: 30px; height: 30px; stroke: white; }
+
+        /* === MOBİL UYUMLULUK === */
+        @media (max-width: 900px) { .products-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; } }
+        @media (max-width: 600px) {
+            .products-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+            .product-card img { height: 140px; }
+            .product-title { font-size: 0.85rem; }
+            .product-price { font-size: 1rem; }
+            .admin-actions button { font-size: 0.8rem; padding: 6px 0; }
+            .perfume-row { padding: 12px; }
+            .hero { padding: 25px 15px 35px; }
+            .hero-title { font-size: 1.4rem; }
+            .hero-logo { width: 60px; height: 60px; top: 15px; right: 15px; }
+            .slider { aspect-ratio: 16/9; }
+            .notes-box { grid-template-columns: 1fr; gap: 5px; }
+            .note-item { display: flex; justify-content: space-between; padding: 8px 12px; }
+            .note-item .label { margin-bottom: 0; }
+        }
     </style>
 </head>
 <body>
@@ -165,6 +196,7 @@
         <p class="hero-subtitle" id="heroSubtitle">جمالك يبدأ من هنا</p>
     </section>
 
+    <!-- Hero Banner Slider -->
     <div class="slider-container" id="sliderContainer" style="display: none;">
         <div class="slider">
             <div class="slider-track" id="sliderTrack"></div>
@@ -193,7 +225,7 @@
 
     <div class="container">
         <div id="adminBar" class="admin-bar" style="display: none;">
-            <strong>👑 وضع المسؤول</strong>
+            <strong>👑 وضع المسؤول <span style="background:var(--gold); color:var(--navy); padding:2px 8px; border-radius:10px; font-size:0.7rem; margin-right:5px;">ADMIN</span></strong>
             <div style="display: flex; gap: 8px;">
                 <button onclick="openAdmin()" class="btn-gold">لوحة التحكم</button>
                 <button onclick="handleSupabaseLogout()" class="btn-danger">خروج</button>
@@ -295,10 +327,10 @@
                 <h2>لوحة التحكم</h2>
                 <button class="btn-danger" onclick="closeModalAndPopHistory('adminModal')" style="border-radius:50%; width:36px; height:36px; padding:0;">✕</button>
             </div>
-            <div style="display:flex; gap:8px; overflow-x:auto; margin-bottom:20px;">
-                <button class="admin-tab active" onclick="switchAdminTab('groups', this)">المجموعات</button>
-                <button class="admin-tab" onclick="switchAdminTab('perfumes', this)">إدارة العطور</button>
-                <button class="admin-tab" onclick="switchAdminTab('products', this)">إدارة المنتجات (كوزمتيك)</button>
+            <div class="admin-tab-bar">
+                <button class="admin-tab active" onclick="switchAdminTab('products', this)">إدارة المنتجات</button>
+                <button class="admin-tab" onclick="switchAdminTab('groups', this)">المجموعات</button>
+                <button class="admin-tab" onclick="switchAdminTab('perfumes', this)">العطور</button>
             </div>
             <div id="adminContent"></div>
         </div>
@@ -383,7 +415,7 @@
         let cart = JSON.parse(localStorage.getItem('catalog_cart')) || [];
         let modalHistoryStack = [];
         let currentPerfumeSelection = { intensityId: null, bottleId: null, perfumeId: null };
-        let currentProductImageUrl = ''; // Kozmetik ürün görseli için
+        let currentProductImageUrl = ''; 
 
         function initSupabase() {
             if (typeof supabase !== 'undefined' && supabase.createClient) {
@@ -412,7 +444,6 @@
 
         function imageUrl(url) {
             if (!url) return 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22200%22><rect width=%22300%22 height=%22200%22 fill=%22%23f8fafc%22/><text x=%2250%25%22 y=%2250%25%22 fill=%22%23D4AF37%22 font-family=%22sans-serif%22 font-size=%2216%22 font-weight=%22bold%22 text-anchor=%22middle%22 dy=%22.3em%22>لا صورة</text></svg>';
-            if (url.includes('cloudinary.com')) return url;
             if (url.startsWith('/api/b2-image')) return url;
             const supabaseBase = 'https://xmrdqepjtfycvtgcbkyy.supabase.co/storage/v1/object/public/product-images';
             if (url.startsWith(supabaseBase)) return url.replace(supabaseBase, '/storage-img');
@@ -624,6 +655,26 @@
             } else {
                 grid.innerHTML = filtered.map(p => {
                     const imgSrc = imageUrl(p.img);
+                    let actionsHtml = '';
+
+                    if (isAdmin) {
+                        actionsHtml = `
+                            <div class="admin-actions">
+                                <button class="btn-hide" onclick="toggleProductActive('${p.id}', event)" title="إخفاء/إظهار">👁️</button>
+                                <button class="btn-edit" onclick="openProductForm('${p.id}')" title="تعديل">✏️</button>
+                                <button class="btn-wa" onclick="shareToWhatsApp('${p.id}')" title="مشاركة">💬</button>
+                                <button class="btn-del" onclick="deleteProduct('${p.id}')" title="حذف">🗑️</button>
+                                <button class="btn-add-cart" onclick="addToCart('${p.id}')">إضافة</button>
+                            </div>
+                        `;
+                    } else {
+                        actionsHtml = `
+                            <div class="admin-actions" style="margin-top:10px;">
+                                <button class="btn-add-cart" style="width:100%;" onclick="addToCart('${p.id}')">إضافة</button>
+                            </div>
+                        `;
+                    }
+
                     return `
                     <div class="product-card">
                         <img src="${imgSrc}" onclick="openProductDetail('${p.id}')" loading="lazy">
@@ -632,7 +683,7 @@
                                 <div class="product-title" onclick="openProductDetail('${p.id}')">${p.name_ar}</div>
                                 <div class="product-price">${p.price} ₺</div>
                             </div>
-                            <button class="btn-gold" style="margin-top:10px; width:100%;" onclick="addToCart('${p.id}')">إضافة</button>
+                            ${actionsHtml}
                         </div>
                     </div>
                 `}).join('');
@@ -852,7 +903,7 @@
         function openAdmin() {
             document.getElementById('adminBar').style.display = 'flex';
             openModal('adminModal');
-            switchAdminTab('groups');
+            switchAdminTab('products');
         }
 
         function switchAdminTab(tab, btn) {
@@ -864,7 +915,7 @@
                 c.innerHTML = `
                     <button class="btn-gold" style="margin-bottom:15px; width:100%; padding:12px;" onclick="openGroupForm()">+ إضافة مجموعة جديدة</button>
                     ${perfumeGroups.map(g => `
-                        <div style="display:flex; justify-content:space-between; align-items:center; padding:12px; background:#faf8f3; border-radius:10px; margin-bottom:8px;">
+                        <div class="admin-item">
                             <strong>${g.label}</strong>
                             <div style="display:flex; gap:5px;">
                                 <button class="btn-gold" onclick="openGroupForm(${g.id})" style="padding:6px 10px;">✎</button>
@@ -875,24 +926,25 @@
                 `;
             } else if (tab === 'perfumes') {
                 c.innerHTML = `<p style="color:#888; text-align:center; margin-bottom:20px;">قائمة العطور الحالية</p>
-                ${currentPerfumes.map(p => `<div style="padding:10px; border-bottom:1px solid #eee;">${p.name}</div>`).join('')}`;
+                ${currentPerfumes.map(p => `<div class="admin-item">${p.name}</div>`).join('')}`;
             } else if (tab === 'products') {
                 c.innerHTML = `
                     <button class="btn-gold" style="margin-bottom:10px; width:100%; padding:12px;" onclick="openProductForm()">+ إضافة منتج جديد (كوزمتيك)</button>
                     <button class="btn-success" style="margin-bottom:15px; width:100%; padding:12px;" onclick="document.getElementById('bulk-image-upload').click()">🚀 Toplu Görsel Güncelle (Seç ve Yükle)</button>
                     <input type="file" id="bulk-image-upload" multiple accept="image/*" style="display:none;" onchange="handleBulkImageUpload(this)">
-                    <p style="font-size:0.8rem; color:#888; text-align:center; margin-bottom:15px;">Yüklediğin görseller sırasıyla listedeki ürünlere atanır. (Eski B2 görsellerini kurtarmak için kullanabilirsin).</p>
+                    <p style="font-size:0.8rem; color:#888; text-align:center; margin-bottom:15px;">Yüklediğin görseller sırasıyla listedeki ürünlere atanır.</p>
                     
                     ${currentProducts.map(p => `
-                        <div style="display:flex; justify-content:space-between; align-items:center; padding:12px; background:#faf8f3; border-radius:10px; margin-bottom:8px;">
-                            <div style="display:flex; align-items:center; gap:10px;">
-                                <img src="${imageUrl(p.img)}" style="width:40px; height:40px; object-fit:cover; border-radius:5px;">
+                        <div class="admin-item">
+                            <div style="display:flex; align-items:center; gap:10px; flex-grow:1;">
+                                <img src="${imageUrl(p.img)}">
                                 <div>
                                     <strong>${p.name_ar}</strong>
-                                    ${p.img && p.img.includes('/admin/') ? '<br><small style="color:var(--danger); font-size:0.7rem;">⚠️ Eski B2 Görseli</small>' : ''}
+                                    <br><small style="color:var(--gold-dark); font-weight:bold;">${p.price} ₺</small>
                                 </div>
                             </div>
                             <div style="display:flex; gap:5px;">
+                                <button onclick="toggleProductActive('${p.id}', event)" style="background:${p.active !== false ? '#f39c12' : '#27ae60'}; padding:6px 10px;" title="${p.active !== false ? 'إخفاء' : 'إظهار'}">👁️</button>
                                 <button class="btn-gold" onclick="openProductForm('${p.id}')" style="padding:6px 10px;">✎</button>
                                 <button class="btn-danger" onclick="deleteProduct('${p.id}')" style="padding:6px 10px;">🗑</button>
                             </div>
@@ -900,6 +952,42 @@
                     `).join('')}
                 `;
             }
+        }
+
+        // Ürün Gizle/Göster Fonksiyonu
+        async function toggleProductActive(id, event) {
+            if (event) event.stopPropagation();
+            if (!confirm('تغيير حالة ظهور المنتج؟')) return;
+            
+            const product = currentProducts.find(p => String(p.id) === String(id));
+            if (!product) return;
+
+            const newState = product.active !== false ? false : true;
+            
+            try {
+                const { error } = await _supabase
+                    .from('whatsapp_products')
+                    .update({ active: newState })
+                    .eq('id', id);
+                
+                if (error) throw error;
+                
+                await loadAllData();
+                applyLocalFilter();
+                if (document.getElementById('adminModal').classList.contains('open')) {
+                    switchAdminTab('products');
+                }
+            } catch (err) {
+                alert('Hata: ' + err.message);
+            }
+        }
+
+        // WhatsApp'ta Paylaş
+        function shareToWhatsApp(id) {
+            const p = currentProducts.find(x => String(x.id) === String(id));
+            if (!p) return;
+            const msg = `شاهد هذا المنتج من متجرنا: \n${p.name_ar} \nالسعر: ${p.price} ₺\n`;
+            window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
         }
 
         async function openGroupForm(groupId = null) {
@@ -1004,7 +1092,6 @@
             try {
                 let imgUrl = currentProductImageUrl;
 
-                // Eğer yeni resim seçildiyse yükle
                 if (fileInput.files[0]) {
                     const file = fileInput.files[0];
                     const base64 = await new Promise((resolve) => {
@@ -1013,7 +1100,6 @@
                         reader.readAsDataURL(file);
                     });
 
-                    // Cloudinary'ye yükle (b2-upload API'si artık Cloudinary'ye bağlı)
                     const res = await fetch('/api/b2-upload', {
                         method: 'POST',
                         headers: { 
@@ -1024,7 +1110,7 @@
                     });
                     const data = await res.json();
                     if (!res.ok) throw new Error(data.error || 'Yükleme hatası');
-                    imgUrl = data.key; // Cloudinary URL'i
+                    imgUrl = '/api/b2-image?key=' + encodeURIComponent(data.key);
                 }
 
                 const payload = {
@@ -1034,6 +1120,7 @@
                     category: category,
                     description: desc,
                     img: imgUrl,
+                    active: true,
                     synced_at: new Date().toISOString()
                 };
 
@@ -1110,7 +1197,7 @@
 
                     const { error } = await _supabase
                         .from('whatsapp_products')
-                        .update({ img: data.key })
+                        .update({ img: '/api/b2-image?key=' + encodeURIComponent(data.key) })
                         .eq('id', product.id);
                     
                     if (error) throw error;
