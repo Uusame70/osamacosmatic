@@ -117,9 +117,6 @@
         .admin-bar { background: linear-gradient(135deg, var(--navy), var(--navy-light)); color: var(--gold); padding: 14px 20px; border-radius: var(--radius-md); margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
         .admin-tab { background: #fff; border: 1px solid #ddd; padding: 8px 16px; border-radius: 8px; cursor: pointer; white-space: nowrap; font-family: inherit; font-weight: 700; }
         .admin-tab.active { background: var(--navy); color: #fff; }
-        .group-checkbox-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; max-height: 300px; overflow-y: auto; padding: 10px; border: 1px solid #eee; border-radius: 10px; }
-        .checkbox-item { display: flex; align-items: center; gap: 8px; padding: 8px; background: #faf8f3; border-radius: 8px; cursor: pointer; font-size: 0.9rem;}
-        .checkbox-item input { width: 20px; height: 20px; accent-color: var(--gold); }
         
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; font-weight: 700; margin-bottom: 6px; font-size: 0.9rem; color: var(--navy); }
@@ -281,8 +278,8 @@
                 <input type="text" id="gf-name">
             </div>
             <div class="form-group">
-                <label>اختر العطور التي تنتمي لهذه المجموعة:</label>
-                <div class="group-checkbox-list" id="gf-perfumes"></div>
+                <label>العطور المرتبطة:</label>
+                <div class="group-checkbox-list" id="gf-perfumes" style="background:#faf8f3; padding:15px; border-radius:10px;"></div>
             </div>
             <div style="display: flex; gap: 10px; margin-top: 20px;">
                 <button class="btn-success" style="flex:1; padding:12px;" onclick="saveGroup()">حفظ</button>
@@ -305,7 +302,6 @@
         let intensities = [];
         let bottles = [];
         let prices = [];
-        let groupItems = [];
         let brands = [];
 
         let selectedCategory = 'ALL';
@@ -360,11 +356,6 @@
                 bottles = pBottles.data || [];
                 prices = pPrices.data || [];
                 brands = pBrands.data || [];
-
-                try {
-                    const { data: gItems } = await _supabase.from('perfume_group_items').select('*');
-                    groupItems = gItems || [];
-                } catch(e) { console.log('Grup öğeleri tablosu henüz yok'); }
             }
         }
 
@@ -378,16 +369,16 @@
             allBtn.onclick = () => { selectedCategory = 'ALL'; renderCategories(); applyLocalFilter(); };
             bar.appendChild(allBtn);
 
-        const kozmetikCats = new Set();
-        currentProducts.forEach(p => {
-            if (p.category) {
-                // Virgül, noktalı virgül, slash veya boru işaretine göre ayır
-                p.category.split(/[,;\/|]+/).forEach(c => {
-                    const trimmed = c.trim();
-                    if (trimmed) kozmetikCats.add(trimmed);
-                });
-            }
-        });
+            const kozmetikCats = new Set();
+            currentProducts.forEach(p => {
+                if (p.category) {
+                    p.category.split(/[,;\/|]+/).forEach(c => {
+                        const trimmed = c.trim();
+                        if (trimmed) kozmetikCats.add(trimmed);
+                    });
+                }
+            });
+            
             Array.from(kozmetikCats).sort().forEach(cat => {
                 const btn = document.createElement('button');
                 btn.className = 'cat-btn' + (selectedCategory === cat ? ' active' : '');
@@ -417,7 +408,8 @@
                 list.style.gap = '12px';
 
                 const groupId = parseInt(selectedCategory.replace('perfume_group_', ''));
-                // Direkt parfümün cinsiyet ID'sine göre filtrele
+                
+                // DÜZELTME: Direkt parfümün cinsiyet ID'sine göre filtrele
                 let filteredPerfumes = currentPerfumes.filter(p => p.gender_id === groupId);
 
                 if (searchQuery) {
@@ -454,6 +446,7 @@
                     return cats.includes(selectedCategory);
                 });
             }
+            
             if (searchQuery) {
                 const q = searchQuery.toLowerCase();
                 filtered = filtered.filter(p => (p.name_ar || '').toLowerCase().includes(q) || (p.desc_ar || '').toLowerCase().includes(q));
@@ -649,7 +642,12 @@
                     const email = prompt('Admin Email:'); const pass = prompt('Admin Password:');
                     if (email && pass) {
                         _supabase.auth.signInWithPassword({ email, password: pass }).then(({data, error}) => {
-                            if (!error) { sessionToken = data.session.access_token; isAdmin = true; alert('Giriş Başarılı'); }
+                            if (!error) { 
+                                sessionToken = data.session.access_token; 
+                                isAdmin = true; 
+                                alert('Giriş Başarılı'); 
+                                location.reload();
+                            }
                             else alert('Hatalı Giriş');
                         });
                     }
@@ -688,7 +686,7 @@
                     `).join('')}
                 `;
             } else if (tab === 'perfumes') {
-                c.innerHTML = `<p style="color:#888; text-align:center; margin-bottom:20px;">قائمة العطور الحالية (للتعديل الكامل استخدم Supabase)</p>
+                c.innerHTML = `<p style="color:#888; text-align:center; margin-bottom:20px;">قائمة العطور الحالية</p>
                 ${currentPerfumes.map(p => `<div style="padding:10px; border-bottom:1px solid #eee;">${p.name}</div>`).join('')}`;
             }
         }
@@ -701,27 +699,8 @@
             if (groupId) group = perfumeGroups.find(g => g.id === groupId);
             document.getElementById('gf-name').value = group.label;
 
-            let checkedIds = [];
-            if (groupId) checkedIds = gro        async function openGroupForm(groupId = null) {
-            document.getElementById('groupFormTitle').innerText = groupId ? 'تعديل المجموعة' : 'إضافة مجموعة';
-            document.getElementById('gf-id').value = groupId || '';
-            
-            let group = { label: '' };
-            if (groupId) group = perfumeGroups.find(g => g.id === groupId);
-            document.getElementById('gf-name').value = group.label;
-
-            // Parfüm seçme listesini boş bırak (artık gerek yok)
+            // DÜZELTME: Parfüm seçme listesi kaldırıldı
             document.getElementById('gf-perfumes').innerHTML = '<p style="color:#888; font-size:0.9rem;">يتم ربط العطور بهذه المجموعة تلقائياً بناءً على الجنس المحدد في بطاقة العطر.</p>';
-
-            openModal('groupFormModal');
-        }upItems.filter(gi => gi.group_id === groupId).map(gi => gi.perfume_id);
-
-            document.getElementById('gf-perfumes').innerHTML = currentPerfumes.map(p => `
-                <label class="checkbox-item">
-                    <input type="checkbox" value="${p.id}" ${checkedIds.includes(p.id) ? 'checked' : ''}>
-                    <span>${p.name}</span>
-                </label>
-            `).join('');
 
             openModal('groupFormModal');
         }
@@ -731,21 +710,11 @@
             const name = document.getElementById('gf-name').value.trim();
             if (!name) return alert('اسم المجموعة مطلوب');
 
-            const checkedPerfumes = Array.from(document.querySelectorAll('#gf-perfumes input:checked')).map(cb => cb.value);
-
             try {
-                let groupId = id;
                 if (id) {
                     await _supabase.from('categories').update({ label: name }).eq('id', id);
-                    await _supabase.from('perfume_group_items').delete().eq('group_id', id);
                 } else {
-                    const { data } = await _supabase.from('categories').insert([{ type: 'gender', value: 'grup_' + Date.now(), label: name, active: true }]).select();
-                    groupId = data[0].id;
-                }
-
-                if (checkedPerfumes.length > 0) {
-                    const inserts = checkedPerfumes.map(pid => ({ group_id: groupId, perfume_id: pid }));
-                    await _supabase.from('perfume_group_items').insert(inserts);
+                    await _supabase.from('categories').insert([{ type: 'gender', value: 'grup_' + Date.now(), label: name, active: true }]);
                 }
 
                 closeModalAndPopHistory('groupFormModal');
