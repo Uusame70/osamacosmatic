@@ -417,8 +417,8 @@
                 list.style.gap = '12px';
 
                 const groupId = parseInt(selectedCategory.replace('perfume_group_', ''));
-                const allowedPerfumeIds = groupItems.filter(gi => gi.group_id === groupId).map(gi => gi.perfume_id);
-                let filteredPerfumes = currentPerfumes.filter(p => allowedPerfumeIds.includes(p.id));
+                // Direkt parfümün cinsiyet ID'sine göre filtrele
+                let filteredPerfumes = currentPerfumes.filter(p => p.gender_id === groupId);
 
                 if (searchQuery) {
                     const q = searchQuery.toLowerCase();
@@ -702,7 +702,19 @@
             document.getElementById('gf-name').value = group.label;
 
             let checkedIds = [];
-            if (groupId) checkedIds = groupItems.filter(gi => gi.group_id === groupId).map(gi => gi.perfume_id);
+            if (groupId) checkedIds = gro        async function openGroupForm(groupId = null) {
+            document.getElementById('groupFormTitle').innerText = groupId ? 'تعديل المجموعة' : 'إضافة مجموعة';
+            document.getElementById('gf-id').value = groupId || '';
+            
+            let group = { label: '' };
+            if (groupId) group = perfumeGroups.find(g => g.id === groupId);
+            document.getElementById('gf-name').value = group.label;
+
+            // Parfüm seçme listesini boş bırak (artık gerek yok)
+            document.getElementById('gf-perfumes').innerHTML = '<p style="color:#888; font-size:0.9rem;">يتم ربط العطور بهذه المجموعة تلقائياً بناءً على الجنس المحدد في بطاقة العطر.</p>';
+
+            openModal('groupFormModal');
+        }upItems.filter(gi => gi.group_id === groupId).map(gi => gi.perfume_id);
 
             document.getElementById('gf-perfumes').innerHTML = currentPerfumes.map(p => `
                 <label class="checkbox-item">
