@@ -378,10 +378,16 @@
             allBtn.onclick = () => { selectedCategory = 'ALL'; renderCategories(); applyLocalFilter(); };
             bar.appendChild(allBtn);
 
-            const kozmetikCats = new Set();
-            currentProducts.forEach(p => {
-                if (p.category && p.category.trim()) kozmetikCats.add(p.category.trim());
-            });
+        const kozmetikCats = new Set();
+        currentProducts.forEach(p => {
+            if (p.category) {
+                // Virgül, noktalı virgül, slash veya boru işaretine göre ayır
+                p.category.split(/[,;\/|]+/).forEach(c => {
+                    const trimmed = c.trim();
+                    if (trimmed) kozmetikCats.add(trimmed);
+                });
+            }
+        });
             Array.from(kozmetikCats).sort().forEach(cat => {
                 const btn = document.createElement('button');
                 btn.className = 'cat-btn' + (selectedCategory === cat ? ' active' : '');
@@ -442,7 +448,11 @@
 
             let filtered = currentProducts;
             if (selectedCategory !== 'ALL') {
-                filtered = filtered.filter(p => (p.category || '').includes(selectedCategory));
+                filtered = filtered.filter(p => {
+                    if (!p.category) return false;
+                    const cats = p.category.split(/[,;\/|]+/).map(c => c.trim());
+                    return cats.includes(selectedCategory);
+                });
             }
             if (searchQuery) {
                 const q = searchQuery.toLowerCase();
