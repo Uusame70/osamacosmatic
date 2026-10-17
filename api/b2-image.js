@@ -1,3 +1,4 @@
+// api/b2-image.js
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 
 const B2_KEY_ID = process.env.B2_KEY_ID || '0052a17b1b477e60000000001';
@@ -20,7 +21,7 @@ export default async function handler(req, res) {
 
   if (!key) return res.status(400).send('Missing key');
 
-  if (!key.startsWith('perfume/') && !key.startsWith('admin/') && !key.startsWith('whatsapp/')) {
+  if (!key.startsWith('perfume/') && !key.startsWith('whatsapp/') && !key.startsWith('admin/')) {
     return res.status(403).send('Forbidden');
   }
 

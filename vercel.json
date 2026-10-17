@@ -1,7 +1,25 @@
 {
-  "functions": {
-    "api/*.js": {
-      "maxDuration": 30
+  "rewrites": [
+    {
+      "source": "/storage-img/:path*",
+      "destination": "https://xmrdqepjtfycvtgcbkyy.supabase.co/storage/v1/object/public/product-images/:path*"
+    },
+    {
+      "source": "/parfum",
+      "destination": "/parfum.html"
+    },
+    {
+      "source": "/kozmetik",
+      "destination": "/kozmetik.html"
     }
-  }
+  ],
+  "headers": [
+    {
+      "source": "/storage-img/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, s-maxage=31536000, immutable" },
+        { "key": "CDN-Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    }
+  ]
 }
