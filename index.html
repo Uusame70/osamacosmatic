@@ -458,6 +458,7 @@
         function imageUrl(url) {
             if (!url) return 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22200%22><rect width=%22300%22 height=%22200%22 fill=%22%23f8fafc%22/><text x=%2250%25%22 y=%2250%25%22 fill=%22%23D4AF37%22 font-family=%22sans-serif%22 font-size=%2216%22 font-weight=%22bold%22 text-anchor=%22middle%22 dy=%22.3em%22>لا صورة</text></svg>';
             if (url.startsWith('/api/b2-image')) return url;
+            if (url.startsWith('http')) return url; // Cloudinary veya dış link ise direkt dön
             const supabaseBase = 'https://xmrdqepjtfycvtgcbkyy.supabase.co/storage/v1/object/public/product-images';
             if (url.startsWith(supabaseBase)) return url.replace(supabaseBase, '/storage-img');
             if (url.includes('2chat-user-data.s3') || url.includes('2chat.io')) {
@@ -735,7 +736,7 @@
             const activeBottles = bottles.filter(b => b.size_id === 2); 
             document.getElementById('pd-bottle-options').innerHTML = activeBottles.map(b => `
                 <div class="option-btn" onclick="selectBottle(${b.id})" id="bot-btn-${b.id}">
-                    ${b.image_url ? `<img src="${b.image_url}" onerror="this.style.display='none'">` : ''}
+                    ${b.image_url ? `<img src="${imageUrl(b.image_url)}" onerror="this.style.display='none'">` : ''}
                     <div>${b.name}</div>
                     <div style="font-size:0.7rem; color:#666;">${b.price_diff > 0 ? '+' + b.price_diff + ' ₺' : 'مجاناً'}</div>
                 </div>
@@ -1145,7 +1146,9 @@
                         body: JSON.stringify({ base64: base64, contentType: settingLogoFile.type })
                     });
                     const data = await res.json();
-                    if (data.key) finalLogoUrl = '/api/b2-image?key=' + encodeURIComponent(data.key);
+                    if (data.key) {
+                        finalLogoUrl = data.key.startsWith('http') ? data.key : '/api/b2-image?key=' + encodeURIComponent(data.key);
+                    }
                 }
 
                 if (settingSliderFiles.length > 0) {
@@ -1161,7 +1164,10 @@
                             body: JSON.stringify({ base64: base64, contentType: file.type })
                         });
                         const data = await res.json();
-                        if (data.key) finalSliderImages.push('/api/b2-image?key=' + encodeURIComponent(data.key));
+                        if (data.key) {
+                            const finalUrl = data.key.startsWith('http') ? data.key : '/api/b2-image?key=' + encodeURIComponent(data.key);
+                            finalSliderImages.push(finalUrl);
+                        }
                     }
                 }
 
@@ -1355,7 +1361,10 @@
                     });
                     const data = await res.json();
                     if (!res.ok) throw new Error(data.error || 'Yükleme hatası');
-                    imgUrl = '/api/b2-image?key=' + encodeURIComponent(data.key);
+                    
+                    if (data.key) {
+                        imgUrl = data.key.startsWith('http') ? data.key : '/api/b2-image?key=' + encodeURIComponent(data.key);
+                    }
                 }
 
                 const payload = {
