@@ -68,7 +68,11 @@
         header { background-color: var(--white); padding: 12px 15px; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-sm); border-bottom: 2px solid var(--gold); margin-top: 20px; }
         .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 10px; }
         .header-btns { display: flex; gap: 8px; align-items: center; width: 100%; justify-content: flex-end; }
-        .cart-btn { background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%) !important; color: var(--navy) !important; font-weight: 800 !important; box-shadow: 0 4px 12px rgba(212,175,55,0.3) !important; border-radius: var(--radius-sm) !important; padding: 10px 16px !important; display: flex; align-items: center; gap: 6px; }
+        
+        .header-btn { display: flex; align-items: center; gap: 6px; padding: 10px 16px; border-radius: var(--radius-sm); font-weight: 800; cursor: pointer; border: none; font-family: inherit; transition: all 0.2s; }
+        .cart-btn { background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%); color: var(--navy); box-shadow: 0 4px 12px rgba(212,175,55,0.3); }
+        .fav-btn-header { background: linear-gradient(135deg, var(--danger) 0%, #c0392b 100%); color: var(--white); box-shadow: 0 4px 12px rgba(231,76,60,0.3); }
+        .header-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.2); }
 
         .search-box { width: 100%; position: relative; }
         .search-box input { width: 100%; padding: 12px 16px; padding-inline-start: 46px; border: 2px solid #e8ecf0; border-radius: var(--radius-md); font-size: 0.95rem; outline: none; background-color: var(--cream); font-family: inherit; transition: all 0.2s; }
@@ -84,15 +88,27 @@
         .cat-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(212,175,55,0.3); }
         .cat-btn.active { background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%); color: var(--navy); border-color: var(--gold-light); box-shadow: 0 4px 14px rgba(212,175,55,0.5); }
 
-        .perfume-row { background: var(--white); border: 2px solid #e0dcd0; border-radius: var(--radius-md); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: all 0.2s; margin-bottom: 12px; }
+        .perfume-row { background: var(--white); border: 2px solid #e0dcd0; border-radius: var(--radius-md); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s; margin-bottom: 12px; position: relative; }
         .perfume-row:hover { border-color: var(--gold); transform: translateX(-4px); box-shadow: var(--shadow-md); }
+        .perfume-row .info { cursor: pointer; flex-grow: 1; }
         .perfume-row .info .name { font-weight: 800; font-size: 1.1rem; color: var(--navy); }
         .perfume-row .info .brand { font-size: 0.85rem; color: var(--text-light); margin-top: 4px; }
-        .perfume-row .arrow { color: var(--gold); font-size: 1.2rem; font-weight: 900; }
+        
+        .fav-btn { position: absolute; top: 15px; left: 15px; background: transparent; border: none; cursor: pointer; color: #ccc; transition: all 0.2s; padding: 5px; z-index: 10; }
+        .fav-btn:hover { transform: scale(1.2); }
+        .fav-btn.active { color: var(--danger); }
+        .fav-btn .icon { width: 22px; height: 22px; fill: currentColor; stroke: currentColor; }
+        .fav-btn:not(.active) .icon { fill: none; stroke-width: 2; }
 
         .products-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
         .product-card { background: var(--white); border-radius: var(--radius-md); overflow: hidden; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; position: relative; border: 1px solid rgba(212,175,55,0.1); transition: all 0.3s; }
         .product-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-6px); border-color: var(--gold); }
+        .product-card .card-fav-btn { position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.9); border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.15); border: none; cursor: pointer; color: #ccc; transition: all 0.2s; z-index: 5; }
+        .product-card .card-fav-btn:hover { transform: scale(1.1); background: #fff; }
+        .product-card .card-fav-btn.active { color: var(--danger); }
+        .product-card .card-fav-btn .icon { width: 20px; height: 20px; fill: currentColor; stroke: currentColor; }
+        .product-card .card-fav-btn:not(.active) .icon { fill: none; stroke-width: 2; }
+        
         .product-card img { width: 100%; height: 220px; object-fit: contain; background: linear-gradient(135deg, #f8fafc, #eef4f8); cursor: pointer; transition: transform 0.4s; }
         .product-card:hover img { transform: scale(1.05); }
         .product-info { padding: 14px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
@@ -160,6 +176,9 @@
         .stat-box h3 { font-size: 0.9rem; color: var(--gold-light); margin-bottom: 5px; }
         .stat-box .number { font-size: 1.8rem; font-weight: 900; }
 
+        .fav-item-row { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #faf8f3; border-radius: 10px; margin-bottom: 8px; border: 1px solid #e0dcd0; }
+        .fav-item-row img { width: 50px; height: 50px; object-fit: cover; border-radius: 8px; margin-inline-end: 10px; }
+
         @media (max-width: 900px) { .products-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; } }
         @media (max-width: 600px) {
             .products-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
@@ -207,7 +226,11 @@
     <header>
         <div class="header-top">
             <div class="header-btns">
-                <button class="cart-btn" onclick="openModal('cartModal')">
+                <button class="header-btn fav-btn-header" onclick="openFavoritesModal()">
+                    <svg class="icon" viewBox="0 0 24 24"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                    <span>المفضلة (<span id="fav-count">0</span>)</span>
+                </button>
+                <button class="header-btn cart-btn" onclick="openModal('cartModal')">
                     <svg class="icon" viewBox="0 0 24 24"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
                     <span>السلة (<span id="cart-count">0</span>)</span>
                 </button>
@@ -295,6 +318,20 @@
             <div id="cartList"></div>
             <div style="display:flex; justify-content:flex-end; margin-top:16px;">
                 <button onclick="closeModalAndPopHistory('cartModal')" class="btn-danger">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FAVORİLER MODALI -->
+    <div id="favoritesModal" class="modal" onclick="closeModalOnBackdrop(event, 'favoritesModal')">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header-row">
+                <h2>❤️ المفضلة</h2>
+                <button onclick="closeModalAndPopHistory('favoritesModal')" class="btn-danger" style="border-radius:50%; width:36px; height:36px; padding:0;">✕</button>
+            </div>
+            <div id="favoritesList"></div>
+            <div style="display:flex; justify-content:flex-end; margin-top:16px;">
+                <button onclick="closeModalAndPopHistory('favoritesModal')" class="btn-danger">إغلاق</button>
             </div>
         </div>
     </div>
@@ -428,13 +465,14 @@
         let selectedCategory = 'ALL';
         let searchQuery = '';
         let cart = JSON.parse(localStorage.getItem('catalog_cart')) || [];
+        let favorites = JSON.parse(localStorage.getItem('mayar_favorites')) || []; // FAVORİLER
         let modalHistoryStack = [];
         let currentPerfumeSelection = { intensityId: null, bottleId: null, perfumeId: null };
         let currentProductImageUrl = ''; 
         let settingLogoFile = null; 
         let settingSliderFiles = []; 
 
-        // CİHAZ ID OLUŞTURMA (Benzersiz Cihaz Takibi İçin)
+        // CİHAZ ID OLUŞTURMA
         let deviceId = localStorage.getItem('mayar_device_id');
         if (!deviceId) {
             deviceId = 'dev_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
@@ -469,6 +507,7 @@
             renderCategories();
             applyLocalFilter();
             updateCartUI();
+            updateFavCount(); // Favori sayısını güncelle
             hideLoadingScreen();
         }
 
@@ -482,6 +521,78 @@
                     device_id: deviceId
                 }]);
             } catch(e) { console.warn('Analiz kaydı başarısız', e); }
+        }
+
+        // --- FAVORİLER FONKSİYONLARI ---
+        function toggleFavorite(id, type, event) {
+            if (event) event.stopPropagation();
+            const compositeId = `${type}_${id}`;
+            const index = favorites.indexOf(compositeId);
+            
+            if (index > -1) {
+                favorites.splice(index, 1); // Varsa çıkar
+            } else {
+                favorites.push(compositeId); // Yoksa ekle
+            }
+            
+            localStorage.setItem('mayar_favorites', JSON.stringify(favorites));
+            updateFavCount();
+            applyLocalFilter(); // Yıldızların rengini güncelle
+            
+            // Eğer favoriler penceresi açıksa, listeyi yenile
+            if (document.getElementById('favoritesModal').classList.contains('open')) {
+                renderFavoritesModal();
+            }
+        }
+
+        function updateFavCount() {
+            document.getElementById('fav-count').innerText = favorites.length;
+        }
+
+        function openFavoritesModal() {
+            renderFavoritesModal();
+            openModal('favoritesModal');
+        }
+
+        function renderFavoritesModal() {
+            const list = document.getElementById('favoritesList');
+            if (favorites.length === 0) {
+                list.innerHTML = '<p style="text-align:center; padding:20px; color:#888;">لا توجد منتجات في المفضلة</p>';
+                return;
+            }
+
+            let html = '';
+            favorites.forEach(compId => {
+                const [type, id] = compId.split('_');
+                let product = null;
+                
+                if (type === 'kozmetik') {
+                    product = currentProducts.find(p => String(p.id) === id);
+                } else if (type === 'perfume') {
+                    product = currentPerfumes.find(p => String(p.id) === id);
+                }
+
+                if (product) {
+                    const name = product.name_ar || product.name;
+                    const img = imageUrl(product.img);
+                    const price = type === 'kozmetik' ? product.price : '';
+
+                    html += `
+                    <div class="fav-item-row">
+                        <div style="display:flex; align-items:center; flex-grow:1; cursor:pointer;" onclick="closeModalAndPopHistory('favoritesModal'); setTimeout(() => { if('${type}' === 'kozmetik') openProductDetail('${product.id}'); else openPerfumeDetail('${product.id}'); }, 300);">
+                            <img src="${img}" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2250%22 height=%2250%22><rect width=%2250%22 height=%2250%22 fill=%22%23eee%22/></svg>'">
+                            <div>
+                                <strong>${name}</strong>
+                                ${price ? `<br><small style="color:var(--gold-dark);">${price} ₺</small>` : '<br><small style="color:var(--text-light);">عطر</small>'}
+                            </div>
+                        </div>
+                        <button onclick="toggleFavorite('${product.id}', '${type}', event)" class="btn-danger" style="padding:6px 10px;">
+                            <svg class="icon" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                        </button>
+                    </div>`;
+                }
+            });
+            list.innerHTML = html;
         }
 
         function togglePasswordVisibility() {
@@ -684,13 +795,19 @@
                 } else {
                     list.innerHTML = filteredPerfumes.map(p => {
                         const b = brands.find(brand => brand.id === p.brand_id);
+                        const isFav = favorites.includes(`perfume_${p.id}`);
                         return `
-                            <div class="perfume-row" onclick="openPerfumeDetail('${p.id}')">
-                                <div class="info">
+                            <div class="perfume-row">
+                                <div class="info" onclick="openPerfumeDetail('${p.id}')">
                                     <div class="name">${p.name}</div>
                                     <div class="brand">${b ? b.label : ''}</div>
                                 </div>
-                                <div class="arrow">←</div>
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <div class="arrow" onclick="openPerfumeDetail('${p.id}')" style="cursor:pointer;">←</div>
+                                    <button class="fav-btn ${isFav ? 'active' : ''}" onclick="toggleFavorite('${p.id}', 'perfume', event)">
+                                        <svg class="icon" viewBox="0 0 24 24"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                                    </button>
+                                </div>
                             </div>`;
                     }).join('');
                 }
@@ -719,6 +836,7 @@
             } else {
                 grid.innerHTML = filtered.map(p => {
                     const imgSrc = imageUrl(p.img);
+                    const isFav = favorites.includes(`kozmetik_${p.id}`);
                     let actionsHtml = '';
 
                     if (isAdmin) {
@@ -745,6 +863,9 @@
                     return `
                     <div class="product-card">
                         ${hasDiscount ? `<div class="discount-badge">-%${discountPercent}</div>` : ''}
+                        <button class="card-fav-btn ${isFav ? 'active' : ''}" onclick="toggleFavorite('${p.id}', 'kozmetik', event)">
+                            <svg class="icon" viewBox="0 0 24 24"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                        </button>
                         <img src="${imgSrc}" onclick="openProductDetail('${p.id}')" loading="lazy" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22200%22><rect width=%22300%22 height=%22200%22 fill=%22%23f8fafc%22/><text x=%2250%25%22 y=%2250%25%22 fill=%22%23D4AF37%22 font-family=%22sans-serif%22 font-size=%2216%22 font-weight=%22bold%22 text-anchor=%22middle%22 dy=%22.3em%22>لا صورة</text></svg>'">
                         <div class="product-info">
                             <div>
@@ -1063,14 +1184,13 @@
                     .from('site_analytics')
                     .select('*')
                     .order('created_at', { ascending: false })
-                    .limit(5000); // Son 5000 kayıt (istatistikler için)
+                    .limit(5000); 
 
                 if (error) throw error;
 
                 const now = new Date();
                 const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
                 
-                // Hafta Pazartesi başlar (0=Sunday, 1=Monday)
                 const dayOfWeek = now.getDay();
                 const diffToMonday = (dayOfWeek === 0 ? 7 : dayOfWeek) - 1;
                 const weekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - diffToMonday).getTime();
