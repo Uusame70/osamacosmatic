@@ -968,7 +968,6 @@
             });
             saveCart();
             updateCartUI();
-            alert('✅ تمت الإضافة إلى السلة');
             closeModalAndPopHistory('perfumeDetailModal');
         }
 
@@ -1005,7 +1004,6 @@
             if (existing) existing.qty++;
             else cart.push({ type: 'kozmetik', id: p.id, name: p.name_ar, price: p.price, qty: 1 });
             saveCart(); updateCartUI();
-            alert('✅ تمت الإضافة إلى السلة');
         }
 
         function saveCart() { localStorage.setItem('catalog_cart', JSON.stringify(cart)); }
@@ -1060,7 +1058,7 @@
         }
 
         function clearCart() {
-            if (confirm('هل أنت متأكد؟')) { cart = []; saveCart(); updateCartUI(); }
+          { cart = []; saveCart(); updateCartUI(); }
         }
 
         function completeOrder() {
