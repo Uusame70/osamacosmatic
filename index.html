@@ -50,7 +50,6 @@
         .hero-subtitle { font-size: 0.95rem; color: var(--sky-light); font-weight: 500; position: relative; z-index: 1; }
 
         .slider-container { max-width: 1200px; margin: 15px auto 20px; padding: 0 15px; position: relative; z-index: 10; }
-        /* BANNER 16:9 YAPILDI */
         .slider { position: relative; border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-lg); aspect-ratio: 16/9; background: var(--navy); }
         .slider-track { display: flex; height: 100%; transition: transform 0.5s ease; }
         .slider-slide { min-width: 100%; height: 100%; position: relative; }
@@ -304,18 +303,25 @@
     <div id="loginModal" class="modal" onclick="closeModalOnBackdrop(event, 'loginModal')">
         <div class="modal-content" onclick="event.stopPropagation()">
             <h2 style="margin-bottom:18px; text-align:center;">دخول المسؤول</h2>
-            <div class="form-group">
-                <label>البريد الإلكتروني</label>
-                <input type="email" id="login-email" dir="ltr" placeholder="email@domain.com">
-            </div>
-            <div class="form-group">
-                <label>كلمة المرور</label>
-                <input type="password" id="login-password" dir="ltr" placeholder="********">
-            </div>
-            <div style="display:flex; gap:10px; margin-top:20px;">
-                <button class="btn-gold" style="flex:1; padding:12px;" onclick="doLogin()">دخول</button>
-                <button class="btn-danger" style="flex:1; padding:12px;" onclick="closeModalAndPopHistory('loginModal')">إلغاء</button>
-            </div>
+            <form onsubmit="event.preventDefault(); doLogin();">
+                <div class="form-group">
+                    <label>البريد الإلكتروني</label>
+                    <input type="email" id="login-email" dir="ltr" placeholder="email@domain.com" required>
+                </div>
+                <div class="form-group">
+                    <label>كلمة المرور</label>
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <input type="password" id="login-password" dir="ltr" placeholder="********" required>
+                        <button type="button" onclick="togglePasswordVisibility()" style="padding:12px; background:#f0ede6; color:#333; border-radius:10px; min-width:45px;">
+                            <svg class="icon" id="eye-icon" viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
+                    </div>
+                </div>
+                <div style="display:flex; gap:10px; margin-top:20px;">
+                    <button type="submit" class="btn-gold" style="flex:1; padding:12px;" id="login-btn">دخول</button>
+                    <button type="button" onclick="closeModalAndPopHistory('loginModal')" class="btn-danger" style="flex:1; padding:12px;">إلغاء</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -377,7 +383,7 @@
                 <input type="number" id="pf-price" placeholder="150" step="0.01" min="0">
             </div>
             <div class="form-group">
-                <label>السعر الأصلي (قبل الخصم) - İndirim Fiyatı</label>
+                <label>السعر الأصلي (قبل الخصم)</label>
                 <input type="number" id="pf-old-price" placeholder="Eski fiyat (boş bırakılırsa indirim yok)" step="0.01" min="0">
             </div>
             <div class="form-group">
@@ -428,6 +434,13 @@
         let settingLogoFile = null; 
         let settingSliderFiles = []; 
 
+        // CİHAZ ID OLUŞTURMA (Benzersiz Cihaz Takibi İçin)
+        let deviceId = localStorage.getItem('mayar_device_id');
+        if (!deviceId) {
+            deviceId = 'dev_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+            localStorage.setItem('mayar_device_id', deviceId);
+        }
+
         function initSupabase() {
             if (typeof supabase !== 'undefined' && supabase.createClient) {
                 _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -445,11 +458,11 @@
                 if (isAdmin) document.getElementById('adminBar').style.display = 'flex';
             }
 
-            let device = 'Desktop';
-            if (/Mobi|Android/i.test(navigator.userAgent)) device = 'Mobile';
-            else if (/Tablet|iPad/i.test(navigator.userAgent)) device = 'Tablet';
+            let deviceType = 'Desktop';
+            if (/Mobi|Android/i.test(navigator.userAgent)) deviceType = 'Mobile';
+            else if (/Tablet|iPad/i.test(navigator.userAgent)) deviceType = 'Tablet';
             
-            trackEvent('visit', null, device);
+            trackEvent('visit', null, deviceType);
 
             await loadSiteSettings(); 
             await loadAllData();
@@ -459,15 +472,28 @@
             hideLoadingScreen();
         }
 
-        async function trackEvent(type, productId = null, device = null) {
+        async function trackEvent(type, productId = null, deviceType = null) {
             if (!_supabase) return;
             try {
                 await _supabase.from('site_analytics').insert([{
                     event_type: type,
                     product_id: productId,
-                    device_type: device
+                    device_type: deviceType,
+                    device_id: deviceId
                 }]);
             } catch(e) { console.warn('Analiz kaydı başarısız', e); }
+        }
+
+        function togglePasswordVisibility() {
+            const inp = document.getElementById('login-password');
+            const icon = document.getElementById('eye-icon');
+            if (inp.type === 'password') {
+                inp.type = 'text';
+                icon.innerHTML = '<path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/>';
+            } else {
+                inp.type = 'password';
+                icon.innerHTML = '<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>';
+            }
         }
 
         function imageUrl(url) {
@@ -863,7 +889,6 @@
 
         function saveCart() { localStorage.setItem('catalog_cart', JSON.stringify(cart)); }
 
-        // SEPET TASARIMI GÜNCELLENDİ (2 * 350 = 700 formatı ve Genel Toplam eklendi)
         function updateCartUI() {
             let totalQty = 0; let totalPrice = 0;
             cart.forEach(c => {
@@ -896,7 +921,6 @@
                     </div>`;
                 }).join('');
 
-                // En alta toplamı ekle
                 itemsHtml += `
                     <div style="margin-top: 20px; padding-top: 15px; border-top: 2px dashed #ccc; display:flex; justify-content:space-between; align-items:center;">
                         <span style="font-size:1.1rem; font-weight:800; color:var(--navy);">الإجمالي:</span>
@@ -943,7 +967,7 @@
             const password = document.getElementById('login-password').value;
             if (!email || !password) return alert('البريد وكلمة المرور مطلوبان');
             
-            const btn = document.querySelector('#loginModal .btn-gold');
+            const btn = document.getElementById('login-btn');
             const oldText = btn.innerText;
             btn.innerText = '... جاري الدخول';
             btn.disabled = true;
@@ -1039,11 +1063,26 @@
                     .from('site_analytics')
                     .select('*')
                     .order('created_at', { ascending: false })
-                    .limit(2000);
+                    .limit(5000); // Son 5000 kayıt (istatistikler için)
 
                 if (error) throw error;
 
+                const now = new Date();
+                const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+                
+                // Hafta Pazartesi başlar (0=Sunday, 1=Monday)
+                const dayOfWeek = now.getDay();
+                const diffToMonday = (dayOfWeek === 0 ? 7 : dayOfWeek) - 1;
+                const weekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - diffToMonday).getTime();
+                
+                const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+
                 let totalVisits = 0;
+                let dailyDevices = new Set();
+                let weeklyDevices = new Set();
+                let monthlyDevices = new Set();
+                let totalUniqueDevices = new Set();
+
                 let productViews = {};
                 let totalProductViews = 0;
                 let deviceStats = { Mobile: 0, Desktop: 0, Tablet: 0 };
@@ -1051,6 +1090,13 @@
                 analytics.forEach(item => {
                     if (item.event_type === 'visit') {
                         totalVisits++;
+                        const itemTime = new Date(item.created_at).getTime();
+                        if (item.device_id) {
+                            totalUniqueDevices.add(item.device_id);
+                            if (itemTime >= todayStart) dailyDevices.add(item.device_id);
+                            if (itemTime >= weekStart) weeklyDevices.add(item.device_id);
+                            if (itemTime >= monthStart) monthlyDevices.add(item.device_id);
+                        }
                         if (item.device_type && deviceStats[item.device_type] !== undefined) {
                             deviceStats[item.device_type]++;
                         }
@@ -1084,8 +1130,28 @@
                             <div class="number">${totalProductViews}</div>
                         </div>
                     </div>
-                    
-                    <h3 style="color:var(--navy); font-weight:800; margin-bottom:15px; margin-top:30px;">📱 الأجهزة المستخدمة (Cihazlar)</h3>
+
+                    <h3 style="color:var(--navy); font-weight:800; margin-bottom:15px; margin-top:30px;">📱 الأجهزة الفريدة (Benzersiz Cihazlar)</h3>
+                    <div style="background:#faf8f3; padding:15px; border-radius:10px; margin-bottom:20px; display:grid; grid-template-columns:1fr 1fr; gap:15px; text-align:center;">
+                        <div style="background:#fff; padding:10px; border-radius:8px; border:1px solid #ddd;">
+                            <span style="font-size:0.8rem; color:#888;">اليوم (Bugün)</span><br>
+                            <strong style="font-size:1.3rem; color:var(--navy);">${dailyDevices.size}</strong>
+                        </div>
+                        <div style="background:#fff; padding:10px; border-radius:8px; border:1px solid #ddd;">
+                            <span style="font-size:0.8rem; color:#888;">هذا الأسبوع (Bu Hafta)</span><br>
+                            <strong style="font-size:1.3rem; color:var(--navy);">${weeklyDevices.size}</strong>
+                        </div>
+                        <div style="background:#fff; padding:10px; border-radius:8px; border:1px solid #ddd;">
+                            <span style="font-size:0.8rem; color:#888;">هذا الشهر (Bu Ay)</span><br>
+                            <strong style="font-size:1.3rem; color:var(--navy);">${monthlyDevices.size}</strong>
+                        </div>
+                        <div style="background:#fff; padding:10px; border-radius:8px; border:1px solid #ddd;">
+                            <span style="font-size:0.8rem; color:#888;">الإجمالي (Toplam)</span><br>
+                            <strong style="font-size:1.3rem; color:var(--gold-dark);">${totalUniqueDevices.size}</strong>
+                        </div>
+                    </div>
+
+                    <h3 style="color:var(--navy); font-weight:800; margin-bottom:15px; margin-top:20px;">📱 الأجهزة المستخدمة (Cihaz Türü)</h3>
                     <div style="display:flex; justify-content:space-between; background:#faf8f3; padding:15px; border-radius:10px; margin-bottom:20px;">
                         <div style="text-align:center;"><span style="font-size:1.5rem;">📱</span><br><strong>هاتف</strong><br>${deviceStats.Mobile}</div>
                         <div style="text-align:center;"><span style="font-size:1.5rem;">💻</span><br><strong>كمبيوتر</strong><br>${deviceStats.Desktop}</div>
@@ -1113,7 +1179,7 @@
                     });
                 }
 
-                html += `<p style="text-align:center; color:#aaa; font-size:0.8rem; margin-top:20px;">* يتم عرض آخر 2000 işlem إحصائية بناءً عليها.</p>`;
+                html += `<p style="text-align:center; color:#aaa; font-size:0.8rem; margin-top:20px;">* يتم عرض آخر 5000 işlem إحصائية بناءً عليها.</p>`;
                 c.innerHTML = html;
 
             } catch (err) {
@@ -1541,6 +1607,18 @@
             }
         });
         history.replaceState({ root: true }, '');
+
+        // KLAVYE ENTER İLE KAYDETME
+        document.getElementById('productFormModal')?.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+                e.preventDefault(); saveProduct();
+            }
+        });
+        document.getElementById('siteSettingsModal')?.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+                e.preventDefault(); saveSettings();
+            }
+        });
 
         window.onload = init;
     </script>
