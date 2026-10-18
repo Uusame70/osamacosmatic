@@ -49,7 +49,6 @@
         .hero-title { font-size: 1.6rem; font-weight: 900; background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 50%, var(--gold) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 6px; letter-spacing: 1px; position: relative; z-index: 1; }
         .hero-subtitle { font-size: 0.95rem; color: var(--sky-light); font-weight: 500; position: relative; z-index: 1; }
 
-        /* Hero Banner Slider */
         .slider-container { max-width: 1200px; margin: -30px auto 0; padding: 0 15px; position: relative; z-index: 10; }
         .slider { position: relative; border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-lg); aspect-ratio: 16/6; background: var(--navy); }
         .slider-track { display: flex; height: 100%; transition: transform 0.5s ease; }
@@ -74,7 +73,6 @@
 
         .container { max-width: 1200px; margin: 20px auto; padding: 0 15px; }
 
-        /* Kategori Barı */
         .categories-bar { display: flex; gap: 10px; overflow-x: auto; padding: 14px 15px; background: var(--white); scrollbar-width: thin; border-bottom: 1px solid #e8ecf0; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(26,41,66,0.06); }
         .categories-bar::-webkit-scrollbar { height: 3px; }
         .categories-bar::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 4px; }
@@ -82,14 +80,12 @@
         .cat-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(212,175,55,0.3); }
         .cat-btn.active { background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%); color: var(--navy); border-color: var(--gold-light); box-shadow: 0 4px 14px rgba(212,175,55,0.5); }
 
-        /* Parfüm Listesi */
         .perfume-row { background: var(--white); border: 2px solid #e0dcd0; border-radius: var(--radius-md); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: all 0.2s; margin-bottom: 12px; }
         .perfume-row:hover { border-color: var(--gold); transform: translateX(-4px); box-shadow: var(--shadow-md); }
         .perfume-row .info .name { font-weight: 800; font-size: 1.1rem; color: var(--navy); }
         .perfume-row .info .brand { font-size: 0.85rem; color: var(--text-light); margin-top: 4px; }
         .perfume-row .arrow { color: var(--gold); font-size: 1.2rem; font-weight: 900; }
 
-        /* Ürün Grid ve Kartlar */
         .products-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
         .product-card { background: var(--white); border-radius: var(--radius-md); overflow: hidden; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; position: relative; border: 1px solid rgba(212,175,55,0.1); transition: all 0.3s; }
         .product-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-6px); border-color: var(--gold); }
@@ -99,7 +95,6 @@
         .product-title { font-size: 1rem; margin-bottom: 8px; color: var(--navy); font-weight: 700; cursor: pointer; line-height: 1.4; }
         .product-price { font-size: 1.15rem; font-weight: 900; color: var(--gold-dark); }
         
-        /* Yeni Şık Admin Butonları (Kart İçinde) */
         .admin-actions { display: flex; gap: 6px; margin-top: 10px; }
         .admin-actions button { flex: 1; padding: 8px 0; border-radius: 8px; font-size: 1rem; display: flex; align-items: center; justify-content: center; }
         .btn-hide { background: #f39c12; color: #fff; }
@@ -138,7 +133,6 @@
         .btn-add { background: #25d366; color: #fff; border: none; padding: 16px 24px; border-radius: 14px; font-weight: 800; font-size: 1rem; cursor: pointer; flex: 1; display: flex; justify-content: center;}
         .btn-add:disabled { background: #ccc; cursor: not-allowed; }
 
-        /* Yönetim Paneli (Daha Şık) */
         .admin-bar { background: linear-gradient(135deg, var(--navy), var(--navy-light)); color: var(--gold); padding: 14px 20px; border-radius: var(--radius-md); margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; box-shadow: var(--shadow-md); }
         .admin-bar strong { display: flex; align-items: center; gap: 6px; font-size: 1.1rem; }
         .admin-tab-bar { display: flex; gap: 8px; overflow-x: auto; margin-bottom: 20px; background: var(--white); padding: 10px; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); }
@@ -154,12 +148,12 @@
         
         .img-preview { width: 100%; max-height: 200px; object-fit: contain; border-radius: 8px; margin-top: 10px; background: #faf8f3; display: none; border: 1px solid #e0dcd0; }
 
-        #scrollTopBtn { position: fixed; bottom: 90px; right: 20px; display: none; z-index: 99; background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%); color: var(--navy); border: none; border-radius: 50%; width: 52px; height: 52px; font-size: 24px; cursor: pointer; line-height: 1; padding: 0; box-shadow: 0 6px 20px rgba(212,175,55,0.4); font-weight: 900; transition: all 0.3s; }
-        
-        #whatsappFloat { position: fixed; bottom: 90px; left: 20px; z-index: 99; background: linear-gradient(135deg, #25d366, #1ebd59); color: white; border: none; border-radius: 50%; width: 56px; height: 56px; padding: 0; cursor: pointer; box-shadow: 0 6px 20px rgba(37,211,102,0.5); display: flex; align-items: center; justify-content: center; transition: all 0.3s; animation: pulse 2s ease-in-out infinite; }
-        #whatsappFloat .icon { width: 30px; height: 30px; stroke: white; }
+        /* Analiz İstatistik Kutuları */
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .stat-box { background: linear-gradient(135deg, var(--navy), var(--navy-light)); color: #fff; padding: 15px; border-radius: 12px; text-align: center; border-bottom: 4px solid var(--gold); }
+        .stat-box h3 { font-size: 0.9rem; color: var(--gold-light); margin-bottom: 5px; }
+        .stat-box .number { font-size: 1.8rem; font-weight: 900; }
 
-        /* === MOBİL UYUMLULUK === */
         @media (max-width: 900px) { .products-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; } }
         @media (max-width: 600px) {
             .products-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
@@ -186,7 +180,7 @@
 
     <div class="shipping-bar" id="shippingBar">
         <svg class="icon" viewBox="0 0 24 24"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>
-        <span>احصل على شحن مجاني عند طلبك بقيمة 800 وأكثر</span>
+        <span id="shipping-text">احصل على شحن مجاني عند طلبك بقيمة 800 وأكثر</span>
     </div>
 
     <section class="hero">
@@ -196,7 +190,6 @@
         <p class="hero-subtitle" id="heroSubtitle">جمالك يبدأ من هنا</p>
     </section>
 
-    <!-- Hero Banner Slider -->
     <div class="slider-container" id="sliderContainer" style="display: none;">
         <div class="slider">
             <div class="slider-track" id="sliderTrack"></div>
@@ -331,6 +324,8 @@
                 <button class="admin-tab active" onclick="switchAdminTab('products', this)">إدارة المنتجات</button>
                 <button class="admin-tab" onclick="switchAdminTab('groups', this)">المجموعات</button>
                 <button class="admin-tab" onclick="switchAdminTab('perfumes', this)">العطور</button>
+                <button class="admin-tab" onclick="switchAdminTab('settings', this)">الإعدادات</button>
+                <button class="admin-tab" onclick="switchAdminTab('analytics', this)">التحليلات (Analytics)</button>
             </div>
             <div id="adminContent"></div>
         </div>
@@ -405,7 +400,11 @@
         let bottles = [];
         let prices = [];
         let brands = [];
-        let siteSettings = { logo_url: '', slider_images: [] };
+        let siteSettings = { 
+            logo_url: '', slider_images: [], hero_title: 'متجر ميار كوزمتيك', 
+            hero_subtitle: 'جمالك يبدأ من هنا', free_shipping_text: 'احصل على شحن مجاني عند طلبك بقيمة 800 وأكثر', 
+            free_shipping_min: 800, whatsapp_number: '905388444275' 
+        };
         
         let currentSlide = 0;
         let sliderAutoplayTimer = null;
@@ -416,6 +415,8 @@
         let modalHistoryStack = [];
         let currentPerfumeSelection = { intensityId: null, bottleId: null, perfumeId: null };
         let currentProductImageUrl = ''; 
+        let settingLogoFile = null; 
+        let settingSliderFiles = []; 
 
         function initSupabase() {
             if (typeof supabase !== 'undefined' && supabase.createClient) {
@@ -434,12 +435,24 @@
                 if (isAdmin) document.getElementById('adminBar').style.display = 'flex';
             }
 
+            trackEvent('visit');
+
             await loadSiteSettings(); 
             await loadAllData();
             renderCategories();
             applyLocalFilter();
             updateCartUI();
             hideLoadingScreen();
+        }
+
+        async function trackEvent(type, productId = null) {
+            if (!_supabase) return;
+            try {
+                await _supabase.from('site_analytics').insert([{
+                    event_type: type,
+                    product_id: productId
+                }]);
+            } catch(e) { console.warn('Analiz kaydı başarısız', e); }
         }
 
         function imageUrl(url) {
@@ -458,20 +471,29 @@
             try {
                 const { data } = await _supabase.from('site_settings').select('*').eq('id', 1).maybeSingle();
                 if (data) {
-                    if (data.logo_url) {
-                        siteSettings.logo_url = data.logo_url;
-                        const logoEl = document.getElementById('heroLogo');
-                        logoEl.src = data.logo_url;
-                        logoEl.style.display = 'block';
-                    }
-                    if (data.hero_title) document.getElementById('heroTitle').innerText = data.hero_title;
-                    if (data.hero_subtitle) document.getElementById('heroSubtitle').innerText = data.hero_subtitle;
-                    if (Array.isArray(data.slider_images)) {
-                        siteSettings.slider_images = data.slider_images;
-                        renderSlider();
-                    }
+                    siteSettings.logo_url = data.logo_url || '';
+                    siteSettings.hero_title = data.hero_title || 'متجر ميار كوزمتيك';
+                    siteSettings.hero_subtitle = data.hero_subtitle || 'جمالك يبدأ من هنا';
+                    siteSettings.free_shipping_text = data.free_shipping_text || 'احصل على شحن مجاني عند طلبك بقيمة 800 وأكثر';
+                    siteSettings.free_shipping_min = parseFloat(data.free_shipping_min) || 800;
+                    siteSettings.whatsapp_number = data.whatsapp_number || '905388444275';
+                    siteSettings.slider_images = Array.isArray(data.slider_images) ? data.slider_images : [];
                 }
+                applySiteSettingsToUI();
             } catch(e) { console.error('Settings yüklenemedi', e); }
+        }
+
+        function applySiteSettingsToUI() {
+            if (siteSettings.logo_url) {
+                const logoEl = document.getElementById('heroLogo');
+                logoEl.src = imageUrl(siteSettings.logo_url);
+                logoEl.style.display = 'block';
+                logoEl.onerror = function() { this.style.display = 'none'; };
+            }
+            document.getElementById('heroTitle').innerText = siteSettings.hero_title;
+            document.getElementById('heroSubtitle').innerText = siteSettings.hero_subtitle;
+            document.getElementById('shipping-text').innerText = siteSettings.free_shipping_text;
+            renderSlider();
         }
 
         function renderSlider() {
@@ -480,7 +502,7 @@
             const dots = document.getElementById('sliderDots');
             const images = siteSettings.slider_images || [];
 
-            if (images.length === 0) { container.style.display = 'none'; return; }
+            if (!images || images.length === 0) { container.style.display = 'none'; return; }
             
             container.style.display = 'block';
             track.innerHTML = '';
@@ -489,7 +511,7 @@
             images.forEach((url, i) => {
                 const slide = document.createElement('div');
                 slide.className = 'slider-slide';
-                slide.innerHTML = '<img src="' + imageUrl(url) + '" alt="Banner ' + (i+1) + '">';
+                slide.innerHTML = '<img src="' + imageUrl(url) + '" alt="Banner ' + (i+1) + '" onerror="this.parentElement.style.display=\'none\'; document.getElementById(\'sliderContainer\').style.display=\'none\';">';
                 track.appendChild(slide);
 
                 const dot = document.createElement('div');
@@ -677,7 +699,7 @@
 
                     return `
                     <div class="product-card">
-                        <img src="${imgSrc}" onclick="openProductDetail('${p.id}')" loading="lazy">
+                        <img src="${imgSrc}" onclick="openProductDetail('${p.id}')" loading="lazy" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22200%22><rect width=%22300%22 height=%22200%22 fill=%22%23f8fafc%22/><text x=%2250%25%22 y=%2250%25%22 fill=%22%23D4AF37%22 font-family=%22sans-serif%22 font-size=%2216%22 font-weight=%22bold%22 text-anchor=%22middle%22 dy=%22.3em%22>لا صورة</text></svg>'">
                         <div class="product-info">
                             <div>
                                 <div class="product-title" onclick="openProductDetail('${p.id}')">${p.name_ar}</div>
@@ -693,6 +715,8 @@
         function openPerfumeDetail(perfumeId) {
             const p = currentPerfumes.find(x => x.id === perfumeId);
             if (!p) return;
+
+            trackEvent('product_view', p.id);
 
             currentPerfumeSelection = { intensityId: null, bottleId: null, perfumeId: p.id };
 
@@ -711,7 +735,7 @@
             const activeBottles = bottles.filter(b => b.size_id === 2); 
             document.getElementById('pd-bottle-options').innerHTML = activeBottles.map(b => `
                 <div class="option-btn" onclick="selectBottle(${b.id})" id="bot-btn-${b.id}">
-                    ${b.image_url ? `<img src="${b.image_url}">` : ''}
+                    ${b.image_url ? `<img src="${b.image_url}" onerror="this.style.display='none'">` : ''}
                     <div>${b.name}</div>
                     <div style="font-size:0.7rem; color:#666;">${b.price_diff > 0 ? '+' + b.price_diff + ' ₺' : 'مجاناً'}</div>
                 </div>
@@ -781,7 +805,11 @@
         function openProductDetail(id) {
             const p = currentProducts.find(x => String(x.id) === String(id));
             if (!p) return;
+            
+            trackEvent('product_view', p.id);
+
             document.getElementById('detail-img').src = imageUrl(p.img);
+            document.getElementById('detail-img').onerror = function() { this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22200%22><rect width=%22300%22 height=%22200%22 fill=%22%23f8fafc%22/></svg>'; };
             document.getElementById('detail-title').innerText = p.name_ar;
             document.getElementById('detail-desc').innerText = p.desc_ar || '';
             document.getElementById('detail-price-row').innerText = p.price + ' ₺';
@@ -822,11 +850,12 @@
                         <div>
                             <strong>${c.name}</strong>
                             ${c.details ? `<br><small style="color:#888;">${c.details}</small>` : ''}
-                            <br><small style="color:var(--gold-dark);">${c.price} ₺ × ${c.qty}</small>
+                            <br><small style="color:var(--gold-dark);">${c.price} ₺</small>
                         </div>
-                        <div style="display:flex; gap:5px;">
-                            <button onclick="changeQty(${idx}, -1)" style="padding:2px 8px; background:#eee; color:#333;">-</button>
-                            <button onclick="changeQty(${idx}, 1)" style="padding:2px 8px; background:#eee; color:#333;">+</button>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <button onclick="changeQty(${idx}, -1)" style="padding:4px 10px; background:#f0f0f0; color:#333; border-radius:6px; font-weight:bold;">-</button>
+                            <span style="font-weight:800; color:var(--navy); min-width:20px; text-align:center; font-size:1.1rem;">${c.qty}</span>
+                            <button onclick="changeQty(${idx}, 1)" style="padding:4px 10px; background:#f0f0f0; color:#333; border-radius:6px; font-weight:bold;">+</button>
                         </div>
                     </div>
                 `).join('');
@@ -851,7 +880,7 @@
                 total += c.price * c.qty;
             });
             msg += `\nالإجمالي: ${total} ₺`;
-            window.open('https://wa.me/905388444275?text=' + encodeURIComponent(msg), '_blank');
+            window.open('https://wa.me/' + siteSettings.whatsapp_number.replace(/[^0-9]/g, '') + '?text=' + encodeURIComponent(msg), '_blank');
         }
 
         // --- ADMIN LOGIN ---
@@ -929,15 +958,12 @@
                 ${currentPerfumes.map(p => `<div class="admin-item">${p.name}</div>`).join('')}`;
             } else if (tab === 'products') {
                 c.innerHTML = `
-                    <button class="btn-gold" style="margin-bottom:10px; width:100%; padding:12px;" onclick="openProductForm()">+ إضافة منتج جديد (كوزمتيك)</button>
-                    <button class="btn-success" style="margin-bottom:15px; width:100%; padding:12px;" onclick="document.getElementById('bulk-image-upload').click()">🚀 Toplu Görsel Güncelle (Seç ve Yükle)</button>
-                    <input type="file" id="bulk-image-upload" multiple accept="image/*" style="display:none;" onchange="handleBulkImageUpload(this)">
-                    <p style="font-size:0.8rem; color:#888; text-align:center; margin-bottom:15px;">Yüklediğin görseller sırasıyla listedeki ürünlere atanır.</p>
+                    <button class="btn-gold" style="margin-bottom:15px; width:100%; padding:12px;" onclick="openProductForm()">+ إضافة منتج جديد (كوزمتيك)</button>
                     
                     ${currentProducts.map(p => `
                         <div class="admin-item">
                             <div style="display:flex; align-items:center; gap:10px; flex-grow:1;">
-                                <img src="${imageUrl(p.img)}">
+                                <img src="${imageUrl(p.img)}" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2250%22 height=%2250%22><rect width=%2250%22 height=%2250%22 fill=%22%23eee%22/></svg>'">
                                 <div>
                                     <strong>${p.name_ar}</strong>
                                     <br><small style="color:var(--gold-dark); font-weight:bold;">${p.price} ₺</small>
@@ -951,10 +977,231 @@
                         </div>
                     `).join('')}
                 `;
+            } else if (tab === 'settings') {
+                c.innerHTML = renderSettingsTab();
+            } else if (tab === 'analytics') {
+                loadAnalyticsTab();
             }
         }
 
-        // Ürün Gizle/Göster Fonksiyonu
+        async function loadAnalyticsTab() {
+            const c = document.getElementById('adminContent');
+            c.innerHTML = '<div class="spinner" style="margin:30px auto; border-top-color:var(--navy);"></div>';
+            
+            try {
+                const { data: analytics, error } = await _supabase
+                    .from('site_analytics')
+                    .select('*')
+                    .order('created_at', { ascending: false })
+                    .limit(2000);
+
+                if (error) throw error;
+
+                let totalVisits = 0;
+                let productViews = {};
+                let totalProductViews = 0;
+
+                analytics.forEach(item => {
+                    if (item.event_type === 'visit') totalVisits++;
+                    else if (item.event_type === 'product_view') {
+                        totalProductViews++;
+                        productViews[item.product_id] = (productViews[item.product_id] || 0) + 1;
+                    }
+                });
+
+                const topProducts = Object.entries(productViews)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 5);
+
+                const getProductName = (id) => {
+                    const k = currentProducts.find(p => String(p.id) === String(id));
+                    if (k) return k.name_ar;
+                    const p = currentPerfumes.find(x => String(x.id) === String(id));
+                    if (p) return p.name;
+                    return 'منتج محذوف';
+                };
+
+                let html = `
+                    <div class="stats-grid">
+                        <div class="stat-box">
+                            <h3>إجمالي الزيارات</h3>
+                            <div class="number">${totalVisits}</div>
+                        </div>
+                        <div class="stat-box" style="background: linear-gradient(135deg, var(--gold-dark), var(--gold));">
+                            <h3>مشاهدات المنتجات</h3>
+                            <div class="number">${totalProductViews}</div>
+                        </div>
+                    </div>
+
+                    <h3 style="color:var(--navy); font-weight:800; margin-bottom:15px; margin-top:30px;">🔥 الأكثر مشاهدة (Top 5)</h3>
+                `;
+
+                if (topProducts.length === 0) {
+                    html += `<p style="text-align:center; color:#888;">لا توجد بيانات كافية بعد.</p>`;
+                } else {
+                    topProducts.forEach(([pid, count], index) => {
+                        const name = getProductName(pid);
+                        let rankColor = index === 0 ? 'var(--gold)' : index === 1 ? '#bdc3c7' : index === 2 ? '#cd7f32' : '#eee';
+                        html += `
+                            <div class="admin-item" style="border-right: 5px solid ${rankColor};">
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <span style="font-weight:900; color:${rankColor}; font-size:1.2rem;">#${index+1}</span>
+                                    <strong>${name}</strong>
+                                </div>
+                                <div style="font-weight:900; color:var(--navy);">${count} <span style="font-size:0.8rem; font-weight:normal;">مشاهدة</span></div>
+                            </div>
+                        `;
+                    });
+                }
+
+                html += `<p style="text-align:center; color:#aaa; font-size:0.8rem; margin-top:20px;">* يتم عرض آخر 2000 işlem إحصائية بناءً عليها.</p>`;
+                c.innerHTML = html;
+
+            } catch (err) {
+                c.innerHTML = `<p style="text-align:center; color:red;">خطأ في تحميل الإحصائيات: ${err.message}</p>`;
+            }
+        }
+
+        function renderSettingsTab() {
+            return `
+                <div class="form-group">
+                    <label>شعار الموقع (Logo)</label>
+                    <input type="file" id="setting-logo-file" accept="image/*" onchange="previewSettingLogo(this)">
+                    <img id="setting-logo-preview" class="img-preview" src="${siteSettings.logo_url ? imageUrl(siteSettings.logo_url) : ''}" style="display:${siteSettings.logo_url ? 'block' : 'none'};" onerror="this.style.display='none'">
+                </div>
+                <div class="form-group">
+                    <label>عنوان الموقع الرئيسي (Hero Title)</label>
+                    <input type="text" id="setting-hero-title" value="${siteSettings.hero_title}">
+                </div>
+                <div class="form-group">
+                    <label>العنوان الفرعي (Hero Subtitle)</label>
+                    <input type="text" id="setting-hero-subtitle" value="${siteSettings.hero_subtitle}">
+                </div>
+                <div class="form-group">
+                    <label>نص الشحن المجاني (Shipping Text)</label>
+                    <input type="text" id="setting-shipping-text" value="${siteSettings.free_shipping_text}">
+                </div>
+                <div class="form-group">
+                    <label>الحد الأدنى للشحن المجاني (Shipping Min Price)</label>
+                    <input type="number" id="setting-shipping-min" value="${siteSettings.free_shipping_min}">
+                </div>
+                <div class="form-group">
+                    <label>رقم الواتساب (WhatsApp Number)</label>
+                    <input type="text" id="setting-whatsapp" value="${siteSettings.whatsapp_number}" dir="ltr">
+                </div>
+                <div class="form-group">
+                    <label>صور البانر (Slider Images)</label>
+                    <input type="file" id="setting-slider-files" multiple accept="image/*" onchange="previewSettingSlider(this)">
+                    <div id="setting-slider-preview" style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
+                        ${siteSettings.slider_images.map(img => `<img src="${imageUrl(img)}" style="width:80px; height:50px; object-fit:cover; border-radius:6px; border:1px solid #ccc;" onerror="this.style.display='none'">`).join('')}
+                    </div>
+                </div>
+                <button class="btn-success" style="width:100%; padding:15px; font-size:1.1rem; margin-top:20px;" onclick="saveSettings()" id="setting-save-btn">حفظ الإعدادات</button>
+            `;
+        }
+
+        function previewSettingLogo(input) {
+            if (input.files && input.files[0]) {
+                settingLogoFile = input.files[0];
+                const reader = new FileReader();
+                reader.onload = e => {
+                    const preview = document.getElementById('setting-logo-preview');
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(settingLogoFile);
+            }
+        }
+
+        function previewSettingSlider(input) {
+            if (input.files && input.files.length > 0) {
+                settingSliderFiles = Array.from(input.files);
+                const preview = document.getElementById('setting-slider-preview');
+                preview.innerHTML = settingSliderFiles.map(file => `<span style="font-size:0.8rem; background:#f0f0f0; padding:4px 8px; border-radius:4px;">${file.name}</span>`).join('');
+            }
+        }
+
+        async function saveSettings() {
+            if (!_supabase) return alert('Supabase bağlantısı yok');
+
+            const btn = document.getElementById('setting-save-btn');
+            const oldText = btn.innerText;
+            btn.innerText = '... جاري الحفظ';
+            btn.disabled = true;
+
+            try {
+                let finalLogoUrl = siteSettings.logo_url;
+                let finalSliderImages = [...siteSettings.slider_images];
+
+                if (settingLogoFile) {
+                    const base64 = await new Promise((resolve) => {
+                        const reader = new FileReader();
+                        reader.onload = e => resolve(e.target.result);
+                        reader.readAsDataURL(settingLogoFile);
+                    });
+                    const res = await fetch('/api/b2-upload', {
+                        method: 'POST',
+                        headers: { 'Authorization': 'Bearer ' + sessionToken, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ base64: base64, contentType: settingLogoFile.type })
+                    });
+                    const data = await res.json();
+                    if (data.key) finalLogoUrl = '/api/b2-image?key=' + encodeURIComponent(data.key);
+                }
+
+                if (settingSliderFiles.length > 0) {
+                    for (const file of settingSliderFiles) {
+                        const base64 = await new Promise((resolve) => {
+                            const reader = new FileReader();
+                            reader.onload = e => resolve(e.target.result);
+                            reader.readAsDataURL(file);
+                        });
+                        const res = await fetch('/api/b2-upload', {
+                            method: 'POST',
+                            headers: { 'Authorization': 'Bearer ' + sessionToken, 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ base64: base64, contentType: file.type })
+                        });
+                        const data = await res.json();
+                        if (data.key) finalSliderImages.push('/api/b2-image?key=' + encodeURIComponent(data.key));
+                    }
+                }
+
+                const payload = {
+                    logo_url: finalLogoUrl,
+                    hero_title: document.getElementById('setting-hero-title').value.trim(),
+                    hero_subtitle: document.getElementById('setting-hero-subtitle').value.trim(),
+                    free_shipping_text: document.getElementById('setting-shipping-text').value.trim(),
+                    free_shipping_min: parseFloat(document.getElementById('setting-shipping-min').value) || 800,
+                    whatsapp_number: document.getElementById('setting-whatsapp').value.trim(),
+                    slider_images: finalSliderImages,
+                    updated_at: new Date().toISOString()
+                };
+
+                const { error } = await _supabase.from('site_settings').update(payload).eq('id', 1);
+                if (error) throw error;
+
+                siteSettings.logo_url = payload.logo_url;
+                siteSettings.hero_title = payload.hero_title;
+                siteSettings.hero_subtitle = payload.hero_subtitle;
+                siteSettings.free_shipping_text = payload.free_shipping_text;
+                siteSettings.free_shipping_min = payload.free_shipping_min;
+                siteSettings.whatsapp_number = payload.whatsapp_number;
+                siteSettings.slider_images = payload.slider_images;
+
+                applySiteSettingsToUI();
+                
+                settingLogoFile = null;
+                settingSliderFiles = [];
+                alert('✅ تم حفظ الإعدادات بنجاح');
+                switchAdminTab('settings');
+
+            } catch (err) {
+                alert('Hata: ' + err.message);
+            } finally {
+                btn.innerText = oldText;
+                btn.disabled = false;
+            }
+        }
+
         async function toggleProductActive(id, event) {
             if (event) event.stopPropagation();
             if (!confirm('تغيير حالة ظهور المنتج؟')) return;
@@ -982,7 +1229,6 @@
             }
         }
 
-        // WhatsApp'ta Paylaş
         function shareToWhatsApp(id) {
             const p = currentProducts.find(x => String(x.id) === String(id));
             if (!p) return;
@@ -1028,7 +1274,6 @@
             switchAdminTab('groups');
         }
 
-        // --- KOZMETİK ÜRÜN FORMU VE YÜKLEME ---
         async function openProductForm(id = null) {
             document.getElementById('pf-title').innerText = id ? 'تعديل المنتج' : 'إضافة منتج جديد';
             document.getElementById('pf-id').value = id || '';
@@ -1156,71 +1401,14 @@
             switchAdminTab('products');
         }
 
-        // --- TOPLU GÖRSEL YÜKLEME ---
-        async function handleBulkImageUpload(input) {
-            const files = Array.from(input.files || []);
-            if (files.length === 0) return;
-
-            if (!confirm(files.length + ' adet görsel yüklenecek ve sırasıyla listedeki ürünlere atanacak. Onaylıyor musunuz?')) {
-                input.value = ''; return;
-            }
-
-            const targetProducts = currentProducts; 
-            let count = 0;
-
-            for (let i = 0; i < files.length; i++) {
-                if (i >= targetProducts.length) {
-                    alert('Tüm ürünler için görsel bitti, kalan görseller yüklenmedi.');
-                    break;
-                }
-
-                const file = files[i];
-                const product = targetProducts[i];
-
-                try {
-                    const base64 = await new Promise((resolve) => {
-                        const reader = new FileReader();
-                        reader.onload = e => resolve(e.target.result);
-                        reader.readAsDataURL(file);
-                    });
-
-                    const res = await fetch('/api/b2-upload', {
-                        method: 'POST',
-                        headers: { 
-                            'Authorization': 'Bearer ' + sessionToken, 
-                            'Content-Type': 'application/json' 
-                        },
-                        body: JSON.stringify({ base64: base64, contentType: file.type })
-                    });
-                    const data = await res.json();
-                    if (!res.ok) throw new Error(data.error || 'Yükleme hatası');
-
-                    const { error } = await _supabase
-                        .from('whatsapp_products')
-                        .update({ img: '/api/b2-image?key=' + encodeURIComponent(data.key) })
-                        .eq('id', product.id);
-                    
-                    if (error) throw error;
-                    count++;
-
-                } catch (err) {
-                    console.error(product.name_ar + ' güncellenemedi:', err);
-                }
-            }
-
-            alert('✅ ' + count + ' ürünün görseli başarıyla güncellendi!');
-            input.value = '';
-            await loadAllData();
-            applyLocalFilter();
-            switchAdminTab('products');
-        }
-
-        // --- YARDIMCI FONKSİYONLAR ---
         function showLoadingScreen() { document.getElementById('loadingScreen').style.display = 'flex'; }
         function hideLoadingScreen() { document.getElementById('loadingScreen').style.opacity = '0'; setTimeout(() => document.getElementById('loadingScreen').style.display = 'none', 400); }
         
         function handleSearch(val) { searchQuery = val.trim(); applyLocalFilter(); }
-        function openWhatsAppChat() { window.open('https://wa.me/905388444275', '_blank'); }
+        function openWhatsAppChat() { 
+            const num = siteSettings.whatsapp_number.replace(/[^0-9]/g, '');
+            window.open('https://wa.me/' + num, '_blank'); 
+        }
 
         function openModal(id) {
             document.getElementById(id).style.display = 'flex';
