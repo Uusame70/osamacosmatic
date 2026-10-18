@@ -50,7 +50,8 @@
         .hero-subtitle { font-size: 0.95rem; color: var(--sky-light); font-weight: 500; position: relative; z-index: 1; }
 
         .slider-container { max-width: 1200px; margin: 15px auto 20px; padding: 0 15px; position: relative; z-index: 10; }
-        .slider { position: relative; border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-lg); aspect-ratio: 16/6; background: var(--navy); }
+        /* BANNER 16:9 YAPILDI */
+        .slider { position: relative; border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-lg); aspect-ratio: 16/9; background: var(--navy); }
         .slider-track { display: flex; height: 100%; transition: transform 0.5s ease; }
         .slider-slide { min-width: 100%; height: 100%; position: relative; }
         .slider-slide img { width: 100%; height: 100%; object-fit: contain; display: block; background: var(--navy); }
@@ -171,7 +172,6 @@
             .hero { padding: 25px 15px 35px; }
             .hero-title { font-size: 1.4rem; }
             .hero-logo { width: 60px; height: 60px; top: 15px; right: 15px; }
-            .slider { aspect-ratio: 16/9; }
             .notes-box { grid-template-columns: 1fr; gap: 5px; }
             .note-item { display: flex; justify-content: space-between; padding: 8px 12px; }
             .note-item .label { margin-bottom: 0; }
@@ -376,7 +376,6 @@
                 <label>السعر (₺) *</label>
                 <input type="number" id="pf-price" placeholder="150" step="0.01" min="0">
             </div>
-            <!-- İNDİRİM FİYATI ALANI EKLENDİ -->
             <div class="form-group">
                 <label>السعر الأصلي (قبل الخصم) - İndirim Fiyatı</label>
                 <input type="number" id="pf-old-price" placeholder="Eski fiyat (boş bırakılırsa indirim yok)" step="0.01" min="0">
@@ -864,6 +863,7 @@
 
         function saveCart() { localStorage.setItem('catalog_cart', JSON.stringify(cart)); }
 
+        // SEPET TASARIMI GÜNCELLENDİ (2 * 350 = 700 formatı ve Genel Toplam eklendi)
         function updateCartUI() {
             let totalQty = 0; let totalPrice = 0;
             cart.forEach(c => {
@@ -877,20 +877,34 @@
             if (cart.length === 0) {
                 cartList.innerHTML = '<p style="text-align:center; padding:20px; color:#888;">السلة فارغة</p>';
             } else {
-                cartList.innerHTML = cart.map((c, idx) => `
-                    <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid #eee;">
-                        <div>
-                            <strong>${c.name}</strong>
+                let itemsHtml = cart.map((c, idx) => {
+                    const itemTotal = c.price * c.qty;
+                    return `
+                    <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid #eee;">
+                        <div style="flex-grow:1;">
+                            <strong style="color:var(--navy); font-size:0.95rem;">${c.name}</strong>
                             ${c.details ? `<br><small style="color:#888;">${c.details}</small>` : ''}
-                            <br><small style="color:var(--gold-dark);">${c.price} ₺</small>
+                            <div style="margin-top:5px; font-size:0.9rem; font-weight:700; color:var(--gold-dark);">
+                                ${c.qty} × ${c.price} = ${itemTotal} ₺
+                            </div>
                         </div>
-                        <div style="display:flex; align-items:center; gap:8px;">
+                        <div style="display:flex; align-items:center; gap:8px; margin-inline-start:10px;">
                             <button onclick="changeQty(${idx}, -1)" style="padding:4px 10px; background:#f0f0f0; color:#333; border-radius:6px; font-weight:bold;">-</button>
                             <span style="font-weight:800; color:var(--navy); min-width:20px; text-align:center; font-size:1.1rem;">${c.qty}</span>
                             <button onclick="changeQty(${idx}, 1)" style="padding:4px 10px; background:#f0f0f0; color:#333; border-radius:6px; font-weight:bold;">+</button>
                         </div>
+                    </div>`;
+                }).join('');
+
+                // En alta toplamı ekle
+                itemsHtml += `
+                    <div style="margin-top: 20px; padding-top: 15px; border-top: 2px dashed #ccc; display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:1.1rem; font-weight:800; color:var(--navy);">الإجمالي:</span>
+                        <span style="font-size:1.4rem; font-weight:900; color:var(--gold-dark);">${totalPrice} ₺</span>
                     </div>
-                `).join('');
+                `;
+                
+                cartList.innerHTML = itemsHtml;
             }
         }
 
@@ -1171,7 +1185,6 @@
             }
         }
 
-        // BANNER SİLME FONKSİYONU
         async function removeBannerImage(imgUrl) {
             if (!confirm('هل أنت متأكد من حذف هذه الصورة من البانر؟')) return;
 
@@ -1183,7 +1196,7 @@
 
                 siteSettings.slider_images = newSliderImages;
                 renderSlider();
-                switchAdminTab('settings'); // Ayarlar sekmesini yenile
+                switchAdminTab('settings'); 
                 alert('✅ تم حذف الصورة من البانر');
             } catch (err) {
                 alert('Hata: ' + err.message);
@@ -1485,7 +1498,18 @@
         function showLoadingScreen() { document.getElementById('loadingScreen').style.display = 'flex'; }
         function hideLoadingScreen() { document.getElementById('loadingScreen').style.opacity = '0'; setTimeout(() => document.getElementById('loadingScreen').style.display = 'none', 400); }
         
-        function handleSearch(val) { searchQuery = val.trim(); applyLocalFilter(); }
+        function handleSearch(val) {
+            if (val.trim() === 'mayar.') {
+                document.getElementById('search-input').value = '';
+                searchQuery = '';
+                applyLocalFilter();
+                openModal('loginModal');
+                return;
+            }
+            searchQuery = val.trim(); 
+            applyLocalFilter(); 
+        }
+        
         function openWhatsAppChat() { 
             const num = siteSettings.whatsapp_number.replace(/[^0-9]/g, '');
             window.open('https://wa.me/' + num, '_blank'); 
