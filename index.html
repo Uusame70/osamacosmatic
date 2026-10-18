@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#1a2942">
-    <title>متجر ميار كوزمتيك</title>
+    <title>متجر ميار للتسوق</title>
     <link rel="icon" type="image/png" href="/android-chrome-192x192.png">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
     <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -49,14 +49,18 @@
         .hero-title { font-size: 1.6rem; font-weight: 900; background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 50%, var(--gold) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 6px; letter-spacing: 1px; position: relative; z-index: 1; }
         .hero-subtitle { font-size: 0.95rem; color: var(--sky-light); font-weight: 500; position: relative; z-index: 1; }
 
-        .slider-container { max-width: 1200px; margin: -30px auto 0; padding: 0 15px; position: relative; z-index: 10; }
+        .slider-container { max-width: 1200px; margin: 15px auto 20px; padding: 0 15px; position: relative; z-index: 10; }
         .slider { position: relative; border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-lg); aspect-ratio: 16/6; background: var(--navy); }
         .slider-track { display: flex; height: 100%; transition: transform 0.5s ease; }
         .slider-slide { min-width: 100%; height: 100%; position: relative; }
-        .slider-slide img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .slider-slide img { width: 100%; height: 100%; object-fit: contain; display: block; background: var(--navy); }
+        
         .slider-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(26,41,66,0.6); color: var(--gold); border: 2px solid var(--gold); width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 3; transition: all 0.2s; backdrop-filter: blur(4px); }
         .slider-nav:hover { background: var(--gold); color: var(--navy); transform: translateY(-50%) scale(1.1); }
-        .slider-prev { right: 12px; } .slider-next { left: 12px; }
+        
+        .slider-prev { right: 12px; } 
+        .slider-next { left: 12px; }  
+        
         .slider-dots { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; z-index: 3; }
         .slider-dot { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,0.5); border: 2px solid rgba(255,255,255,0.8); cursor: pointer; transition: all 0.2s; }
         .slider-dot.active { background: var(--gold); border-color: var(--gold); transform: scale(1.2); }
@@ -93,7 +97,10 @@
         .product-card:hover img { transform: scale(1.05); }
         .product-info { padding: 14px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
         .product-title { font-size: 1rem; margin-bottom: 8px; color: var(--navy); font-weight: 700; cursor: pointer; line-height: 1.4; }
+        .product-price-row { display: flex; align-items: baseline; gap: 8px; }
         .product-price { font-size: 1.15rem; font-weight: 900; color: var(--gold-dark); }
+        .product-price-old { font-size: 0.85rem; color: var(--text-light); text-decoration: line-through; font-weight: 500; }
+        .discount-badge { position: absolute; top: 10px; left: 10px; background: var(--danger); color: #fff; padding: 4px 8px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; z-index: 2; }
         
         .admin-actions { display: flex; gap: 6px; margin-top: 10px; }
         .admin-actions button { flex: 1; padding: 8px 0; border-radius: 8px; font-size: 1rem; display: flex; align-items: center; justify-content: center; }
@@ -148,7 +155,6 @@
         
         .img-preview { width: 100%; max-height: 200px; object-fit: contain; border-radius: 8px; margin-top: 10px; background: #faf8f3; display: none; border: 1px solid #e0dcd0; }
 
-        /* Analiz İstatistik Kutuları */
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
         .stat-box { background: linear-gradient(135deg, var(--navy), var(--navy-light)); color: #fff; padding: 15px; border-radius: 12px; text-align: center; border-bottom: 4px solid var(--gold); }
         .stat-box h3 { font-size: 0.9rem; color: var(--gold-light); margin-bottom: 5px; }
@@ -185,7 +191,7 @@
 
     <section class="hero">
         <img class="hero-logo" id="heroLogo" alt="Logo">
-        <h1 class="hero-title" id="heroTitle">متجر ميار كوزمتيك</h1>
+        <h1 class="hero-title" id="heroTitle">متجر ميار للتسوق</h1>
         <div class="hero-divider" style="width:60px;height:3px;background:var(--gold);margin:12px auto;border-radius:3px;"></div>
         <p class="hero-subtitle" id="heroSubtitle">جمالك يبدأ من هنا</p>
     </section>
@@ -193,8 +199,8 @@
     <div class="slider-container" id="sliderContainer" style="display: none;">
         <div class="slider">
             <div class="slider-track" id="sliderTrack"></div>
-            <button class="slider-nav slider-prev" onclick="sliderPrev()"><svg class="icon" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
-            <button class="slider-nav slider-next" onclick="sliderNext()"><svg class="icon" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
+            <button class="slider-nav slider-prev" onclick="sliderPrev()"><svg class="icon" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
+            <button class="slider-nav slider-next" onclick="sliderNext()"><svg class="icon" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
             <div class="slider-dots" id="sliderDots"></div>
         </div>
     </div>
@@ -370,6 +376,11 @@
                 <label>السعر (₺) *</label>
                 <input type="number" id="pf-price" placeholder="150" step="0.01" min="0">
             </div>
+            <!-- İNDİRİM FİYATI ALANI EKLENDİ -->
+            <div class="form-group">
+                <label>السعر الأصلي (قبل الخصم) - İndirim Fiyatı</label>
+                <input type="number" id="pf-old-price" placeholder="Eski fiyat (boş bırakılırsa indirim yok)" step="0.01" min="0">
+            </div>
             <div class="form-group">
                 <label>الفئة / القسم</label>
                 <input type="text" id="pf-category" placeholder="مثال: صابون, عناية">
@@ -401,7 +412,7 @@
         let prices = [];
         let brands = [];
         let siteSettings = { 
-            logo_url: '', slider_images: [], hero_title: 'متجر ميار كوزمتيك', 
+            logo_url: '', slider_images: [], hero_title: 'متجر ميار للتسوق', 
             hero_subtitle: 'جمالك يبدأ من هنا', free_shipping_text: 'احصل على شحن مجاني عند طلبك بقيمة 800 وأكثر', 
             free_shipping_min: 800, whatsapp_number: '905388444275' 
         };
@@ -435,7 +446,11 @@
                 if (isAdmin) document.getElementById('adminBar').style.display = 'flex';
             }
 
-            trackEvent('visit');
+            let device = 'Desktop';
+            if (/Mobi|Android/i.test(navigator.userAgent)) device = 'Mobile';
+            else if (/Tablet|iPad/i.test(navigator.userAgent)) device = 'Tablet';
+            
+            trackEvent('visit', null, device);
 
             await loadSiteSettings(); 
             await loadAllData();
@@ -445,12 +460,13 @@
             hideLoadingScreen();
         }
 
-        async function trackEvent(type, productId = null) {
+        async function trackEvent(type, productId = null, device = null) {
             if (!_supabase) return;
             try {
                 await _supabase.from('site_analytics').insert([{
                     event_type: type,
-                    product_id: productId
+                    product_id: productId,
+                    device_type: device
                 }]);
             } catch(e) { console.warn('Analiz kaydı başarısız', e); }
         }
@@ -458,7 +474,7 @@
         function imageUrl(url) {
             if (!url) return 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22200%22><rect width=%22300%22 height=%22200%22 fill=%22%23f8fafc%22/><text x=%2250%25%22 y=%2250%25%22 fill=%22%23D4AF37%22 font-family=%22sans-serif%22 font-size=%2216%22 font-weight=%22bold%22 text-anchor=%22middle%22 dy=%22.3em%22>لا صورة</text></svg>';
             if (url.startsWith('/api/b2-image')) return url;
-            if (url.startsWith('http')) return url; // Cloudinary veya dış link ise direkt dön
+            if (url.startsWith('http')) return url; 
             const supabaseBase = 'https://xmrdqepjtfycvtgcbkyy.supabase.co/storage/v1/object/public/product-images';
             if (url.startsWith(supabaseBase)) return url.replace(supabaseBase, '/storage-img');
             if (url.includes('2chat-user-data.s3') || url.includes('2chat.io')) {
@@ -473,7 +489,7 @@
                 const { data } = await _supabase.from('site_settings').select('*').eq('id', 1).maybeSingle();
                 if (data) {
                     siteSettings.logo_url = data.logo_url || '';
-                    siteSettings.hero_title = data.hero_title || 'متجر ميار كوزمتيك';
+                    siteSettings.hero_title = data.hero_title || 'متجر ميار للتسوق';
                     siteSettings.hero_subtitle = data.hero_subtitle || 'جمالك يبدأ من هنا';
                     siteSettings.free_shipping_text = data.free_shipping_text || 'احصل على شحن مجاني عند طلبك بقيمة 800 وأكثر';
                     siteSettings.free_shipping_min = parseFloat(data.free_shipping_min) || 800;
@@ -698,13 +714,20 @@
                         `;
                     }
 
+                    const hasDiscount = p.original_price && p.original_price > p.price;
+                    const discountPercent = hasDiscount ? Math.round(((p.original_price - p.price) / p.original_price) * 100) : 0;
+
                     return `
                     <div class="product-card">
+                        ${hasDiscount ? `<div class="discount-badge">-%${discountPercent}</div>` : ''}
                         <img src="${imgSrc}" onclick="openProductDetail('${p.id}')" loading="lazy" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22200%22><rect width=%22300%22 height=%22200%22 fill=%22%23f8fafc%22/><text x=%2250%25%22 y=%2250%25%22 fill=%22%23D4AF37%22 font-family=%22sans-serif%22 font-size=%2216%22 font-weight=%22bold%22 text-anchor=%22middle%22 dy=%22.3em%22>لا صورة</text></svg>'">
                         <div class="product-info">
                             <div>
                                 <div class="product-title" onclick="openProductDetail('${p.id}')">${p.name_ar}</div>
-                                <div class="product-price">${p.price} ₺</div>
+                                <div class="product-price-row">
+                                    <span class="product-price">${p.price} ₺</span>
+                                    ${hasDiscount ? `<span class="product-price-old">${p.original_price} ₺</span>` : ''}
+                                </div>
                             </div>
                             ${actionsHtml}
                         </div>
@@ -813,7 +836,15 @@
             document.getElementById('detail-img').onerror = function() { this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22200%22><rect width=%22300%22 height=%22200%22 fill=%22%23f8fafc%22/></svg>'; };
             document.getElementById('detail-title').innerText = p.name_ar;
             document.getElementById('detail-desc').innerText = p.desc_ar || '';
-            document.getElementById('detail-price-row').innerText = p.price + ' ₺';
+            
+            const hasDiscount = p.original_price && p.original_price > p.price;
+            const priceRow = document.getElementById('detail-price-row');
+            if (hasDiscount) {
+                priceRow.innerHTML = `<span style="color:var(--danger); font-size:1.4rem;">${p.price} ₺</span> <span style="font-size:1rem; color:#888; text-decoration:line-through; margin-inline-start:10px;">${p.original_price} ₺</span>`;
+            } else {
+                priceRow.innerHTML = `${p.price} ₺`;
+            }
+
             document.getElementById('detail-add-btn').onclick = () => {
                 addToCart(p.id);
                 closeModalAndPopHistory('productDetailModal');
@@ -1001,9 +1032,15 @@
                 let totalVisits = 0;
                 let productViews = {};
                 let totalProductViews = 0;
+                let deviceStats = { Mobile: 0, Desktop: 0, Tablet: 0 };
 
                 analytics.forEach(item => {
-                    if (item.event_type === 'visit') totalVisits++;
+                    if (item.event_type === 'visit') {
+                        totalVisits++;
+                        if (item.device_type && deviceStats[item.device_type] !== undefined) {
+                            deviceStats[item.device_type]++;
+                        }
+                    }
                     else if (item.event_type === 'product_view') {
                         totalProductViews++;
                         productViews[item.product_id] = (productViews[item.product_id] || 0) + 1;
@@ -1032,6 +1069,13 @@
                             <h3>مشاهدات المنتجات</h3>
                             <div class="number">${totalProductViews}</div>
                         </div>
+                    </div>
+                    
+                    <h3 style="color:var(--navy); font-weight:800; margin-bottom:15px; margin-top:30px;">📱 الأجهزة المستخدمة (Cihazlar)</h3>
+                    <div style="display:flex; justify-content:space-between; background:#faf8f3; padding:15px; border-radius:10px; margin-bottom:20px;">
+                        <div style="text-align:center;"><span style="font-size:1.5rem;">📱</span><br><strong>هاتف</strong><br>${deviceStats.Mobile}</div>
+                        <div style="text-align:center;"><span style="font-size:1.5rem;">💻</span><br><strong>كمبيوتر</strong><br>${deviceStats.Desktop}</div>
+                        <div style="text-align:center;"><span style="font-size:1.5rem;">📟</span><br><strong>تابلت</strong><br>${deviceStats.Tablet}</div>
                     </div>
 
                     <h3 style="color:var(--navy); font-weight:800; margin-bottom:15px; margin-top:30px;">🔥 الأكثر مشاهدة (Top 5)</h3>
@@ -1094,7 +1138,12 @@
                     <label>صور البانر (Slider Images)</label>
                     <input type="file" id="setting-slider-files" multiple accept="image/*" onchange="previewSettingSlider(this)">
                     <div id="setting-slider-preview" style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
-                        ${siteSettings.slider_images.map(img => `<img src="${imageUrl(img)}" style="width:80px; height:50px; object-fit:cover; border-radius:6px; border:1px solid #ccc;" onerror="this.style.display='none'">`).join('')}
+                        ${siteSettings.slider_images.map(img => `
+                            <div style="position:relative;">
+                                <img src="${imageUrl(img)}" style="width:80px; height:50px; object-fit:cover; border-radius:6px; border:1px solid #ccc;" onerror="this.style.display='none'">
+                                <button onclick="removeBannerImage('${img}')" style="position:absolute; top:-5px; right:-5px; background:var(--danger); color:#fff; border:none; border-radius:50%; width:20px; height:20px; font-size:0.7rem; cursor:pointer; display:flex; align-items:center; justify-content:center;">✕</button>
+                            </div>
+                        `).join('')}
                     </div>
                 </div>
                 <button class="btn-success" style="width:100%; padding:15px; font-size:1.1rem; margin-top:20px;" onclick="saveSettings()" id="setting-save-btn">حفظ الإعدادات</button>
@@ -1119,6 +1168,25 @@
                 settingSliderFiles = Array.from(input.files);
                 const preview = document.getElementById('setting-slider-preview');
                 preview.innerHTML = settingSliderFiles.map(file => `<span style="font-size:0.8rem; background:#f0f0f0; padding:4px 8px; border-radius:4px;">${file.name}</span>`).join('');
+            }
+        }
+
+        // BANNER SİLME FONKSİYONU
+        async function removeBannerImage(imgUrl) {
+            if (!confirm('هل أنت متأكد من حذف هذه الصورة من البانر؟')) return;
+
+            const newSliderImages = siteSettings.slider_images.filter(img => img !== imgUrl);
+
+            try {
+                const { error } = await _supabase.from('site_settings').update({ slider_images: newSliderImages }).eq('id', 1);
+                if (error) throw error;
+
+                siteSettings.slider_images = newSliderImages;
+                renderSlider();
+                switchAdminTab('settings'); // Ayarlar sekmesini yenile
+                alert('✅ تم حذف الصورة من البانر');
+            } catch (err) {
+                alert('Hata: ' + err.message);
             }
         }
 
@@ -1295,6 +1363,7 @@
                 if (p) {
                     document.getElementById('pf-name').value = p.name_ar;
                     document.getElementById('pf-price').value = p.price;
+                    document.getElementById('pf-old-price').value = p.original_price || '';
                     document.getElementById('pf-category').value = p.category;
                     document.getElementById('pf-desc').value = p.desc_ar;
                     currentProductImageUrl = p.img;
@@ -1306,6 +1375,7 @@
             } else {
                 document.getElementById('pf-name').value = '';
                 document.getElementById('pf-price').value = '';
+                document.getElementById('pf-old-price').value = '';
                 document.getElementById('pf-category').value = '';
                 document.getElementById('pf-desc').value = '';
             }
@@ -1329,6 +1399,7 @@
             const id = document.getElementById('pf-id').value;
             const name = document.getElementById('pf-name').value.trim();
             const price = parseFloat(document.getElementById('pf-price').value) || 0;
+            const oldPrice = parseFloat(document.getElementById('pf-old-price').value) || 0;
             const category = document.getElementById('pf-category').value.trim();
             const desc = document.getElementById('pf-desc').value.trim();
             const fileInput = document.getElementById('pf-image-file');
@@ -1371,6 +1442,7 @@
                     id: id || 'admin_' + Date.now(),
                     name: name,
                     price: price,
+                    original_price: oldPrice,
                     category: category,
                     description: desc,
                     img: imgUrl,
