@@ -1051,8 +1051,11 @@
                     ${bottles.map(b => `
                         <div class="admin-item">
                             <div style="display:flex; align-items:center; gap:10px;">
-                                <strong>${b.name}</strong> 
-                                <small style="color:var(--gold-dark); font-weight:bold;">(+${b.price_diff} ₺)</small>
+                                ${b.image_url ? `<img src="${imageUrl(b.image_url)}" style="width:40px; height:40px; object-fit:cover; border-radius:6px;" onerror="this.style.display='none'">` : '<div style="width:40px; height:40px; background:#eee; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:0.7rem; color:#aaa;">لا صورة</div>'}
+                                <div>
+                                    <strong>${b.name}</strong> <br>
+                                    <small style="color:var(--gold-dark); font-weight:bold;">(+${b.price_diff} ₺)</small>
+                                </div>
                             </div>
                             <div style="display:flex; gap:5px;">
                                 <button class="btn-gold" onclick="openBottleForm('${b.id}')" style="padding:6px 10px;">✎ تعديل</button>
@@ -1203,7 +1206,7 @@
         }
 
         function openBottleForm(id = null) {
-            let b = { name: '', price_diff: 0, size_id: 2 };
+            let b = { name: '', price_diff: 0, size_id: 2, image_url: '' };
             if (id) b = bottles.find(x => String(x.id) === String(id)) || b;
 
             const html = `
@@ -1211,6 +1214,14 @@
                     <div class="modal-content" onclick="event.stopPropagation()">
                         <h2 style="margin-bottom: 20px;">${id ? 'تعديل زجاجة' : 'إضافة زجاجة جديدة'}</h2>
                         <input type="hidden" id="bottle-form-id" value="${id || ''}">
+                        <input type="hidden" id="bottle-form-existing-image" value="${b.image_url || ''}">
+                        
+                        <div class="form-group">
+                            <label>صورة الزجاجة</label>
+                            <input type="file" id="bottle-form-image" accept="image/*" onchange="previewBottleImage(this)">
+                            <img id="bottle-form-preview" class="img-preview" src="${b.image_url ? imageUrl(b.image_url) : ''}" style="display:${b.image_url ? 'block' : 'none'};" onerror="this.style.display='none'">
+                        </div>
+                        
                         <div class="form-group">
                             <label>اسم الزجاجة (مثال: زجاجة 50 مل) *</label>
                             <input type="text" id="bottle-form-name" value="${b.name}">
@@ -1220,7 +1231,7 @@
                             <input type="number" id="bottle-form-price" value="${b.price_diff}" step="1">
                         </div>
                         <div style="display: flex; gap: 10px; margin-top: 20px;">
-                            <button class="btn-success" style="flex:1; padding:12px;" onclick="saveBottle()">حفظ</button>
+                            <button class="btn-success" id="bottle-save-btn" style="flex:1; padding:12px;" onclick="saveBottle()">حفظ</button>
                             <button class="btn-danger" style="flex:1; padding:12px;" onclick="document.getElementById('bottleFormModal').remove()">إلغاء</button>
                         </div>
                     </div>
@@ -1229,16 +1240,62 @@
             document.body.insertAdjacentHTML('beforeend', html);
         }
 
+        function previewBottleImage(input) {
+            const file = input.files[0];
+            const preview = document.getElementById('bottle-form-preview');
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
         async function saveBottle() {
             const id = document.getElementById('bottle-form-id').value;
+            const existingImage = document.getElementById('bottle-form-existing-image').value;
             const name = document.getElementById('bottle-form-name').value.trim();
             const price_diff = parseFloat(document.getElementById('bottle-form-price').value) || 0;
+            const fileInput = document.getElementById('bottle-form-image');
             
             if (!name) return alert('اسم الزجاجة مطلوب!');
 
-            const payload = { name, price_diff, size_id: 2, active: true };
+            const btn = document.getElementById('bottle-save-btn');
+            const oldText = btn.innerText;
+            btn.innerText = '... جاري الحفظ';
+            btn.disabled = true;
 
             try {
+                let imgUrl = existingImage;
+
+                if (fileInput.files[0]) {
+                    const file = fileInput.files[0];
+                    const base64 = await new Promise((resolve) => {
+                        const reader = new FileReader();
+                        reader.onload = e => resolve(e.target.result);
+                        reader.readAsDataURL(file);
+                    });
+
+                    const res = await fetch('/api/b2-upload', {
+                        method: 'POST',
+                        headers: { 
+                            'Authorization': 'Bearer ' + sessionToken, 
+                            'Content-Type': 'application/json' 
+                        },
+                        body: JSON.stringify({ base64: base64, contentType: file.type })
+                    });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error || 'Yükleme hatası');
+                    
+                    if (data.key) {
+                        imgUrl = data.key.startsWith('http') ? data.key : '/api/b2-image?key=' + encodeURIComponent(data.key);
+                    }
+                }
+
+                const payload = { name, price_diff, size_id: 2, active: true, image_url: imgUrl };
+
                 if (id) {
                     await _supabase.from('perfume_bottles').update(payload).eq('id', id);
                 } else {
@@ -1248,7 +1305,11 @@
                 await loadAllData();
                 switchAdminTab('bottles');
                 alert('✅ تم الحفظ بنجاح');
-            } catch (err) { alert('Hata: ' + err.message); }
+            } catch (err) { 
+                alert('Hata: ' + err.message); 
+                btn.innerText = oldText;
+                btn.disabled = false;
+            }
         }
 
         async function deleteBottle(id) {
