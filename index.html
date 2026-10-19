@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#1a2942">
     <title>متجر ميار للتسوق</title>
-    <link rel="icon" type="image/png" href="/logo mayar.png">
+    <link rel="icon" type="image/png" href="/android-chrome-192x192.png">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
     <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <style>
@@ -322,7 +322,7 @@
         </div>
     </div>
 
-    <!-- FAVORİLER MODALI -->
+    <!-- FAVORİLER MODALI (Fazladan kapatma butonu silindi) -->
     <div id="favoritesModal" class="modal" onclick="closeModalOnBackdrop(event, 'favoritesModal')">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header-row">
@@ -330,9 +330,6 @@
                 <button onclick="closeModalAndPopHistory('favoritesModal')" class="btn-danger" style="border-radius:50%; width:36px; height:36px; padding:0;">✕</button>
             </div>
             <div id="favoritesList"></div>
-            <div style="display:flex; justify-content:flex-end; margin-top:16px;">
-                <button onclick="closeModalAndPopHistory('favoritesModal')" class="btn-danger">إغلاق</button>
-            </div>
         </div>
     </div>
 
@@ -465,14 +462,13 @@
         let selectedCategory = 'ALL';
         let searchQuery = '';
         let cart = JSON.parse(localStorage.getItem('catalog_cart')) || [];
-        let favorites = JSON.parse(localStorage.getItem('mayar_favorites')) || []; // FAVORİLER
+        let favorites = JSON.parse(localStorage.getItem('mayar_favorites')) || []; 
         let modalHistoryStack = [];
         let currentPerfumeSelection = { intensityId: null, bottleId: null, perfumeId: null };
         let currentProductImageUrl = ''; 
         let settingLogoFile = null; 
         let settingSliderFiles = []; 
 
-        // CİHAZ ID OLUŞTURMA
         let deviceId = localStorage.getItem('mayar_device_id');
         if (!deviceId) {
             deviceId = 'dev_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
@@ -507,7 +503,7 @@
             renderCategories();
             applyLocalFilter();
             updateCartUI();
-            updateFavCount(); // Favori sayısını güncelle
+            updateFavCount(); 
             hideLoadingScreen();
         }
 
@@ -530,16 +526,15 @@
             const index = favorites.indexOf(compositeId);
             
             if (index > -1) {
-                favorites.splice(index, 1); // Varsa çıkar
+                favorites.splice(index, 1); 
             } else {
-                favorites.push(compositeId); // Yoksa ekle
+                favorites.push(compositeId); 
             }
             
             localStorage.setItem('mayar_favorites', JSON.stringify(favorites));
             updateFavCount();
-            applyLocalFilter(); // Yıldızların rengini güncelle
+            applyLocalFilter(); 
             
-            // Eğer favoriler penceresi açıksa, listeyi yenile
             if (document.getElementById('favoritesModal').classList.contains('open')) {
                 renderFavoritesModal();
             }
@@ -556,8 +551,9 @@
 
         function renderFavoritesModal() {
             const list = document.getElementById('favoritesList');
+            
             if (favorites.length === 0) {
-                list.innerHTML = '<p style="text-align:center; padding:20px; color:#888;">لا توجد منتجات في المفضلة</p>';
+                list.innerHTML = '<p style="text-align:center; padding:40px 20px; color:#888; font-weight:bold;">لا توجد منتجات في المفضلة حالياً 💔</p>';
                 return;
             }
 
@@ -567,27 +563,27 @@
                 let product = null;
                 
                 if (type === 'kozmetik') {
-                    product = currentProducts.find(p => String(p.id) === id);
+                    product = currentProducts.find(p => String(p.id) === String(id));
                 } else if (type === 'perfume') {
-                    product = currentPerfumes.find(p => String(p.id) === id);
+                    product = currentPerfumes.find(p => String(p.id) === String(id));
                 }
 
                 if (product) {
                     const name = product.name_ar || product.name;
                     const img = imageUrl(product.img);
-                    const price = type === 'kozmetik' ? product.price : '';
+                    const price = type === 'kozmetik' ? product.price + ' ₺' : 'عطر';
 
                     html += `
                     <div class="fav-item-row">
                         <div style="display:flex; align-items:center; flex-grow:1; cursor:pointer;" onclick="closeModalAndPopHistory('favoritesModal'); setTimeout(() => { if('${type}' === 'kozmetik') openProductDetail('${product.id}'); else openPerfumeDetail('${product.id}'); }, 300);">
-                            <img src="${img}" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2250%22 height=%2250%22><rect width=%2250%22 height=%2250%22 fill=%22%23eee%22/></svg>'">
+                            <img src="${img}" style="width:60px; height:60px; object-fit:cover; border-radius:8px; margin-inline-end:12px;" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2260%22 height=%2260%22><rect width=%2260%22 height=%2260%22 fill=%22%23eee%22/></svg>'">
                             <div>
-                                <strong>${name}</strong>
-                                ${price ? `<br><small style="color:var(--gold-dark);">${price} ₺</small>` : '<br><small style="color:var(--text-light);">عطر</small>'}
+                                <strong style="color: var(--navy); font-size: 0.95rem;">${name}</strong>
+                                <br><small style="color:var(--gold-dark); font-weight:bold; font-size:0.9rem;">${price}</small>
                             </div>
                         </div>
-                        <button onclick="toggleFavorite('${product.id}', '${type}', event)" class="btn-danger" style="padding:6px 10px;">
-                            <svg class="icon" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                        <button onclick="toggleFavorite('${product.id}', '${type}', event)" class="btn-danger" style="padding:8px 12px; border-radius:8px;" title="إزالة من المفضلة">
+                            <svg class="icon" viewBox="0 0 24 24" style="width:18px; height:18px;"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                         </button>
                     </div>`;
                 }
