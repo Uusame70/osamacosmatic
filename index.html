@@ -262,9 +262,9 @@
             </div>
             <div class="desc-box" id="pd-desc"></div>
             <div class="notes-box">
-                <div class="note-item"><span class="label">العليا</span><span class="value" id="pd-note-top">-</span></div>
-                <div class="note-item"><span class="label">الوسطى</span><span class="value" id="pd-note-mid">-</span></div>
-                <div class="note-item"><span class="label">الأساسية</span><span class="value" id="pd-note-base">-</span></div>
+                <div class="note-item"><span class="label">المقدمة (النوتات العليا)</span><span class="value" id="pd-note-top">-</span></div>
+                <div class="note-item"><span class="label">القلب (النوتات الوسطى)</span><span class="value" id="pd-note-mid">-</span></div>
+                <div class="note-item"><span class="label">القاعدة (النوتات الأساسية)</span><span class="value" id="pd-note-base">-</span></div>
             </div>
             <div class="section-title">اختر التركيز</div>
             <div class="options-grid" id="pd-intensity-options"></div>
@@ -341,6 +341,7 @@
                 <button class="admin-tab" onclick="switchAdminTab('groups', this)">المجموعات</button>
                 <button class="admin-tab" onclick="switchAdminTab('perfumes', this)">العطور</button>
                 <button class="admin-tab" onclick="switchAdminTab('bottles', this)">الزجاجات</button>
+                <button class="admin-tab" onclick="switchAdminTab('brands', this)">الماركات</button>
                 <button class="admin-tab" onclick="switchAdminTab('settings', this)">الإعدادات</button>
                 <button class="admin-tab" onclick="switchAdminTab('analytics', this)">التحليلات (Analytics)</button>
             </div>
@@ -1021,8 +1022,8 @@
                         <div class="admin-item">
                             <strong>${g.label}</strong>
                             <div style="display:flex; gap:5px;">
-                                <button class="btn-gold" onclick="openGroupForm('${g.id}')" style="padding:6px 10px;">✎</button>
-                                <button class="btn-danger" onclick="deleteGroup('${g.id}')" style="padding:6px 10px;">🗑</button>
+                                <button class="btn-gold" onclick="openGroupForm('${g.id}')" style="padding:6px 10px;">✎ تعديل</button>
+                                <button class="btn-danger" onclick="deleteGroup('${g.id}')" style="padding:6px 10px;">🗑 حذف</button>
                             </div>
                         </div>
                     `).join('')}
@@ -1060,6 +1061,22 @@
                         </div>
                     `).join('')}
                 `;
+            } else if (tab === 'brands') {
+                c.innerHTML = `
+                    <button class="btn-gold" style="margin-bottom:15px; width:100%; padding:12px;" onclick="openBrandForm()">+ إضافة ماركة جديدة</button>
+                    <p style="color:#888; text-align:center; margin-bottom:15px;">قائمة الماركات الحالية</p>
+                    ${brands.map(b => `
+                        <div class="admin-item">
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <strong>${b.label}</strong>
+                            </div>
+                            <div style="display:flex; gap:5px;">
+                                <button class="btn-gold" onclick="openBrandForm('${b.id}')" style="padding:6px 10px;">✎ تعديل</button>
+                                <button class="btn-danger" onclick="deleteBrand('${b.id}')" style="padding:6px 10px;">🗑 حذف</button>
+                            </div>
+                        </div>
+                    `).join('')}
+                `;
             } else if (tab === 'products') {
                 c.innerHTML = `
                     <button class="btn-gold" style="margin-bottom:15px; width:100%; padding:12px;" onclick="openProductForm()">+ إضافة منتج جديد (كوزمتيك)</button>
@@ -1075,8 +1092,8 @@
                             </div>
                             <div style="display:flex; gap:5px;">
                                 <button onclick="toggleProductActive('${p.id}', event)" style="background:${p.active !== false ? '#f39c12' : '#27ae60'}; padding:6px 10px;" title="${p.active !== false ? 'إخفاء' : 'إظهار'}">👁️</button>
-                                <button class="btn-gold" onclick="openProductForm('${p.id}')" style="padding:6px 10px;">✎</button>
-                                <button class="btn-danger" onclick="deleteProduct('${p.id}')" style="padding:6px 10px;">🗑</button>
+                                <button class="btn-gold" onclick="openProductForm('${p.id}')" style="padding:6px 10px;">✎ تعديل</button>
+                                <button class="btn-danger" onclick="deleteProduct('${p.id}')" style="padding:6px 10px;">🗑 حذف</button>
                             </div>
                         </div>
                     `).join('')}
@@ -1088,7 +1105,7 @@
             }
         }
 
-        // --- PARFÜM & ŞİŞE YÖNETİMİ ---
+        // --- PARFÜM & ŞİŞE & MARKA YÖNETİMİ ---
         function openPerfumeForm(id = null) {
             let p = { name: '', brand_id: null, description: '', notes_top: '', notes_middle: '', notes_base: '', gender_id: null };
             if (id) p = currentPerfumes.find(x => String(x.id) === String(id)) || p;
@@ -1125,15 +1142,15 @@
                         </div>
                         <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:15px;">
                             <div class="form-group" style="margin:0;">
-                                <label>العليا</label>
+                                <label>المقدمة (النوتات العليا)</label>
                                 <input type="text" id="perfume-form-top" value="${p.notes_top || ''}">
                             </div>
                             <div class="form-group" style="margin:0;">
-                                <label>الوسطى</label>
+                                <label>القلب (النوتات الوسطى)</label>
                                 <input type="text" id="perfume-form-mid" value="${p.notes_middle || ''}">
                             </div>
                             <div class="form-group" style="margin:0;">
-                                <label>الأساسية</label>
+                                <label>القاعدة (النوتات الأساسية)</label>
                                 <input type="text" id="perfume-form-base" value="${p.notes_base || ''}">
                             </div>
                         </div>
@@ -1243,8 +1260,58 @@
             } catch (err) { alert('Hata: ' + err.message); }
         }
 
-        // --- DİĞER YÖNETİM FONKSİYONLARI ---
+        function openBrandForm(id = null) {
+            let b = { label: '' };
+            if (id) b = brands.find(x => String(x.id) === String(id)) || b;
 
+            const html = `
+                <div class="modal open" id="brandFormModal" onclick="closeModalOnBackdrop(event, 'brandFormModal')" style="display:flex; z-index:1001;">
+                    <div class="modal-content" onclick="event.stopPropagation()">
+                        <h2 style="margin-bottom: 20px;">${id ? 'تعديل ماركة' : 'إضافة ماركة جديدة'}</h2>
+                        <input type="hidden" id="brand-form-id" value="${id || ''}">
+                        <div class="form-group">
+                            <label>اسم الماركة *</label>
+                            <input type="text" id="brand-form-name" value="${b.label}">
+                        </div>
+                        <div style="display: flex; gap: 10px; margin-top: 20px;">
+                            <button class="btn-success" style="flex:1; padding:12px;" onclick="saveBrand()">حفظ</button>
+                            <button class="btn-danger" style="flex:1; padding:12px;" onclick="document.getElementById('brandFormModal').remove()">إلغاء</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', html);
+        }
+
+        async function saveBrand() {
+            const id = document.getElementById('brand-form-id').value;
+            const name = document.getElementById('brand-form-name').value.trim();
+            
+            if (!name) return alert('اسم الماركة مطلوب!');
+
+            try {
+                if (id) {
+                    await _supabase.from('categories').update({ label: name }).eq('id', id);
+                } else {
+                    await _supabase.from('categories').insert([{ type: 'brand', value: 'brand_' + Date.now(), label: name, active: true }]);
+                }
+                document.getElementById('brandFormModal').remove();
+                await loadAllData();
+                switchAdminTab('brands');
+                alert('✅ تم الحفظ بنجاح');
+            } catch (err) { alert('Hata: ' + err.message); }
+        }
+
+        async function deleteBrand(id) {
+            if (!confirm('تأكيد حذف الماركة؟')) return;
+            try {
+                await _supabase.from('categories').delete().eq('id', id);
+                await loadAllData();
+                switchAdminTab('brands');
+            } catch (err) { alert('Hata: ' + err.message); }
+        }
+
+        // --- DİĞER YÖNETİM FONKSİYONLARI ---
         async function resetAnalytics() {
             if (!confirm('هل أنت متأكد من تصفير جميع الإحصائيات؟ لا يمكن التراجع عن هذا الإجراء.')) return;
 
