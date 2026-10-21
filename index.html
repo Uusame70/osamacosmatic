@@ -91,7 +91,6 @@
         .perfume-row:hover { border-color: var(--gold); transform: translateX(-4px); box-shadow: var(--shadow-md); }
         .perfume-row .info { cursor: pointer; flex-grow: 1; }
         .perfume-row .info .name { font-weight: 800; font-size: 1.1rem; color: var(--navy); }
-        .perfume-row .info .brand { font-size: 0.85rem; color: var(--text-light); margin-top: 4px; }
 
         .products-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
         .product-card { background: var(--white); border-radius: var(--radius-md); overflow: hidden; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; position: relative; border: 1px solid rgba(212,175,55,0.1); transition: all 0.3s; }
@@ -126,8 +125,6 @@
         
         .modal-header-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; }
         .modal-content h2 { font-size: 1.4rem; font-weight: 900; color: var(--navy); }
-        
-        .desc-box { background: #faf8f3; padding: 16px; border-radius: var(--radius-sm); margin-bottom: 16px; font-size: 0.95rem; line-height: 1.6; color: #444; }
 
         .section-title { font-size: 1rem; font-weight: 800; color: var(--navy); margin-bottom: 10px; margin-top: 20px; }
         .options-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; }
@@ -159,6 +156,52 @@
         .stat-box { background: linear-gradient(135deg, var(--navy), var(--navy-light)); color: #fff; padding: 15px; border-radius: 12px; text-align: center; border-bottom: 4px solid var(--gold); }
         .stat-box h3 { font-size: 0.9rem; color: var(--gold-light); margin-bottom: 5px; }
         .stat-box .number { font-size: 1.8rem; font-weight: 900; }
+
+        /* --- SABİT BUTONLAR (DÜZELTİLDİ) --- */
+        #whatsappFloat {
+            position: fixed;
+            bottom: 85px;
+            right: 20px;
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            background: #25d366;
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4);
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            border: none;
+            padding: 0;
+        }
+        #whatsappFloat:hover {
+            transform: translateY(-5px);
+        }
+        #scrollTopBtn {
+            position: fixed;
+            bottom: 150px;
+            right: 20px;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: var(--navy);
+            color: var(--gold);
+            box-shadow: 0 4px 15px rgba(26, 41, 66, 0.3);
+            z-index: 999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            border: 2px solid var(--gold);
+            padding: 0;
+        }
+        #scrollTopBtn:hover {
+            transform: translateY(-5px);
+            background: var(--gold);
+            color: var(--navy);
+        }
 
         @media (max-width: 900px) { .products-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; } }
         @media (max-width: 600px) {
@@ -250,7 +293,7 @@
     <div id="perfumeDetailModal" class="modal" onclick="closeModalOnBackdrop(event, 'perfumeDetailModal')">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header-row">
-                <div><h2 id="pd-name" style="margin-bottom:4px;">-</h2><div id="pd-brand" style="color:var(--text-light); font-size:0.95rem;">-</div></div>
+                <div><h2 id="pd-name" style="margin-bottom:4px;">-</h2></div>
                 <button class="btn-danger" onclick="closeModalAndPopHistory('perfumeDetailModal')" style="border-radius:50%; width:36px; height:36px; padding:0;">✕</button>
             </div>
             
@@ -258,8 +301,6 @@
                 <img id="pd-image" src="" style="max-width: 100%; max-height: 250px; border-radius: 10px; object-fit: contain;">
             </div>
 
-            <div class="desc-box" id="pd-desc"></div>
-            
             <div class="section-title">اختر التركيز</div>
             <div class="options-grid" id="pd-intensity-options"></div>
             <div class="section-title">اختر الزجاجة</div>
@@ -275,7 +316,6 @@
         <div class="modal-content" style="text-align:center;" onclick="event.stopPropagation()">
             <img id="detail-img" src="" style="width:100%; max-height:300px; object-fit:contain; margin-bottom:14px;">
             <h2 id="detail-title" style="margin-bottom:12px; justify-content: center;"></h2>
-            <p id="detail-desc" style="color:var(--text); font-size:0.95rem; margin-bottom:16px;"></p>
             <div id="detail-price-row" style="margin-bottom:16px; font-size:1.4rem; font-weight:900; color:var(--gold-dark);"></div>
             <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center;">
                 <button id="detail-add-btn" class="btn-success" style="flex-grow:1; padding:12px;">إضافة للسلة</button>
@@ -335,7 +375,6 @@
                 <button class="admin-tab" onclick="switchAdminTab('groups', this)">المجموعات</button>
                 <button class="admin-tab" onclick="switchAdminTab('perfumes', this)">العطور</button>
                 <button class="admin-tab" onclick="switchAdminTab('bottles', this)">الزجاجات</button>
-                <button class="admin-tab" onclick="switchAdminTab('brands', this)">الماركات</button>
                 <button class="admin-tab" onclick="switchAdminTab('settings', this)">الإعدادات</button>
                 <button class="admin-tab" onclick="switchAdminTab('analytics', this)">التحليلات (Analytics)</button>
             </div>
@@ -390,10 +429,6 @@
                 <label>الفئة / القسم</label>
                 <input type="text" id="pf-category" placeholder="مثال: صابون, عناية">
             </div>
-            <div class="form-group">
-                <label>الوصف</label>
-                <textarea id="pf-desc" rows="3" placeholder="وصف المنتج..."></textarea>
-            </div>
 
             <div style="display: flex; gap: 10px; margin-top: 20px;">
                 <button class="btn-success" style="flex:1; padding:12px;" onclick="saveProduct()" id="pf-save-btn">حفظ المنتج</button>
@@ -415,7 +450,6 @@
         let intensities = [];
         let bottles = [];
         let prices = [];
-        let brands = [];
         let siteSettings = { 
             logo_url: '', slider_images: [], hero_title: 'متجر ميار للتسوق', 
             hero_subtitle: 'جمالك يبدأ من هنا', free_shipping_text: 'احصل على شحن مجاني عند طلبك بقيمة 800 وأكثر', 
@@ -471,6 +505,20 @@
             hideLoadingScreen();
         }
 
+        // --- SCROLL TOP BUTTON LOGIC ---
+        window.addEventListener('scroll', function() {
+            const scrollTopBtn = document.getElementById('scrollTopBtn');
+            if (window.scrollY > 300) {
+                scrollTopBtn.style.display = 'flex';
+            } else {
+                scrollTopBtn.style.display = 'none';
+            }
+        });
+
+        document.getElementById('scrollTopBtn')?.addEventListener('click', function() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
         async function trackEvent(type, productId = null, deviceType = null) {
             if (!_supabase) return;
             try {
@@ -493,6 +541,34 @@
                 inp.type = 'password';
                 icon.innerHTML = '<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>';
             }
+        }
+
+        // --- BACKBLAZE B2 YÜKLEME FONKSİYONU ---
+        async function uploadToB2(file) {
+            if (!sessionToken) throw new Error("Oturum süreniz dolmuş. Lütfen çıkış yapıp tekrar giriş yapın.");
+            
+            const base64 = await new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = e => resolve(e.target.result);
+                reader.readAsDataURL(file);
+            });
+            
+            const res = await fetch('/api/b2-upload', {
+                method: 'POST',
+                headers: { 
+                    'Authorization': 'Bearer ' + sessionToken, 
+                    'Content-Type': 'application/json' 
+                },
+                body: JSON.stringify({ base64: base64, contentType: file.type })
+            });
+            
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Yükleme hatası (B2)');
+            
+            if (data.key) {
+                return data.key.startsWith('http') ? data.key : '/api/b2-image?key=' + encodeURIComponent(data.key);
+            }
+            return '';
         }
 
         function imageUrl(url) {
@@ -604,13 +680,12 @@
             } catch(e) { console.error('Kozmetik yüklenemedi', e); }
 
             if (_supabase) {
-                const [pGroups, pItems, pIntensities, pBottles, pPrices, pBrands] = await Promise.all([
+                const [pGroups, pItems, pIntensities, pBottles, pPrices] = await Promise.all([
                     _supabase.from('categories').select('*').eq('type', 'gender').eq('active', true).order('sort_order'),
                     _supabase.from('perfumes').select('*').eq('active', true),
                     _supabase.from('perfume_intensities').select('*').eq('active', true).order('sort_order'),
                     _supabase.from('perfume_bottles').select('*').eq('active', true).order('sort_order'),
-                    _supabase.from('perfume_prices').select('*'),
-                    _supabase.from('categories').select('*').eq('type', 'brand')
+                    _supabase.from('perfume_prices').select('*')
                 ]);
                 
                 perfumeGroups = pGroups.data || [];
@@ -618,7 +693,6 @@
                 intensities = pIntensities.data || [];
                 bottles = pBottles.data || [];
                 prices = pPrices.data || [];
-                brands = pBrands.data || [];
             }
         }
 
@@ -683,12 +757,10 @@
                 } else {
                     filteredPerfumes.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ar'));
                     list.innerHTML = filteredPerfumes.map(p => {
-                        const b = brands.find(brand => brand.id === p.brand_id);
                         return `
                             <div class="perfume-row">
                                 <div class="info" onclick="openPerfumeDetail('${p.id}')">
                                     <div class="name">${p.name}</div>
-                                    <div class="brand">${b ? b.label : ''}</div>
                                 </div>
                                 <div style="display:flex; align-items:center; gap:10px;">
                                     <div class="arrow" onclick="openPerfumeDetail('${p.id}')" style="cursor:pointer;">←</div>
@@ -713,7 +785,7 @@
             
             if (searchQuery) {
                 const q = searchQuery.toLowerCase();
-                filtered = filtered.filter(p => (p.name_ar || '').toLowerCase().includes(q) || (p.desc_ar || '').toLowerCase().includes(q));
+                filtered = filtered.filter(p => (p.name_ar || '').toLowerCase().includes(q));
             }
 
             if (filtered.length === 0) {
@@ -772,10 +844,7 @@
 
             currentPerfumeSelection = { intensityId: null, bottleId: null, perfumeId: p.id };
 
-            const brand = brands.find(b => b.id === p.brand_id);
             document.getElementById('pd-name').innerText = p.name;
-            document.getElementById('pd-brand').innerText = brand ? brand.label : '';
-            document.getElementById('pd-desc').innerText = p.description || 'لا يوجد وصف.';
             
             if (p.image_url) {
                 document.getElementById('pd-image-container').style.display = 'block';
@@ -866,7 +935,6 @@
             document.getElementById('detail-img').src = imageUrl(p.img);
             document.getElementById('detail-img').onerror = function() { this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22200%22><rect width=%22300%22 height=%22200%22 fill=%22%23f8fafc%22/></svg>'; };
             document.getElementById('detail-title').innerText = p.name_ar;
-            document.getElementById('detail-desc').innerText = p.desc_ar || '';
             
             const hasDiscount = p.original_price && p.original_price > p.price;
             const priceRow = document.getElementById('detail-price-row');
@@ -1068,23 +1136,6 @@
                         </div>
                     `).join('')}
                 `;
-            } else if (tab === 'brands') {
-                const sortedBrands = [...brands].sort((a, b) => (a.label || '').localeCompare(b.label || '', 'ar'));
-                c.innerHTML = `
-                    <button class="btn-gold" style="margin-bottom:15px; width:100%; padding:12px;" onclick="openBrandForm()">+ إضافة ماركة جديدة</button>
-                    <p style="color:#888; text-align:center; margin-bottom:15px;">قائمة الماركات الحالية</p>
-                    ${sortedBrands.map(b => `
-                        <div class="admin-item">
-                            <div style="display:flex; align-items:center; gap:10px;">
-                                <strong>${b.label}</strong>
-                            </div>
-                            <div style="display:flex; gap:5px;">
-                                <button class="btn-gold" onclick="openBrandForm('${b.id}')" style="padding:6px 10px;">✎ تعديل</button>
-                                <button class="btn-danger" onclick="deleteBrand('${b.id}')" style="padding:6px 10px;">🗑 حذف</button>
-                            </div>
-                        </div>
-                    `).join('')}
-                `;
             } else if (tab === 'products') {
                 const sortedProducts = [...currentProducts].sort((a, b) => (a.name_ar || '').localeCompare(b.name_ar || '', 'ar'));
                 c.innerHTML = `
@@ -1114,12 +1165,11 @@
             }
         }
 
-        // --- PARFÜM & ŞİŞE & MARKA YÖNETİMİ ---
+        // --- PARFÜM & ŞİŞE YÖNETİMİ ---
         function openPerfumeForm(id = null) {
-            let p = { name: '', brand_id: null, description: '', image_url: '', gender_id: null };
+            let p = { name: '', image_url: '', gender_id: null };
             if (id) p = currentPerfumes.find(x => String(x.id) === String(id)) || p;
             
-            const brandOptions = brands.map(b => `<option value="${b.id}" ${p.brand_id == b.id ? 'selected' : ''}>${b.label}</option>`).join('');
             const genderOptions = perfumeGroups.map(g => `<option value="${g.id}" ${p.gender_id == g.id ? 'selected' : ''}>${g.label}</option>`).join('');
 
             const html = `
@@ -1140,22 +1190,11 @@
                             <input type="text" id="perfume-form-name" value="${p.name}">
                         </div>
                         <div class="form-group">
-                            <label>الماركة (Brand)</label>
-                            <select id="perfume-form-brand" style="width:100%; padding:12px; border-radius:10px; border:2px solid #e0dcd0; font-family:inherit;">
-                                <option value="">-- اختر الماركة --</option>
-                                ${brandOptions}
-                            </select>
-                        </div>
-                        <div class="form-group">
                             <label>المجموعة / الجنس</label>
                             <select id="perfume-form-gender" style="width:100%; padding:12px; border-radius:10px; border:2px solid #e0dcd0; font-family:inherit;">
                                 <option value="">-- اختر المجموعة --</option>
                                 ${genderOptions}
                             </select>
-                        </div>
-                        <div class="form-group">
-                            <label>الوصف</label>
-                            <textarea id="perfume-form-desc" rows="3">${p.description || ''}</textarea>
                         </div>
                         
                         <div style="display: flex; gap: 10px; margin-top: 20px;">
@@ -1185,9 +1224,7 @@
             const id = document.getElementById('perfume-form-id').value;
             const existingImage = document.getElementById('perfume-form-existing-image').value;
             const name = document.getElementById('perfume-form-name').value.trim();
-            const brand_id = document.getElementById('perfume-form-brand').value || null;
             const gender_id = document.getElementById('perfume-form-gender').value || null;
-            const description = document.getElementById('perfume-form-desc').value.trim();
             const fileInput = document.getElementById('perfume-form-image');
 
             if (!name) return alert('اسم العطر مطلوب!');
@@ -1200,26 +1237,10 @@
             try {
                 let imgUrl = existingImage;
                 if (fileInput.files[0]) {
-                    const file = fileInput.files[0];
-                    const base64 = await new Promise((resolve) => {
-                        const reader = new FileReader();
-                        reader.onload = e => resolve(e.target.result);
-                        reader.readAsDataURL(file);
-                    });
-                    const res = await fetch('/api/b2-upload', {
-                        method: 'POST',
-                        headers: { 'Authorization': 'Bearer ' + sessionToken, 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ base64: base64, contentType: file.type })
-                    });
-                    const data = await res.json();
-                    if (!res.ok) throw new Error(data.error || 'Yükleme hatası');
-                    
-                    if (data.key) {
-                        imgUrl = data.key.startsWith('http') ? data.key : '/api/b2-image?key=' + encodeURIComponent(data.key);
-                    }
+                    imgUrl = await uploadToB2(fileInput.files[0]);
                 }
 
-                const payload = { name, brand_id, gender_id, description, image_url: imgUrl, active: true };
+                const payload = { name, gender_id, image_url: imgUrl, active: true };
 
                 if (id) {
                     await _supabase.from('perfumes').update(payload).eq('id', id);
@@ -1314,27 +1335,7 @@
                 let imgUrl = existingImage;
 
                 if (fileInput.files[0]) {
-                    const file = fileInput.files[0];
-                    const base64 = await new Promise((resolve) => {
-                        const reader = new FileReader();
-                        reader.onload = e => resolve(e.target.result);
-                        reader.readAsDataURL(file);
-                    });
-
-                    const res = await fetch('/api/b2-upload', {
-                        method: 'POST',
-                        headers: { 
-                            'Authorization': 'Bearer ' + sessionToken, 
-                            'Content-Type': 'application/json' 
-                        },
-                        body: JSON.stringify({ base64: base64, contentType: file.type })
-                    });
-                    const data = await res.json();
-                    if (!res.ok) throw new Error(data.error || 'Yükleme hatası');
-                    
-                    if (data.key) {
-                        imgUrl = data.key.startsWith('http') ? data.key : '/api/b2-image?key=' + encodeURIComponent(data.key);
-                    }
+                    imgUrl = await uploadToB2(fileInput.files[0]);
                 }
 
                 const payload = { name, price_diff, size_id: 2, active: true, image_url: imgUrl };
@@ -1361,57 +1362,6 @@
                 await _supabase.from('perfume_bottles').delete().eq('id', id);
                 await loadAllData();
                 switchAdminTab('bottles');
-            } catch (err) { alert('Hata: ' + err.message); }
-        }
-
-        function openBrandForm(id = null) {
-            let b = { label: '' };
-            if (id) b = brands.find(x => String(x.id) === String(id)) || b;
-
-            const html = `
-                <div class="modal open" id="brandFormModal" onclick="closeModalOnBackdrop(event, 'brandFormModal')" style="display:flex; z-index:1001;">
-                    <div class="modal-content" onclick="event.stopPropagation()">
-                        <h2 style="margin-bottom: 20px;">${id ? 'تعديل ماركة' : 'إضافة ماركة جديدة'}</h2>
-                        <input type="hidden" id="brand-form-id" value="${id || ''}">
-                        <div class="form-group">
-                            <label>اسم الماركة *</label>
-                            <input type="text" id="brand-form-name" value="${b.label}">
-                        </div>
-                        <div style="display: flex; gap: 10px; margin-top: 20px;">
-                            <button class="btn-success" style="flex:1; padding:12px;" onclick="saveBrand()">حفظ</button>
-                            <button class="btn-danger" style="flex:1; padding:12px;" onclick="document.getElementById('brandFormModal').remove()">إلغاء</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-            document.body.insertAdjacentHTML('beforeend', html);
-        }
-
-        async function saveBrand() {
-            const id = document.getElementById('brand-form-id').value;
-            const name = document.getElementById('brand-form-name').value.trim();
-            
-            if (!name) return alert('اسم الماركة مطلوب!');
-
-            try {
-                if (id) {
-                    await _supabase.from('categories').update({ label: name }).eq('id', id);
-                } else {
-                    await _supabase.from('categories').insert([{ type: 'brand', value: 'brand_' + Date.now(), label: name, active: true }]);
-                }
-                document.getElementById('brandFormModal').remove();
-                await loadAllData();
-                switchAdminTab('brands');
-                alert('✅ تم الحفظ بنجاح');
-            } catch (err) { alert('Hata: ' + err.message); }
-        }
-
-        async function deleteBrand(id) {
-            if (!confirm('تأكيد حذف الماركة؟')) return;
-            try {
-                await _supabase.from('categories').delete().eq('id', id);
-                await loadAllData();
-                switchAdminTab('brands');
             } catch (err) { alert('Hata: ' + err.message); }
         }
 
@@ -1660,39 +1610,13 @@
                 let finalSliderImages = [...siteSettings.slider_images];
 
                 if (settingLogoFile) {
-                    const base64 = await new Promise((resolve) => {
-                        const reader = new FileReader();
-                        reader.onload = e => resolve(e.target.result);
-                        reader.readAsDataURL(settingLogoFile);
-                    });
-                    const res = await fetch('/api/b2-upload', {
-                        method: 'POST',
-                        headers: { 'Authorization': 'Bearer ' + sessionToken, 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ base64: base64, contentType: settingLogoFile.type })
-                    });
-                    const data = await res.json();
-                    if (data.key) {
-                        finalLogoUrl = data.key.startsWith('http') ? data.key : '/api/b2-image?key=' + encodeURIComponent(data.key);
-                    }
+                    finalLogoUrl = await uploadToB2(settingLogoFile);
                 }
 
                 if (settingSliderFiles.length > 0) {
                     for (const file of settingSliderFiles) {
-                        const base64 = await new Promise((resolve) => {
-                            const reader = new FileReader();
-                            reader.onload = e => resolve(e.target.result);
-                            reader.readAsDataURL(file);
-                        });
-                        const res = await fetch('/api/b2-upload', {
-                            method: 'POST',
-                            headers: { 'Authorization': 'Bearer ' + sessionToken, 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ base64: base64, contentType: file.type })
-                        });
-                        const data = await res.json();
-                        if (data.key) {
-                            const finalUrl = data.key.startsWith('http') ? data.key : '/api/b2-image?key=' + encodeURIComponent(data.key);
-                            finalSliderImages.push(finalUrl);
-                        }
+                        const finalUrl = await uploadToB2(file);
+                        finalSliderImages.push(finalUrl);
                     }
                 }
 
@@ -1822,7 +1746,6 @@
                     document.getElementById('pf-price').value = p.price;
                     document.getElementById('pf-old-price').value = p.original_price || '';
                     document.getElementById('pf-category').value = p.category;
-                    document.getElementById('pf-desc').value = p.desc_ar;
                     currentProductImageUrl = p.img;
                     if (p.img) {
                         preview.src = imageUrl(p.img);
@@ -1834,7 +1757,6 @@
                 document.getElementById('pf-price').value = '';
                 document.getElementById('pf-old-price').value = '';
                 document.getElementById('pf-category').value = '';
-                document.getElementById('pf-desc').value = '';
             }
             openModal('productFormModal');
         }
@@ -1858,7 +1780,6 @@
             const price = parseFloat(document.getElementById('pf-price').value) || 0;
             const oldPrice = parseFloat(document.getElementById('pf-old-price').value) || 0;
             const category = document.getElementById('pf-category').value.trim();
-            const desc = document.getElementById('pf-desc').value.trim();
             const fileInput = document.getElementById('pf-image-file');
 
             if (!name) return alert('اسم المنتج مطلوب');
@@ -1872,27 +1793,7 @@
                 let imgUrl = currentProductImageUrl;
 
                 if (fileInput.files[0]) {
-                    const file = fileInput.files[0];
-                    const base64 = await new Promise((resolve) => {
-                        const reader = new FileReader();
-                        reader.onload = e => resolve(e.target.result);
-                        reader.readAsDataURL(file);
-                    });
-
-                    const res = await fetch('/api/b2-upload', {
-                        method: 'POST',
-                        headers: { 
-                            'Authorization': 'Bearer ' + sessionToken, 
-                            'Content-Type': 'application/json' 
-                        },
-                        body: JSON.stringify({ base64: base64, contentType: file.type })
-                    });
-                    const data = await res.json();
-                    if (!res.ok) throw new Error(data.error || 'Yükleme hatası');
-                    
-                    if (data.key) {
-                        imgUrl = data.key.startsWith('http') ? data.key : '/api/b2-image?key=' + encodeURIComponent(data.key);
-                    }
+                    imgUrl = await uploadToB2(fileInput.files[0]);
                 }
 
                 const payload = {
@@ -1901,7 +1802,6 @@
                     price: price,
                     original_price: oldPrice,
                     category: category,
-                    description: desc,
                     img: imgUrl,
                     active: true,
                     synced_at: new Date().toISOString()

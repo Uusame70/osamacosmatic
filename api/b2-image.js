@@ -1,45 +1,1908 @@
-// api/b2-image.js
-import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#1a2942">
+    <title>متجر ميار للتسوق</title>
+    <link rel="icon" type="image/png" href="/android-chrome-192x192.png">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <style>
+        :root {
+            --gold: #D4AF37; --gold-light: #E8C766; --gold-dark: #B8942E;
+            --sky: #87CEEB; --sky-light: #B0E0E6; --sky-dark: #5BA8C7;
+            --navy: #1a2942; --navy-light: #2c3e50;
+            --cream: #FAFAF8; --white: #FFFFFF;
+            --text: #2c3e50; --text-light: #7f8c8d;
+            --danger: #e74c3c; --success: #27ae60; --warning: #f39c12;
+            --shadow-sm: 0 2px 8px rgba(26,41,66,0.06);
+            --shadow-md: 0 4px 16px rgba(26,41,66,0.08);
+            --shadow-lg: 0 8px 32px rgba(26,41,66,0.12);
+            --radius-sm: 8px; --radius-md: 14px; --radius-lg: 20px;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0;
+            font-family: 'Tajawal', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            -webkit-tap-highlight-color: transparent; }
+        html { scroll-behavior: smooth; }
+        body { background-color: var(--cream); color: var(--text); padding-bottom: 100px; font-weight: 500; line-height: 1.6; }
 
-const B2_KEY_ID = process.env.B2_KEY_ID || '0052a17b1b477e60000000001';
-const B2_APP_KEY = process.env.B2_APP_KEY || 'K005vrGhMV5pNF+uMYOFyfELDSOmURE';
-const B2_BUCKET = process.env.B2_BUCKET || 'mayar-images';
-const B2_ENDPOINT = process.env.B2_ENDPOINT || 'https://s3.us-east-005.backblazeb2.com';
-const B2_REGION = process.env.B2_REGION || 'us-east-005';
+        .icon { display: inline-block; vertical-align: middle; width: 1.15em; height: 1.15em; stroke-width: 2.2; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+        
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        @keyframes shimmer { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
 
-const s3 = new S3Client({
-  endpoint: B2_ENDPOINT,
-  region: B2_REGION,
-  credentials: { accessKeyId: B2_KEY_ID, secretAccessKey: B2_APP_KEY }
-});
+        /* --- YENİ ŞIK LOADING EKRANI --- */
+        #loadingScreen { position: fixed; inset: 0; background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; transition: opacity 0.5s ease; }
+        
+        .loader-container { display: flex; flex-direction: column; align-items: center; gap: 24px; }
+        
+        .double-ring { width: 70px; height: 70px; border-radius: 50%; border: 3px solid transparent; border-top-color: var(--gold); border-bottom-color: var(--gold-light); animation: spin 1.5s linear infinite; position: relative; }
+        
+        .double-ring::after { content: ''; position: absolute; inset: 6px; border-radius: 50%; border: 3px solid transparent; border-left-color: var(--sky); border-right-color: var(--sky-light); animation: spin-reverse 1s linear infinite; }
+        
+        .loading-text { font-size: 1.3rem; color: var(--gold); font-weight: 800; letter-spacing: 1.5px; animation: pulse-text 1.5s ease-in-out infinite; text-shadow: 0 2px 10px rgba(212,175,55,0.2); }
+        
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes spin-reverse { to { transform: rotate(-360deg); } }
+        @keyframes pulse-text { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.7; transform: scale(0.96); } }
+        /* ------------------------------- */
 
-export default async function handler(req, res) {
-  const key = req.query.key;
+        .shipping-bar { background: linear-gradient(90deg, var(--gold-dark), var(--gold), var(--gold-light), var(--gold), var(--gold-dark)); background-size: 200% 100%; color: var(--navy); text-align: center; padding: 10px 15px; font-size: 0.85rem; font-weight: 800; letter-spacing: 0.3px; animation: shimmer 4s ease-in-out infinite; position: relative; z-index: 101; display: flex; align-items: center; justify-content: center; gap: 8px; }
 
-  if (!key) return res.status(400).send('Missing key');
+        .hero { background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 60%, var(--sky-dark) 100%); padding: 35px 20px 45px; text-align: center; position: relative; overflow: hidden; border-radius: 0 0 30px 30px; box-shadow: var(--shadow-lg); }
+        .hero::before { content: ''; position: absolute; top: -50%; right: -20%; width: 400px; height: 400px; background: radial-gradient(circle, rgba(212,175,55,0.15) 0%, transparent 70%); border-radius: 50%; animation: pulse 6s ease-in-out infinite; }
+        .hero::after { content: ''; position: absolute; bottom: -30%; left: -20%; width: 350px; height: 350px; background: radial-gradient(circle, rgba(135,206,235,0.15) 0%, transparent 70%); border-radius: 50%; animation: pulse 8s ease-in-out infinite; }
 
-  if (!key.startsWith('perfume/') && !key.startsWith('whatsapp/') && !key.startsWith('admin/')) {
-    return res.status(403).send('Forbidden');
-  }
+        .hero-logo { position: absolute; top: 20px; right: 20px; width: 80px; height: 80px; object-fit: contain; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3)); z-index: 10; display: none; }
+        
+        .hero-title { font-size: 1.6rem; font-weight: 900; background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 50%, var(--gold) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 6px; letter-spacing: 1px; position: relative; z-index: 1; }
+        .hero-subtitle { font-size: 0.95rem; color: var(--sky-light); font-weight: 500; position: relative; z-index: 1; }
 
-  try {
-    const command = new GetObjectCommand({ Bucket: B2_BUCKET, Key: key });
-    const response = await s3.send(command);
-    const buffer = Buffer.from(await response.Body.transformToByteArray());
+        .slider-container { max-width: 1200px; margin: 15px auto 20px; padding: 0 15px; position: relative; z-index: 10; }
+        .slider { position: relative; border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-lg); aspect-ratio: 16/9; background: var(--navy); }
+        .slider-track { display: flex; height: 100%; transition: transform 0.5s ease; }
+        .slider-slide { min-width: 100%; height: 100%; position: relative; }
+        .slider-slide img { width: 100%; height: 100%; object-fit: contain; display: block; background: var(--navy); }
+        
+        .slider-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(26,41,66,0.6); color: var(--gold); border: 2px solid var(--gold); width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 3; transition: all 0.2s; backdrop-filter: blur(4px); }
+        .slider-nav:hover { background: var(--gold); color: var(--navy); transform: translateY(-50%) scale(1.1); }
+        
+        .slider-prev { right: 12px; } 
+        .slider-next { left: 12px; }  
+        
+        .slider-dots { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; z-index: 3; }
+        .slider-dot { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,0.5); border: 2px solid rgba(255,255,255,0.8); cursor: pointer; transition: all 0.2s; }
+        .slider-dot.active { background: var(--gold); border-color: var(--gold); transform: scale(1.2); }
 
-    res.setHeader('Content-Type', response.ContentType || 'image/jpeg');
-    res.setHeader('Cache-Control', 'public, max-age=31536000, s-maxage=31536000, immutable, stale-while-revalidate=604800');
-    res.setHeader('CDN-Cache-Control', 'public, max-age=31536000, immutable');
-    res.setHeader('Vercel-CDN-Cache-Control', 'public, max-age=31536000, immutable');
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.status(200).send(buffer);
-  } catch (err) {
-    console.error('B2 proxy error:', err);
-    // Eğer B2 limiti dolduysa veya dosya bulunamadıysa (Burası çok önemli)
-    if (err.name === 'NoSuchKey' || err.$metadata?.httpStatusCode === 404 || err.message.includes('cap exceeded')) {
-      // Resim bulunamadığında veya B2 limiti dolduğunda (fallback olarak) boş bir resim göstermek yerine yönlendirebiliriz.
-      return res.status(404).send('Image not found');
-    }
-    res.status(500).send('Proxy error: ' + err.message);
-  }
-}
+        header { background-color: var(--white); padding: 12px 15px; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-sm); border-bottom: 2px solid var(--gold); margin-top: 20px; }
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 10px; }
+        .header-btns { display: flex; gap: 8px; align-items: center; width: 100%; justify-content: flex-end; }
+        
+        .header-btn { display: flex; align-items: center; gap: 6px; padding: 10px 16px; border-radius: var(--radius-sm); font-weight: 800; cursor: pointer; border: none; font-family: inherit; transition: all 0.2s; }
+        .cart-btn { background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%); color: var(--navy); box-shadow: 0 4px 12px rgba(212,175,55,0.3); }
+        .header-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.2); }
+
+        .search-box { width: 100%; position: relative; }
+        .search-box input { width: 100%; padding: 12px 16px; padding-inline-start: 46px; border: 2px solid #e8ecf0; border-radius: var(--radius-md); font-size: 0.95rem; outline: none; background-color: var(--cream); font-family: inherit; transition: all 0.2s; }
+        .search-box input:focus { border-color: var(--gold); background-color: var(--white); box-shadow: 0 0 0 3px rgba(212,175,55,0.1); }
+        .search-box .search-icon { position: absolute; top: 50%; transform: translateY(-50%); inset-inline-start: 16px; color: var(--text-light); pointer-events: none; z-index: 1; }
+
+        .container { max-width: 1200px; margin: 20px auto; padding: 0 15px; }
+
+        .categories-bar { display: flex; gap: 10px; overflow-x: auto; padding: 14px 15px; background: var(--white); scrollbar-width: thin; border-bottom: 1px solid #e8ecf0; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(26,41,66,0.06); }
+        .categories-bar::-webkit-scrollbar { height: 3px; }
+        .categories-bar::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 4px; }
+        .cat-btn { background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%); color: var(--gold); border: 2px solid var(--gold); padding: 9px 20px; border-radius: 25px; white-space: nowrap; font-size: 0.88rem; font-weight: 800; cursor: pointer; transition: all 0.25s; font-family: inherit; box-shadow: 0 2px 6px rgba(26,41,66,0.15); display: inline-flex; align-items: center; gap: 6px; }
+        .cat-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(212,175,55,0.3); }
+        .cat-btn.active { background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%); color: var(--navy); border-color: var(--gold-light); box-shadow: 0 4px 14px rgba(212,175,55,0.5); }
+
+        .perfume-row { background: var(--white); border: 2px solid #e0dcd0; border-radius: var(--radius-md); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s; margin-bottom: 12px; position: relative; }
+        .perfume-row:hover { border-color: var(--gold); transform: translateX(-4px); box-shadow: var(--shadow-md); }
+        .perfume-row .info { cursor: pointer; flex-grow: 1; }
+        .perfume-row .info .name { font-weight: 800; font-size: 1.1rem; color: var(--navy); }
+
+        .products-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+        .product-card { background: var(--white); border-radius: var(--radius-md); overflow: hidden; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; position: relative; border: 1px solid rgba(212,175,55,0.1); transition: all 0.3s; }
+        .product-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-6px); border-color: var(--gold); }
+        
+        .product-card img { width: 100%; height: 220px; object-fit: contain; background: linear-gradient(135deg, #f8fafc, #eef4f8); cursor: pointer; transition: transform 0.4s; }
+        .product-card:hover img { transform: scale(1.05); }
+        .product-info { padding: 14px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
+        .product-title { font-size: 1rem; margin-bottom: 8px; color: var(--navy); font-weight: 700; cursor: pointer; line-height: 1.4; }
+        .product-price-row { display: flex; align-items: baseline; gap: 8px; }
+        .product-price { font-size: 1.15rem; font-weight: 900; color: var(--gold-dark); }
+        .product-price-old { font-size: 0.85rem; color: var(--text-light); text-decoration: line-through; font-weight: 500; }
+        .discount-badge { position: absolute; top: 10px; left: 10px; background: var(--danger); color: #fff; padding: 4px 8px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; z-index: 2; }
+        
+        .admin-actions { display: flex; gap: 6px; margin-top: 10px; }
+        .admin-actions button { flex: 1; padding: 8px 0; border-radius: 8px; font-size: 1rem; display: flex; align-items: center; justify-content: center; }
+        .btn-hide { background: #f39c12; color: #fff; }
+        .btn-edit { background: #f1c40f; color: #fff; }
+        .btn-del { background: #e74c3c; color: #fff; }
+        .btn-wa { background: #25d366; color: #fff; }
+        .btn-add-cart { background: #25d366; color: #fff; font-weight: 800; flex: 2; }
+
+        button { cursor: pointer; padding: 10px 14px; border: none; border-radius: var(--radius-sm); background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%); color: var(--white); font-weight: 700; font-size: 0.85rem; touch-action: manipulation; font-family: inherit; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+        button:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(26,41,66,0.2); }
+        .btn-gold { background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%); color: var(--navy); }
+        .btn-success { background: linear-gradient(135deg, #27ae60, #229954); color: #fff; }
+        .btn-danger { background: linear-gradient(135deg, #e74c3c, #c0392b); color: #fff; }
+
+        .modal { display: none; position: fixed; inset: 0; background: rgba(26,41,66,0.7); backdrop-filter: blur(4px); justify-content: center; align-items: flex-end; z-index: 1000; padding: 15px; }
+        .modal.open { display: flex; animation: fadeIn 0.2s ease; }
+        .modal-content { background: var(--white); padding: 24px; border-radius: var(--radius-lg) var(--radius-lg) 0 0; width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow-lg); border-top: 4px solid var(--gold); animation: slideUp 0.3s ease; }
+        
+        .modal-header-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; }
+        .modal-content h2 { font-size: 1.4rem; font-weight: 900; color: var(--navy); }
+
+        .section-title { font-size: 1rem; font-weight: 800; color: var(--navy); margin-bottom: 10px; margin-top: 20px; }
+        .options-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; }
+        .option-btn { background: #faf8f3; border: 2px solid #e0dcd0; border-radius: 12px; padding: 12px; text-align: center; cursor: pointer; font-weight: 700; color: #666; transition: all 0.2s; font-size: 0.9rem; }
+        .option-btn.active { background: var(--gold); color: #fff; border-color: var(--gold); }
+        .option-btn img { width: 40px; height: 40px; object-fit: contain; display: block; margin: 0 auto 8px; border-radius: 6px; }
+
+        .cart-bar { position: sticky; bottom: 0; background: #fff; padding-top: 20px; border-top: 1px solid #eee; margin-top: 20px; display: flex; gap: 16px; align-items: center; }
+        .total-price { flex: 1; font-size: 1.5rem; font-weight: 900; color: var(--gold-dark); }
+        .btn-add { background: #25d366; color: #fff; border: none; padding: 16px 24px; border-radius: 14px; font-weight: 800; font-size: 1rem; cursor: pointer; flex: 1; display: flex; justify-content: center;}
+        .btn-add:disabled { background: #ccc; cursor: not-allowed; }
+
+        .admin-bar { background: linear-gradient(135deg, var(--navy), var(--navy-light)); color: var(--gold); padding: 14px 20px; border-radius: var(--radius-md); margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; box-shadow: var(--shadow-md); }
+        .admin-bar strong { display: flex; align-items: center; gap: 6px; font-size: 1.1rem; }
+        .admin-tab-bar { display: flex; gap: 8px; overflow-x: auto; margin-bottom: 20px; background: var(--white); padding: 10px; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); }
+        .admin-tab { background: transparent; border: 1px solid #ddd; padding: 8px 16px; border-radius: 8px; cursor: pointer; white-space: nowrap; font-family: inherit; font-weight: 700; color: var(--text); }
+        .admin-tab.active { background: var(--navy); color: var(--gold); border-color: var(--navy); }
+        
+        .admin-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #faf8f3; border-radius: 10px; margin-bottom: 8px; border: 1px solid #e0dcd0; }
+        .admin-item img { width: 50px; height: 50px; object-fit: cover; border-radius: 8px; background: #fff; border: 1px solid #eee; }
+        
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-weight: 700; margin-bottom: 6px; font-size: 0.9rem; color: var(--navy); }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 12px; border: 2px solid #e0dcd0; border-radius: 10px; font-family: inherit; }
+        
+        .img-preview { width: 100%; max-height: 200px; object-fit: contain; border-radius: 8px; margin-top: 10px; background: #faf8f3; display: none; border: 1px solid #e0dcd0; }
+
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .stat-box { background: linear-gradient(135deg, var(--navy), var(--navy-light)); color: #fff; padding: 15px; border-radius: 12px; text-align: center; border-bottom: 4px solid var(--gold); }
+        .stat-box h3 { font-size: 0.9rem; color: var(--gold-light); margin-bottom: 5px; }
+        .stat-box .number { font-size: 1.8rem; font-weight: 900; }
+
+        /* --- SABİT BUTONLAR --- */
+        #whatsappFloat {
+            position: fixed;
+            bottom: 85px;
+            right: 20px;
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            background: #25d366;
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4);
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            border: none;
+            padding: 0;
+        }
+        #whatsappFloat:hover { transform: translateY(-5px); }
+        
+        #scrollTopBtn {
+            position: fixed;
+            bottom: 150px;
+            right: 20px;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: var(--navy);
+            color: var(--gold);
+            box-shadow: 0 4px 15px rgba(26, 41, 66, 0.3);
+            z-index: 999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            border: 2px solid var(--gold);
+            padding: 0;
+        }
+        #scrollTopBtn:hover { transform: translateY(-5px); background: var(--gold); color: var(--navy); }
+
+        @media (max-width: 900px) { .products-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; } }
+        @media (max-width: 600px) {
+            .products-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+            .product-card img { height: 140px; }
+            .product-title { font-size: 0.85rem; }
+            .product-price { font-size: 1rem; }
+            .admin-actions button { font-size: 0.8rem; padding: 6px 0; }
+            .perfume-row { padding: 12px; }
+            .hero { padding: 25px 15px 35px; }
+            .hero-title { font-size: 1.4rem; }
+            .hero-logo { width: 60px; height: 60px; top: 15px; right: 15px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- YENİ ŞIK YÜKLENİYOR EKRANI -->
+    <div id="loadingScreen">
+        <div class="loader-container">
+            <div class="double-ring"></div>
+            <div class="loading-text">جاري تحميل الكتالوج</div>
+        </div>
+    </div>
+
+    <div class="shipping-bar" id="shippingBar">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>
+        <span id="shipping-text">احصل على شحن مجاني عند طلبك بقيمة 800 وأكثر</span>
+    </div>
+
+    <section class="hero">
+        <img class="hero-logo" id="heroLogo" alt="Logo">
+        <h1 class="hero-title" id="heroTitle">متجر ميار للتسوق</h1>
+        <div class="hero-divider" style="width:60px;height:3px;background:var(--gold);margin:12px auto;border-radius:3px;"></div>
+        <p class="hero-subtitle" id="heroSubtitle">جمالك يبدأ من هنا</p>
+    </section>
+
+    <div class="slider-container" id="sliderContainer" style="display: none;">
+        <div class="slider">
+            <div class="slider-track" id="sliderTrack"></div>
+            <button class="slider-nav slider-prev" onclick="sliderPrev()"><svg class="icon" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
+            <button class="slider-nav slider-next" onclick="sliderNext()"><svg class="icon" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+            <div class="slider-dots" id="sliderDots"></div>
+        </div>
+    </div>
+
+    <header>
+        <div class="header-top">
+            <div class="header-btns">
+                <button class="header-btn cart-btn" onclick="openModal('cartModal')">
+                    <svg class="icon" viewBox="0 0 24 24"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+                    <span>السلة (<span id="cart-count">0</span>)</span>
+                </button>
+            </div>
+        </div>
+        <div class="search-box">
+            <input type="text" id="search-input" oninput="handleSearch(this.value)" placeholder="ابحث عن منتج أو عطر..." autocomplete="off">
+            <svg class="icon search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        </div>
+    </header>
+
+    <div id="categoriesBar" class="categories-bar"></div>
+
+    <div class="container">
+        <div id="adminBar" class="admin-bar" style="display: none;">
+            <strong>👑 وضع المسؤول <span style="background:var(--gold); color:var(--navy); padding:2px 8px; border-radius:10px; font-size:0.7rem; margin-right:5px;">ADMIN</span></strong>
+            <div style="display: flex; gap: 8px;">
+                <button onclick="openAdmin()" class="btn-gold">لوحة التحكم</button>
+                <button onclick="handleSupabaseLogout()" class="btn-danger">خروج</button>
+            </div>
+        </div>
+
+        <div id="productsGrid" class="products-grid"></div>
+        <div id="perfumesList" style="display:none;"></div>
+    </div>
+
+    <div class="cart-bar" style="position:fixed; bottom:0; left:0; right:0; z-index:90; padding:14px 18px; background:var(--navy);">
+        <div style="font-size: 0.95rem; display: flex; align-items: center; gap: 8px; color:white;">
+            <span>المجموع:</span>
+            <strong id="cart-total-price" style="color: var(--gold); font-size: 1.2rem; font-weight: 900;">0</strong>
+            <span>₺</span>
+        </div>
+        <button onclick="completeOrder()" class="btn-success">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
+            <span>إرسال الطلب</span>
+        </button>
+    </div>
+
+    <button id="scrollTopBtn" title="الأعلى"><svg class="icon" viewBox="0 0 24 24"><path d="m18 15-6-6-6 6"/></svg></button>
+    <button id="whatsappFloat" onclick="openWhatsAppChat()" title="تواصل معنا"><svg class="icon" viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg></button>
+
+    <!-- Modallar -->
+    <div id="perfumeDetailModal" class="modal" onclick="closeModalOnBackdrop(event, 'perfumeDetailModal')">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header-row">
+                <div><h2 id="pd-name" style="margin-bottom:4px;">-</h2></div>
+                <button class="btn-danger" onclick="closeModalAndPopHistory('perfumeDetailModal')" style="border-radius:50%; width:36px; height:36px; padding:0;">✕</button>
+            </div>
+            
+            <div id="pd-image-container" style="display:none; margin-bottom: 16px; text-align: center;">
+                <img id="pd-image" src="" style="max-width: 100%; max-height: 250px; border-radius: 10px; object-fit: contain;">
+            </div>
+
+            <div class="section-title">اختر التركيز</div>
+            <div class="options-grid" id="pd-intensity-options"></div>
+            <div class="section-title">اختر الزجاجة</div>
+            <div class="options-grid" id="pd-bottle-options"></div>
+            <div class="cart-bar">
+                <div class="total-price" id="pd-total">0 ₺</div>
+                <button class="btn-add" id="pd-btn-add" onclick="addPerfumeToCart()" disabled>أضف للسلة</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="productDetailModal" class="modal" onclick="closeModalOnBackdrop(event, 'productDetailModal')">
+        <div class="modal-content" style="text-align:center;" onclick="event.stopPropagation()">
+            <img id="detail-img" src="" style="width:100%; max-height:300px; object-fit:contain; margin-bottom:14px;">
+            <h2 id="detail-title" style="margin-bottom:12px; justify-content: center;"></h2>
+            <div id="detail-price-row" style="margin-bottom:16px; font-size:1.4rem; font-weight:900; color:var(--gold-dark);"></div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center;">
+                <button id="detail-add-btn" class="btn-success" style="flex-grow:1; padding:12px;">إضافة للسلة</button>
+                <button onclick="closeModalAndPopHistory('productDetailModal')" class="btn-danger" style="padding:12px;">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="cartModal" class="modal" onclick="closeModalOnBackdrop(event, 'cartModal')">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header-row">
+                <h2>سلة التسوق</h2>
+                <button onclick="clearCart()" class="btn-danger" style="padding:6px 10px; font-size:0.8rem;">تفريغ</button>
+            </div>
+            <div id="cartList"></div>
+            <div style="display:flex; justify-content:flex-end; margin-top:16px;">
+                <button onclick="closeModalAndPopHistory('cartModal')" class="btn-danger">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Login Modal -->
+    <div id="loginModal" class="modal" onclick="closeModalOnBackdrop(event, 'loginModal')">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <h2 style="margin-bottom:18px; text-align:center;">دخول المسؤول</h2>
+            <form onsubmit="event.preventDefault(); doLogin();">
+                <div class="form-group">
+                    <label>البريد الإلكتروني</label>
+                    <input type="email" id="login-email" dir="ltr" placeholder="email@domain.com" required>
+                </div>
+                <div class="form-group">
+                    <label>كلمة المرور</label>
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <input type="password" id="login-password" dir="ltr" placeholder="********" required>
+                        <button type="button" onclick="togglePasswordVisibility()" style="padding:12px; background:#f0ede6; color:#333; border-radius:10px; min-width:45px;">
+                            <svg class="icon" id="eye-icon" viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
+                    </div>
+                </div>
+                <div style="display:flex; gap:10px; margin-top:20px;">
+                    <button type="submit" class="btn-gold" style="flex:1; padding:12px;" id="login-btn">دخول</button>
+                    <button type="button" onclick="closeModalAndPopHistory('loginModal')" class="btn-danger" style="flex:1; padding:12px;">إلغاء</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Modal -->
+    <div id="adminModal" class="modal" onclick="closeModalOnBackdrop(event, 'adminModal')">
+        <div class="modal-content" style="max-width: 800px;" onclick="event.stopPropagation()">
+            <div class="modal-header-row">
+                <h2>لوحة التحكم</h2>
+                <button class="btn-danger" onclick="closeModalAndPopHistory('adminModal')" style="border-radius:50%; width:36px; height:36px; padding:0;">✕</button>
+            </div>
+            <div class="admin-tab-bar">
+                <button class="admin-tab active" onclick="switchAdminTab('products', this)">إدارة المنتجات</button>
+                <button class="admin-tab" onclick="switchAdminTab('groups', this)">المجموعات</button>
+                <button class="admin-tab" onclick="switchAdminTab('perfumes', this)">العطور</button>
+                <button class="admin-tab" onclick="switchAdminTab('bottles', this)">الزجاجات</button>
+                <button class="admin-tab" onclick="switchAdminTab('settings', this)">الإعدادات</button>
+                <button class="admin-tab" onclick="switchAdminTab('analytics', this)">التحليلات (Analytics)</button>
+            </div>
+            <div id="adminContent"></div>
+        </div>
+    </div>
+
+    <!-- Group Form Modal -->
+    <div id="groupFormModal" class="modal" onclick="closeModalOnBackdrop(event, 'groupFormModal')">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <h2 id="groupFormTitle" style="margin-bottom: 20px;">إضافة مجموعة</h2>
+            <input type="hidden" id="gf-id">
+            <div class="form-group">
+                <label>اسم المجموعة (مثال: عطور رجالية)</label>
+                <input type="text" id="gf-name">
+            </div>
+            <div class="form-group">
+                <label>العطور المرتبطة:</label>
+                <div class="group-checkbox-list" id="gf-perfumes" style="background:#faf8f3; padding:15px; border-radius:10px;"></div>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="btn-success" style="flex:1; padding:12px;" onclick="saveGroup()">حفظ</button>
+                <button class="btn-danger" style="flex:1; padding:12px;" onclick="closeModalAndPopHistory('groupFormModal')">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- KOZMETİK ÜRÜN FORMU MODAL -->
+    <div id="productFormModal" class="modal" onclick="closeModalOnBackdrop(event, 'productFormModal')">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <h2 id="pf-title" style="margin-bottom: 20px;">إضافة منتج جديد</h2>
+            <input type="hidden" id="pf-id">
+            
+            <div class="form-group">
+                <label>صورة المنتج</label>
+                <input type="file" id="pf-image-file" accept="image/*" onchange="previewProductImage(this)">
+                <img id="pf-image-preview" class="img-preview" alt="معاينة">
+            </div>
+            <div class="form-group">
+                <label>اسم المنتج *</label>
+                <input type="text" id="pf-name" placeholder="مثال: كريم أساس">
+            </div>
+            <div class="form-group">
+                <label>السعر (₺) *</label>
+                <input type="number" id="pf-price" placeholder="150" step="0.01" min="0">
+            </div>
+            <div class="form-group">
+                <label>السعر الأصلي (قبل الخصم)</label>
+                <input type="number" id="pf-old-price" placeholder="السعر القديم (اتركه فارغاً إذا لم يكن هناك خصم)" step="0.01" min="0">
+            </div>
+            <div class="form-group">
+                <label>الفئة / القسم</label>
+                <input type="text" id="pf-category" placeholder="مثال: صابون, عناية">
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="btn-success" style="flex:1; padding:12px;" onclick="saveProduct()" id="pf-save-btn">حفظ المنتج</button>
+                <button class="btn-danger" style="flex:1; padding:12px;" onclick="closeModalAndPopHistory('productFormModal')">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://xmrdqepjtfycvtgcbkyy.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_MgJhvhCdIg9oC40t--FZxQ_04A8dWkU';
+        let _supabase = null;
+        let isAdmin = false;
+        let sessionToken = null;
+        
+        let currentProducts = []; 
+        let currentPerfumes = []; 
+        let perfumeGroups = []; 
+        let intensities = [];
+        let bottles = [];
+        let prices = [];
+        let siteSettings = { 
+            logo_url: '', slider_images: [], hero_title: 'متجر ميار للتسوق', 
+            hero_subtitle: 'جمالك يبدأ من هنا', free_shipping_text: 'احصل على شحن مجاني عند طلبك بقيمة 800 وأكثر', 
+            free_shipping_min: 800, whatsapp_number: '905388444275' 
+        };
+        
+        let currentSlide = 0;
+        let sliderAutoplayTimer = null;
+
+        let selectedCategory = 'ALL';
+        let searchQuery = '';
+        let cart = JSON.parse(localStorage.getItem('catalog_cart')) || [];
+        let modalHistoryStack = [];
+        let currentPerfumeSelection = { intensityId: null, bottleId: null, perfumeId: null };
+        let currentProductImageUrl = ''; 
+        let settingLogoFile = null; 
+        let settingSliderFiles = []; 
+
+        let deviceId = localStorage.getItem('mayar_device_id');
+        if (!deviceId) {
+            deviceId = 'dev_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+            localStorage.setItem('mayar_device_id', deviceId);
+        }
+
+        function initSupabase() {
+            if (typeof supabase !== 'undefined' && supabase.createClient) {
+                _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            }
+        }
+
+        async function init() {
+            showLoadingScreen();
+            initSupabase();
+            
+            if (_supabase) {
+                const { data: { session } } = await _supabase.auth.getSession();
+                isAdmin = !!session;
+                sessionToken = session?.access_token || null;
+                if (isAdmin) document.getElementById('adminBar').style.display = 'flex';
+            }
+
+            let deviceType = 'Desktop';
+            if (/Mobi|Android/i.test(navigator.userAgent)) deviceType = 'Mobile';
+            else if (/Tablet|iPad/i.test(navigator.userAgent)) deviceType = 'Tablet';
+            
+            trackEvent('visit', null, deviceType);
+
+            await loadSiteSettings(); 
+            await loadAllData();
+            renderCategories();
+            applyLocalFilter();
+            updateCartUI();
+            hideLoadingScreen();
+        }
+
+        // --- SCROLL TOP BUTTON LOGIC ---
+        window.addEventListener('scroll', function() {
+            const scrollTopBtn = document.getElementById('scrollTopBtn');
+            if (window.scrollY > 300) {
+                scrollTopBtn.style.display = 'flex';
+            } else {
+                scrollTopBtn.style.display = 'none';
+            }
+        });
+
+        document.getElementById('scrollTopBtn')?.addEventListener('click', function() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        async function trackEvent(type, productId = null, deviceType = null) {
+            if (!_supabase) return;
+            try {
+                await _supabase.from('site_analytics').insert([{
+                    event_type: type,
+                    product_id: productId,
+                    device_type: deviceType,
+                    device_id: deviceId
+                }]);
+            } catch(e) { console.warn('Analiz kaydı başarısız', e); }
+        }
+
+        function togglePasswordVisibility() {
+            const inp = document.getElementById('login-password');
+            const icon = document.getElementById('eye-icon');
+            if (inp.type === 'password') {
+                inp.type = 'text';
+                icon.innerHTML = '<path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/>';
+            } else {
+                inp.type = 'password';
+                icon.innerHTML = '<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>';
+            }
+        }
+
+        // --- BACKBLAZE B2 YÜKLEME FONKSİYONU ---
+        async function uploadToB2(file) {
+            if (!sessionToken) throw new Error("Oturum süreniz dolmuş. Lütfen çıkış yapıp tekrar giriş yapın.");
+            
+            const base64 = await new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = e => resolve(e.target.result);
+                reader.readAsDataURL(file);
+            });
+            
+            const res = await fetch('/api/b2-upload', {
+                method: 'POST',
+                headers: { 
+                    'Authorization': 'Bearer ' + sessionToken, 
+                    'Content-Type': 'application/json' 
+                },
+                body: JSON.stringify({ base64: base64, contentType: file.type })
+            });
+            
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Yükleme hatası (B2)');
+            
+            if (data.key) {
+                return data.key.startsWith('http') ? data.key : '/api/b2-image?key=' + encodeURIComponent(data.key);
+            }
+            return '';
+        }
+
+        function imageUrl(url) {
+            if (!url) return 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22200%22><rect width=%22300%22 height=%22200%22 fill=%22%23f8fafc%22/><text x=%2250%25%22 y=%2250%25%22 fill=%22%23D4AF37%22 font-family=%22sans-serif%22 font-size=%2216%22 font-weight=%22bold%22 text-anchor=%22middle%22 dy=%22.3em%22>لا صورة</text></svg>';
+            if (url.startsWith('/api/b2-image')) return url;
+            if (url.startsWith('http')) return url; 
+            const supabaseBase = 'https://xmrdqepjtfycvtgcbkyy.supabase.co/storage/v1/object/public/product-images';
+            if (url.startsWith(supabaseBase)) return url.replace(supabaseBase, '/storage-img');
+            if (url.includes('2chat-user-data.s3') || url.includes('2chat.io')) {
+                return '/api/image-proxy?url=' + encodeURIComponent(url);
+            }
+            return url;
+        }
+
+        async function loadSiteSettings() {
+            if (!_supabase) return;
+            try {
+                const { data } = await _supabase.from('site_settings').select('*').eq('id', 1).maybeSingle();
+                if (data) {
+                    siteSettings.logo_url = data.logo_url || '';
+                    siteSettings.hero_title = data.hero_title || 'متجر ميار للتسوق';
+                    siteSettings.hero_subtitle = data.hero_subtitle || 'جمالك يبدأ من هنا';
+                    siteSettings.free_shipping_text = data.free_shipping_text || 'احصل على شحن مجاني عند طلبك بقيمة 800 وأكثر';
+                    siteSettings.free_shipping_min = parseFloat(data.free_shipping_min) || 800;
+                    siteSettings.whatsapp_number = data.whatsapp_number || '905388444275';
+                    siteSettings.slider_images = Array.isArray(data.slider_images) ? data.slider_images : [];
+                }
+                applySiteSettingsToUI();
+            } catch(e) { console.error('Settings yüklenemedi', e); }
+        }
+
+        function applySiteSettingsToUI() {
+            if (siteSettings.logo_url) {
+                const logoEl = document.getElementById('heroLogo');
+                logoEl.src = imageUrl(siteSettings.logo_url);
+                logoEl.style.display = 'block';
+                logoEl.onerror = function() { this.style.display = 'none'; };
+            }
+            document.getElementById('heroTitle').innerText = siteSettings.hero_title;
+            document.getElementById('heroSubtitle').innerText = siteSettings.hero_subtitle;
+            document.getElementById('shipping-text').innerText = siteSettings.free_shipping_text;
+            renderSlider();
+        }
+
+        function renderSlider() {
+            const container = document.getElementById('sliderContainer');
+            const track = document.getElementById('sliderTrack');
+            const dots = document.getElementById('sliderDots');
+            const images = siteSettings.slider_images || [];
+
+            if (!images || images.length === 0) { container.style.display = 'none'; return; }
+            
+            container.style.display = 'block';
+            track.innerHTML = '';
+            dots.innerHTML = '';
+
+            images.forEach((url, i) => {
+                const slide = document.createElement('div');
+                slide.className = 'slider-slide';
+                slide.innerHTML = '<img src="' + imageUrl(url) + '" alt="Banner ' + (i+1) + '" onerror="this.parentElement.style.display=\'none\'; document.getElementById(\'sliderContainer\').style.display=\'none\';">';
+                track.appendChild(slide);
+
+                const dot = document.createElement('div');
+                dot.className = 'slider-dot' + (i === 0 ? ' active' : '');
+                dot.onclick = () => goToSlide(i);
+                dots.appendChild(dot);
+            });
+
+            currentSlide = 0;
+            updateSlider();
+            startSliderAutoplay();
+        }
+
+        function updateSlider() {
+            const track = document.getElementById('sliderTrack');
+            if (!track) return;
+            track.style.transform = 'translateX(' + (currentSlide * 100) + '%)';
+            document.querySelectorAll('.slider-dot').forEach((d, i) => {
+                d.classList.toggle('active', i === currentSlide);
+            });
+        }
+
+        function goToSlide(idx) {
+            const images = siteSettings.slider_images || [];
+            if (images.length === 0) return;
+            currentSlide = idx % images.length;
+            if (currentSlide < 0) currentSlide = images.length - 1;
+            updateSlider();
+        }
+
+        function sliderNext() { goToSlide(currentSlide + 1); startSliderAutoplay(); }
+        function sliderPrev() { goToSlide(currentSlide - 1); startSliderAutoplay(); }
+
+        function startSliderAutoplay() {
+            if (sliderAutoplayTimer) clearInterval(sliderAutoplayTimer);
+            const images = siteSettings.slider_images || [];
+            if (images.length < 2) return;
+            sliderAutoplayTimer = setInterval(() => {
+                currentSlide = (currentSlide + 1) % images.length;
+                updateSlider();
+            }, 5000);
+        }
+
+        async function loadAllData() {
+            try {
+                const res = await fetch('/api/products?t=' + Date.now());
+                const data = await res.json();
+                currentProducts = data.products || [];
+            } catch(e) { console.error('Kozmetik yüklenemedi', e); }
+
+            if (_supabase) {
+                const [pGroups, pItems, pIntensities, pBottles, pPrices] = await Promise.all([
+                    _supabase.from('categories').select('*').eq('type', 'gender').eq('active', true).order('sort_order'),
+                    _supabase.from('perfumes').select('*').eq('active', true),
+                    _supabase.from('perfume_intensities').select('*').eq('active', true).order('sort_order'),
+                    _supabase.from('perfume_bottles').select('*').eq('active', true).order('sort_order'),
+                    _supabase.from('perfume_prices').select('*')
+                ]);
+                
+                perfumeGroups = pGroups.data || [];
+                currentPerfumes = pItems.data || [];
+                intensities = pIntensities.data || [];
+                bottles = pBottles.data || [];
+                prices = pPrices.data || [];
+            }
+        }
+
+        function renderCategories() {
+            const bar = document.getElementById('categoriesBar');
+            bar.innerHTML = '';
+
+            const allBtn = document.createElement('button');
+            allBtn.className = 'cat-btn' + (selectedCategory === 'ALL' ? ' active' : '');
+            allBtn.innerHTML = 'الكل';
+            allBtn.onclick = () => { selectedCategory = 'ALL'; renderCategories(); applyLocalFilter(); };
+            bar.appendChild(allBtn);
+
+            const kozmetikCats = new Set();
+            currentProducts.forEach(p => {
+                if (p.category) {
+                    p.category.split(/[,;\/|]+/).forEach(c => {
+                        const trimmed = c.trim();
+                        if (trimmed) kozmetikCats.add(trimmed);
+                    });
+                }
+            });
+            
+            Array.from(kozmetikCats).sort().forEach(cat => {
+                const btn = document.createElement('button');
+                btn.className = 'cat-btn' + (selectedCategory === cat ? ' active' : '');
+                btn.innerText = cat;
+                btn.onclick = () => { selectedCategory = cat; renderCategories(); applyLocalFilter(); };
+                bar.appendChild(btn);
+            });
+
+            perfumeGroups.forEach(g => {
+                const catId = 'perfume_group_' + g.id;
+                const btn = document.createElement('button');
+                btn.className = 'cat-btn' + (selectedCategory === catId ? ' active' : '');
+                btn.innerHTML = `🌸 ${g.label}`;
+                btn.onclick = () => { selectedCategory = catId; renderCategories(); applyLocalFilter(); };
+                bar.appendChild(btn);
+            });
+        }
+
+        function applyLocalFilter() {
+            const grid = document.getElementById('productsGrid');
+            const list = document.getElementById('perfumesList');
+            
+            if (typeof selectedCategory === 'string' && selectedCategory.startsWith('perfume_group_')) {
+                grid.style.display = 'none';
+                list.style.display = 'flex';
+                list.style.flexDirection = 'column';
+                list.style.gap = '12px';
+
+                const groupId = parseInt(selectedCategory.replace('perfume_group_', ''));
+                let filteredPerfumes = currentPerfumes.filter(p => p.gender_id === groupId);
+
+                if (searchQuery) {
+                    const q = searchQuery.toLowerCase();
+                    filteredPerfumes = filteredPerfumes.filter(p => (p.name || '').toLowerCase().includes(q));
+                }
+
+                if (filteredPerfumes.length === 0) {
+                    list.innerHTML = '<div style="text-align:center; padding:40px; color:#888;">لا توجد عطور في هذه المجموعة.</div>';
+                } else {
+                    filteredPerfumes.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ar'));
+                    list.innerHTML = filteredPerfumes.map(p => {
+                        return `
+                            <div class="perfume-row">
+                                <div class="info" onclick="openPerfumeDetail('${p.id}')">
+                                    <div class="name">${p.name}</div>
+                                </div>
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <div class="arrow" onclick="openPerfumeDetail('${p.id}')" style="cursor:pointer;">←</div>
+                                </div>
+                            </div>`;
+                    }).join('');
+                }
+                return;
+            }
+
+            grid.style.display = 'grid';
+            list.style.display = 'none';
+
+            let filtered = currentProducts;
+            if (selectedCategory !== 'ALL') {
+                filtered = filtered.filter(p => {
+                    if (!p.category) return false;
+                    const cats = p.category.split(/[,;\/|]+/).map(c => c.trim());
+                    return cats.includes(selectedCategory);
+                });
+            }
+            
+            if (searchQuery) {
+                const q = searchQuery.toLowerCase();
+                filtered = filtered.filter(p => (p.name_ar || '').toLowerCase().includes(q));
+            }
+
+            if (filtered.length === 0) {
+                grid.innerHTML = '<div style="text-align:center; grid-column:1/-1; padding:40px; color:#888;">لا توجد منتجات.</div>';
+            } else {
+                filtered.sort((a, b) => (a.name_ar || '').localeCompare(b.name_ar || '', 'ar'));
+                grid.innerHTML = filtered.map(p => {
+                    const imgSrc = imageUrl(p.img);
+                    let actionsHtml = '';
+
+                    if (isAdmin) {
+                        actionsHtml = `
+                            <div class="admin-actions">
+                                <button class="btn-hide" onclick="toggleProductActive('${p.id}', event)" title="إخفاء/إظهار">👁️</button>
+                                <button class="btn-edit" onclick="openProductForm('${p.id}')" title="تعديل">✏️</button>
+                                <button class="btn-wa" onclick="shareToWhatsApp('${p.id}')" title="مشاركة">💬</button>
+                                <button class="btn-del" onclick="deleteProduct('${p.id}')" title="حذف">🗑️</button>
+                                <button class="btn-add-cart" onclick="addToCart('${p.id}')">إضافة</button>
+                            </div>
+                        `;
+                    } else {
+                        actionsHtml = `
+                            <div class="admin-actions" style="margin-top:10px;">
+                                <button class="btn-add-cart" style="width:100%;" onclick="addToCart('${p.id}')">إضافة</button>
+                            </div>
+                        `;
+                    }
+
+                    const hasDiscount = p.original_price && p.original_price > p.price;
+                    const discountPercent = hasDiscount ? Math.round(((p.original_price - p.price) / p.original_price) * 100) : 0;
+
+                    return `
+                    <div class="product-card">
+                        ${hasDiscount ? `<div class="discount-badge">-%${discountPercent}</div>` : ''}
+                        <img src="${imgSrc}" onclick="openProductDetail('${p.id}')" loading="lazy" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22200%22><rect width=%22300%22 height=%22200%22 fill=%22%23f8fafc%22/><text x=%2250%25%22 y=%2250%25%22 fill=%22%23D4AF37%22 font-family=%22sans-serif%22 font-size=%2216%22 font-weight=%22bold%22 text-anchor=%22middle%22 dy=%22.3em%22>لا صورة</text></svg>'">
+                        <div class="product-info">
+                            <div>
+                                <div class="product-title" onclick="openProductDetail('${p.id}')">${p.name_ar}</div>
+                                <div class="product-price-row">
+                                    <span class="product-price">${p.price} ₺</span>
+                                    ${hasDiscount ? `<span class="product-price-old">${p.original_price} ₺</span>` : ''}
+                                </div>
+                            </div>
+                            ${actionsHtml}
+                        </div>
+                    </div>
+                `}).join('');
+            }
+        }
+
+        function openPerfumeDetail(perfumeId) {
+            const p = currentPerfumes.find(x => String(x.id) === String(perfumeId));
+            if (!p) return;
+
+            trackEvent('product_view', p.id);
+
+            currentPerfumeSelection = { intensityId: null, bottleId: null, perfumeId: p.id };
+
+            document.getElementById('pd-name').innerText = p.name;
+            
+            if (p.image_url) {
+                document.getElementById('pd-image-container').style.display = 'block';
+                document.getElementById('pd-image').src = imageUrl(p.image_url);
+            } else {
+                document.getElementById('pd-image-container').style.display = 'none';
+            }
+
+            document.getElementById('pd-intensity-options').innerHTML = intensities.map(i => `
+                <div class="option-btn" onclick="selectIntensity(${i.id})" id="int-btn-${i.id}">${i.name}</div>
+            `).join('');
+
+            const activeBottles = bottles.filter(b => b.size_id === 2); 
+            document.getElementById('pd-bottle-options').innerHTML = activeBottles.map(b => `
+                <div class="option-btn" onclick="selectBottle(${b.id})" id="bot-btn-${b.id}">
+                    ${b.image_url ? `<img src="${imageUrl(b.image_url)}" onerror="this.style.display='none'">` : ''}
+                    <div>${b.name}</div>
+                    <div style="font-size:0.7rem; color:#666;">${b.price_diff > 0 ? '+' + b.price_diff + ' ₺' : 'مجاناً'}</div>
+                </div>
+            `).join('');
+
+            updatePerfumeTotal();
+            openModal('perfumeDetailModal');
+        }
+
+        function selectIntensity(id) {
+            currentPerfumeSelection.intensityId = id;
+            document.querySelectorAll('#pd-intensity-options .option-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(`int-btn-${id}`).classList.add('active');
+            updatePerfumeTotal();
+        }
+
+        function selectBottle(id) {
+            currentPerfumeSelection.bottleId = id;
+            document.querySelectorAll('#pd-bottle-options .option-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(`bot-btn-${id}`).classList.add('active');
+            updatePerfumeTotal();
+        }
+
+        function updatePerfumeTotal() {
+            const btn = document.getElementById('pd-btn-add');
+            const totalEl = document.getElementById('pd-total');
+            
+            if (!currentPerfumeSelection.intensityId || !currentPerfumeSelection.bottleId) {
+                totalEl.innerText = '0 ₺';
+                btn.disabled = true;
+                return;
+            }
+
+            const basePriceRow = prices.find(p => 
+                p.perfume_id === currentPerfumeSelection.perfumeId && 
+                p.intensity_id === currentPerfumeSelection.intensityId && 
+                p.size_id === 2
+            );
+            const basePrice = basePriceRow ? basePriceRow.price : 0;
+            const bottle = bottles.find(b => b.id === currentPerfumeSelection.bottleId);
+            const total = basePrice + (bottle ? bottle.price_diff : 0);
+
+            totalEl.innerText = total + ' ₺';
+            btn.disabled = false;
+        }
+
+        function addPerfumeToCart() {
+            const p = currentPerfumes.find(x => x.id === currentPerfumeSelection.perfumeId);
+            const intLabel = intensities.find(i => i.id === currentPerfumeSelection.intensityId).name;
+            const bottle = bottles.find(b => b.id === currentPerfumeSelection.bottleId);
+            const totalTxt = document.getElementById('pd-total').innerText;
+            
+            cart.push({
+                type: 'perfume',
+                id: p.id,
+                name: p.name,
+                details: `${intLabel} - ${bottle.name}`,
+                price: parseFloat(totalTxt.replace(' ₺', '')),
+                qty: 1
+            });
+            saveCart();
+            updateCartUI();
+            closeModalAndPopHistory('perfumeDetailModal');
+        }
+
+        function openProductDetail(id) {
+            const p = currentProducts.find(x => String(x.id) === String(id));
+            if (!p) return;
+            
+            trackEvent('product_view', p.id);
+
+            document.getElementById('detail-img').src = imageUrl(p.img);
+            document.getElementById('detail-img').onerror = function() { this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22200%22><rect width=%22300%22 height=%22200%22 fill=%22%23f8fafc%22/></svg>'; };
+            document.getElementById('detail-title').innerText = p.name_ar;
+            
+            const hasDiscount = p.original_price && p.original_price > p.price;
+            const priceRow = document.getElementById('detail-price-row');
+            if (hasDiscount) {
+                priceRow.innerHTML = `<span style="color:var(--danger); font-size:1.4rem;">${p.price} ₺</span> <span style="font-size:1rem; color:#888; text-decoration:line-through; margin-inline-start:10px;">${p.original_price} ₺</span>`;
+            } else {
+                priceRow.innerHTML = `${p.price} ₺`;
+            }
+
+            document.getElementById('detail-add-btn').onclick = () => {
+                addToCart(p.id);
+                closeModalAndPopHistory('productDetailModal');
+            };
+            openModal('productDetailModal');
+        }
+
+        function addToCart(id) {
+            const p = currentProducts.find(x => String(x.id) === String(id));
+            if (!p) return;
+            const existing = cart.find(c => c.type === 'kozmetik' && c.id === p.id);
+            if (existing) existing.qty++;
+            else cart.push({ type: 'kozmetik', id: p.id, name: p.name_ar, price: p.price, qty: 1 });
+            saveCart(); updateCartUI();
+        }
+
+        function saveCart() { localStorage.setItem('catalog_cart', JSON.stringify(cart)); }
+
+        function updateCartUI() {
+            let totalQty = 0; let totalPrice = 0;
+            cart.forEach(c => {
+                totalQty += c.qty;
+                totalPrice += c.price * c.qty;
+            });
+            document.getElementById('cart-count').innerText = totalQty;
+            document.getElementById('cart-total-price').innerText = totalPrice;
+            
+            const cartList = document.getElementById('cartList');
+            if (cart.length === 0) {
+                cartList.innerHTML = '<p style="text-align:center; padding:20px; color:#888;">السلة فارغة</p>';
+            } else {
+                let itemsHtml = cart.map((c, idx) => {
+                    const itemTotal = c.price * c.qty;
+                    return `
+                    <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid #eee;">
+                        <div style="flex-grow:1;">
+                            <strong style="color:var(--navy); font-size:0.95rem;">${c.name}</strong>
+                            ${c.details ? `<br><small style="color:#888;">${c.details}</small>` : ''}
+                            <div style="margin-top:5px; font-size:0.9rem; font-weight:700; color:var(--gold-dark);">
+                                ${c.qty} × ${c.price} = ${itemTotal} ₺
+                            </div>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px; margin-inline-start:10px;">
+                            <button onclick="changeQty(${idx}, -1)" style="padding:4px 10px; background:#f0f0f0; color:#333; border-radius:6px; font-weight:bold;">-</button>
+                            <span style="font-weight:800; color:var(--navy); min-width:20px; text-align:center; font-size:1.1rem;">${c.qty}</span>
+                            <button onclick="changeQty(${idx}, 1)" style="padding:4px 10px; background:#f0f0f0; color:#333; border-radius:6px; font-weight:bold;">+</button>
+                        </div>
+                    </div>`;
+                }).join('');
+
+                itemsHtml += `
+                    <div style="margin-top: 20px; padding-top: 15px; border-top: 2px dashed #ccc; display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:1.1rem; font-weight:800; color:var(--navy);">الإجمالي:</span>
+                        <span style="font-size:1.4rem; font-weight:900; color:var(--gold-dark);">${totalPrice} ₺</span>
+                    </div>
+                `;
+                
+                cartList.innerHTML = itemsHtml;
+            }
+        }
+
+        function changeQty(idx, delta) {
+            cart[idx].qty += delta;
+            if (cart[idx].qty <= 0) cart.splice(idx, 1);
+            saveCart(); updateCartUI();
+        }
+
+        function clearCart() {
+          { cart = []; saveCart(); updateCartUI(); }
+        }
+
+        function completeOrder() {
+            if (cart.length === 0) return alert('السلة فارغة!');
+            let msg = 'طلب جديد:\n\n'; let total = 0;
+            cart.forEach(c => {
+                msg += `• ${c.name} ${c.details ? '('+c.details+')' : ''}\n  ${c.price} ₺ × ${c.qty} = ${c.price * c.qty} ₺\n`;
+                total += c.price * c.qty;
+            });
+            msg += `\nالإجمالي: ${total} ₺`;
+            window.open('https://wa.me/' + siteSettings.whatsapp_number.replace(/[^0-9]/g, '') + '?text=' + encodeURIComponent(msg), '_blank');
+        }
+
+        // --- ADMIN LOGIN ---
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.shiftKey && e.key === 'A') {
+                e.preventDefault();
+                if (isAdmin) openAdmin();
+                else openModal('loginModal');
+            }
+        });
+
+        async function doLogin() {
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value;
+            if (!email || !password) return alert('البريد وكلمة المرور مطلوبان');
+            
+            const btn = document.getElementById('login-btn');
+            const oldText = btn.innerText;
+            btn.innerText = '... جاري الدخول';
+            btn.disabled = true;
+
+            const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
+            
+            if (error) { 
+                alert('خطأ: ' + error.message); 
+                btn.innerText = oldText;
+                btn.disabled = false;
+                return; 
+            }
+
+            sessionToken = data.session?.access_token || null;
+            isAdmin = true;
+            closeModalAndPopHistory('loginModal');
+            document.getElementById('adminBar').style.display = 'flex';
+            alert('تم تسجيل الدخول بنجاح');
+            openAdmin();
+            
+            btn.innerText = oldText;
+            btn.disabled = false;
+        }
+
+        async function handleSupabaseLogout() {
+            await _supabase.auth.signOut();
+            isAdmin = false; sessionToken = null;
+            document.getElementById('adminBar').style.display = 'none';
+            location.reload();
+        }
+
+        function openAdmin() {
+            document.getElementById('adminBar').style.display = 'flex';
+            openModal('adminModal');
+            switchAdminTab('products');
+        }
+
+        function switchAdminTab(tab, btn) {
+            document.querySelectorAll('.admin-tab').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            const c = document.getElementById('adminContent');
+
+            if (tab === 'groups') {
+                const sortedGroups = [...perfumeGroups].sort((a, b) => (a.label || '').localeCompare(b.label || '', 'ar'));
+                c.innerHTML = `
+                    <button class="btn-gold" style="margin-bottom:15px; width:100%; padding:12px;" onclick="openGroupForm()">+ إضافة مجموعة جديدة</button>
+                    ${sortedGroups.map(g => `
+                        <div class="admin-item">
+                            <strong>${g.label}</strong>
+                            <div style="display:flex; gap:5px;">
+                                <button class="btn-gold" onclick="openGroupForm('${g.id}')" style="padding:6px 10px;">✎ تعديل</button>
+                                <button class="btn-danger" onclick="deleteGroup('${g.id}')" style="padding:6px 10px;">🗑 حذف</button>
+                            </div>
+                        </div>
+                    `).join('')}
+                `;
+            } else if (tab === 'perfumes') {
+                const sortedPerfumes = [...currentPerfumes].sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ar'));
+                c.innerHTML = `
+                    <button class="btn-gold" style="margin-bottom:15px; width:100%; padding:12px;" onclick="openPerfumeForm()">+ إضافة عطر جديد</button>
+                    <p style="color:#888; text-align:center; margin-bottom:15px;">قائمة العطور الحالية (مرتبة أبجدياً)</p>
+                    ${sortedPerfumes.map(p => `
+                        <div class="admin-item">
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                ${p.image_url ? `<img src="${imageUrl(p.image_url)}" style="width:40px; height:40px; object-fit:cover; border-radius:6px;" onerror="this.style.display='none'">` : ''}
+                                <strong>${p.name}</strong>
+                            </div>
+                            <div style="display:flex; gap:5px;">
+                                <button class="btn-gold" onclick="openPerfumeForm('${p.id}')" style="padding:6px 10px;">✎ تعديل</button>
+                                <button class="btn-danger" onclick="deletePerfume('${p.id}')" style="padding:6px 10px;">🗑 حذف</button>
+                            </div>
+                        </div>
+                    `).join('')}
+                `;
+            } else if (tab === 'bottles') {
+                const sortedBottles = [...bottles].sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ar'));
+                c.innerHTML = `
+                    <button class="btn-gold" style="margin-bottom:15px; width:100%; padding:12px;" onclick="openBottleForm()">+ إضافة زجاجة جديدة</button>
+                    <p style="color:#888; text-align:center; margin-bottom:15px;">قائمة الزجاجات الحالية</p>
+                    ${sortedBottles.map(b => `
+                        <div class="admin-item">
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                ${b.image_url ? `<img src="${imageUrl(b.image_url)}" style="width:40px; height:40px; object-fit:cover; border-radius:6px;" onerror="this.style.display='none'">` : '<div style="width:40px; height:40px; background:#eee; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:0.7rem; color:#aaa;">لا صورة</div>'}
+                                <div>
+                                    <strong>${b.name}</strong> <br>
+                                    <small style="color:var(--gold-dark); font-weight:bold;">(+${b.price_diff} ₺)</small>
+                                </div>
+                            </div>
+                            <div style="display:flex; gap:5px;">
+                                <button class="btn-gold" onclick="openBottleForm('${b.id}')" style="padding:6px 10px;">✎ تعديل</button>
+                                <button class="btn-danger" onclick="deleteBottle('${b.id}')" style="padding:6px 10px;">🗑 حذف</button>
+                            </div>
+                        </div>
+                    `).join('')}
+                `;
+            } else if (tab === 'products') {
+                const sortedProducts = [...currentProducts].sort((a, b) => (a.name_ar || '').localeCompare(b.name_ar || '', 'ar'));
+                c.innerHTML = `
+                    <button class="btn-gold" style="margin-bottom:15px; width:100%; padding:12px;" onclick="openProductForm()">+ إضافة منتج جديد (كوزمتيك)</button>
+                    
+                    ${sortedProducts.map(p => `
+                        <div class="admin-item">
+                            <div style="display:flex; align-items:center; gap:10px; flex-grow:1;">
+                                <img src="${imageUrl(p.img)}" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2250%22 height=%2250%22><rect width=%2250%22 height=%2250%22 fill=%22%23eee%22/></svg>'">
+                                <div>
+                                    <strong>${p.name_ar}</strong>
+                                    <br><small style="color:var(--gold-dark); font-weight:bold;">${p.price} ₺</small>
+                                </div>
+                            </div>
+                            <div style="display:flex; gap:5px;">
+                                <button onclick="toggleProductActive('${p.id}', event)" style="background:${p.active !== false ? '#f39c12' : '#27ae60'}; padding:6px 10px;" title="${p.active !== false ? 'إخفاء' : 'إظهار'}">👁️</button>
+                                <button class="btn-gold" onclick="openProductForm('${p.id}')" style="padding:6px 10px;">✎ تعديل</button>
+                                <button class="btn-danger" onclick="deleteProduct('${p.id}')" style="padding:6px 10px;">🗑 حذف</button>
+                            </div>
+                        </div>
+                    `).join('')}
+                `;
+            } else if (tab === 'settings') {
+                c.innerHTML = renderSettingsTab();
+            } else if (tab === 'analytics') {
+                loadAnalyticsTab();
+            }
+        }
+
+        // --- PARFÜM & ŞİŞE YÖNETİMİ ---
+        function openPerfumeForm(id = null) {
+            let p = { name: '', image_url: '', gender_id: null };
+            if (id) p = currentPerfumes.find(x => String(x.id) === String(id)) || p;
+            
+            const genderOptions = perfumeGroups.map(g => `<option value="${g.id}" ${p.gender_id == g.id ? 'selected' : ''}>${g.label}</option>`).join('');
+
+            const html = `
+                <div class="modal open" id="perfumeFormModal" onclick="closeModalOnBackdrop(event, 'perfumeFormModal')" style="display:flex; z-index:1001;">
+                    <div class="modal-content" onclick="event.stopPropagation()">
+                        <h2 style="margin-bottom: 20px;">${id ? 'تعديل عطر' : 'إضافة عطر جديد'}</h2>
+                        <input type="hidden" id="perfume-form-id" value="${id || ''}">
+                        <input type="hidden" id="perfume-form-existing-image" value="${p.image_url || ''}">
+                        
+                        <div class="form-group">
+                            <label>صورة العطر (Fotoğraf)</label>
+                            <input type="file" id="perfume-form-image" accept="image/*" onchange="previewPerfumeImage(this)">
+                            <img id="perfume-form-preview" class="img-preview" src="${p.image_url ? imageUrl(p.image_url) : ''}" style="display:${p.image_url ? 'block' : 'none'};">
+                        </div>
+
+                        <div class="form-group">
+                            <label>اسم العطر *</label>
+                            <input type="text" id="perfume-form-name" value="${p.name}">
+                        </div>
+                        <div class="form-group">
+                            <label>المجموعة / الجنس</label>
+                            <select id="perfume-form-gender" style="width:100%; padding:12px; border-radius:10px; border:2px solid #e0dcd0; font-family:inherit;">
+                                <option value="">-- اختر المجموعة --</option>
+                                ${genderOptions}
+                            </select>
+                        </div>
+                        
+                        <div style="display: flex; gap: 10px; margin-top: 20px;">
+                            <button class="btn-success" id="perfume-save-btn" style="flex:1; padding:12px;" onclick="savePerfume()">حفظ</button>
+                            <button class="btn-danger" style="flex:1; padding:12px;" onclick="document.getElementById('perfumeFormModal').remove()">إلغاء</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', html);
+        }
+
+        function previewPerfumeImage(input) {
+            const file = input.files[0];
+            const preview = document.getElementById('perfume-form-preview');
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        async function savePerfume() {
+            const id = document.getElementById('perfume-form-id').value;
+            const existingImage = document.getElementById('perfume-form-existing-image').value;
+            const name = document.getElementById('perfume-form-name').value.trim();
+            const gender_id = document.getElementById('perfume-form-gender').value || null;
+            const fileInput = document.getElementById('perfume-form-image');
+
+            if (!name) return alert('اسم العطر مطلوب!');
+
+            const btn = document.getElementById('perfume-save-btn');
+            const oldText = btn.innerText;
+            btn.innerText = '... جاري الحفظ';
+            btn.disabled = true;
+
+            try {
+                let imgUrl = existingImage;
+                if (fileInput.files[0]) {
+                    imgUrl = await uploadToB2(fileInput.files[0]);
+                }
+
+                const payload = { name, gender_id, image_url: imgUrl, active: true };
+
+                if (id) {
+                    await _supabase.from('perfumes').update(payload).eq('id', id);
+                } else {
+                    await _supabase.from('perfumes').insert([payload]);
+                }
+                document.getElementById('perfumeFormModal').remove();
+                await loadAllData();
+                applyLocalFilter();
+                switchAdminTab('perfumes');
+                alert('✅ تم الحفظ بنجاح');
+            } catch (err) { 
+                alert('Hata: ' + err.message); 
+                btn.innerText = oldText;
+                btn.disabled = false;
+            }
+        }
+
+        async function deletePerfume(id) {
+            if (!confirm('تأكيد حذف العطر؟')) return;
+            try {
+                await _supabase.from('perfumes').delete().eq('id', id);
+                await loadAllData();
+                applyLocalFilter();
+                switchAdminTab('perfumes');
+            } catch (err) { alert('Hata: ' + err.message); }
+        }
+
+        function openBottleForm(id = null) {
+            let b = { name: '', price_diff: 0, size_id: 2, image_url: '' };
+            if (id) b = bottles.find(x => String(x.id) === String(id)) || b;
+
+            const html = `
+                <div class="modal open" id="bottleFormModal" onclick="closeModalOnBackdrop(event, 'bottleFormModal')" style="display:flex; z-index:1001;">
+                    <div class="modal-content" onclick="event.stopPropagation()">
+                        <h2 style="margin-bottom: 20px;">${id ? 'تعديل زجاجة' : 'إضافة زجاجة جديدة'}</h2>
+                        <input type="hidden" id="bottle-form-id" value="${id || ''}">
+                        <input type="hidden" id="bottle-form-existing-image" value="${b.image_url || ''}">
+                        
+                        <div class="form-group">
+                            <label>صورة الزجاجة</label>
+                            <input type="file" id="bottle-form-image" accept="image/*" onchange="previewBottleImage(this)">
+                            <img id="bottle-form-preview" class="img-preview" src="${b.image_url ? imageUrl(b.image_url) : ''}" style="display:${b.image_url ? 'block' : 'none'};" onerror="this.style.display='none'">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>اسم الزجاجة (مثال: زجاجة 50 مل) *</label>
+                            <input type="text" id="bottle-form-name" value="${b.name}">
+                        </div>
+                        <div class="form-group">
+                            <label>فرق السعر (₺)</label>
+                            <input type="number" id="bottle-form-price" value="${b.price_diff}" step="1">
+                        </div>
+                        <div style="display: flex; gap: 10px; margin-top: 20px;">
+                            <button class="btn-success" id="bottle-save-btn" style="flex:1; padding:12px;" onclick="saveBottle()">حفظ</button>
+                            <button class="btn-danger" style="flex:1; padding:12px;" onclick="document.getElementById('bottleFormModal').remove()">إلغاء</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', html);
+        }
+
+        function previewBottleImage(input) {
+            const file = input.files[0];
+            const preview = document.getElementById('bottle-form-preview');
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        async function saveBottle() {
+            const id = document.getElementById('bottle-form-id').value;
+            const existingImage = document.getElementById('bottle-form-existing-image').value;
+            const name = document.getElementById('bottle-form-name').value.trim();
+            const price_diff = parseFloat(document.getElementById('bottle-form-price').value) || 0;
+            const fileInput = document.getElementById('bottle-form-image');
+            
+            if (!name) return alert('اسم الزجاجة مطلوب!');
+
+            const btn = document.getElementById('bottle-save-btn');
+            const oldText = btn.innerText;
+            btn.innerText = '... جاري الحفظ';
+            btn.disabled = true;
+
+            try {
+                let imgUrl = existingImage;
+
+                if (fileInput.files[0]) {
+                    imgUrl = await uploadToB2(fileInput.files[0]);
+                }
+
+                const payload = { name, price_diff, size_id: 2, active: true, image_url: imgUrl };
+
+                if (id) {
+                    await _supabase.from('perfume_bottles').update(payload).eq('id', id);
+                } else {
+                    await _supabase.from('perfume_bottles').insert([payload]);
+                }
+                document.getElementById('bottleFormModal').remove();
+                await loadAllData();
+                switchAdminTab('bottles');
+                alert('✅ تم الحفظ بنجاح');
+            } catch (err) { 
+                alert('Hata: ' + err.message); 
+                btn.innerText = oldText;
+                btn.disabled = false;
+            }
+        }
+
+        async function deleteBottle(id) {
+            if (!confirm('تأكيد حذف الزجاجة؟')) return;
+            try {
+                await _supabase.from('perfume_bottles').delete().eq('id', id);
+                await loadAllData();
+                switchAdminTab('bottles');
+            } catch (err) { alert('Hata: ' + err.message); }
+        }
+
+        // --- DİĞER YÖNETİM FONKSİYONLARI ---
+        async function resetAnalytics() {
+            if (!confirm('هل أنت متأكد من تصفير جميع الإحصائيات؟ لا يمكن التراجع عن هذا الإجراء.')) return;
+
+            try {
+                const { error } = await _supabase
+                    .from('site_analytics')
+                    .delete()
+                    .neq('event_type', 'xyz'); 
+
+                if (error) throw error;
+
+                alert('✅ تم تصفير جميع الإحصائيات بنجاح');
+                loadAnalyticsTab(); 
+            } catch (err) {
+                alert('Hata: ' + err.message);
+            }
+        }
+
+        async function loadAnalyticsTab() {
+            const c = document.getElementById('adminContent');
+            c.innerHTML = '<div class="spinner" style="margin:30px auto; border-top-color:var(--navy);"></div>';
+            
+            try {
+                const { data: analytics, error } = await _supabase
+                    .from('site_analytics')
+                    .select('*')
+                    .order('created_at', { ascending: false })
+                    .limit(5000); 
+
+                if (error) throw error;
+
+                const now = new Date();
+                const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+                const dayOfWeek = now.getDay();
+                const diffToMonday = (dayOfWeek === 0 ? 7 : dayOfWeek) - 1;
+                const weekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - diffToMonday).getTime();
+                const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+
+                let totalVisits = 0;
+                let dailyDevices = new Set();
+                let weeklyDevices = new Set();
+                let monthlyDevices = new Set();
+                let totalUniqueDevices = new Set();
+                let productViews = {};
+                let totalProductViews = 0;
+                let deviceStats = { Mobile: 0, Desktop: 0, Tablet: 0 };
+
+                analytics.forEach(item => {
+                    if (item.event_type === 'visit') {
+                        totalVisits++;
+                        const itemTime = new Date(item.created_at).getTime();
+                        if (item.device_id) {
+                            totalUniqueDevices.add(item.device_id);
+                            if (itemTime >= todayStart) dailyDevices.add(item.device_id);
+                            if (itemTime >= weekStart) weeklyDevices.add(item.device_id);
+                            if (itemTime >= monthStart) monthlyDevices.add(item.device_id);
+                        }
+                        if (item.device_type && deviceStats[item.device_type] !== undefined) {
+                            deviceStats[item.device_type]++;
+                        }
+                    }
+                    else if (item.event_type === 'product_view') {
+                        totalProductViews++;
+                        productViews[item.product_id] = (productViews[item.product_id] || 0) + 1;
+                    }
+                });
+
+                const topProducts = Object.entries(productViews)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 5);
+
+                const getProductName = (id) => {
+                    const k = currentProducts.find(p => String(p.id) === String(id));
+                    if (k) return k.name_ar;
+                    const p = currentPerfumes.find(x => String(x.id) === String(id));
+                    if (p) return p.name;
+                    return 'منتج محذوف';
+                };
+
+                let html = `
+                    <button class="btn-danger" style="margin-bottom: 20px; width: 100%; padding: 12px; font-size: 1rem;" onclick="resetAnalytics()">🗑 تصفير جميع الإحصائيات</button>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-box">
+                            <h3>إجمالي الزيارات</h3>
+                            <div class="number">${totalVisits}</div>
+                        </div>
+                        <div class="stat-box" style="background: linear-gradient(135deg, var(--gold-dark), var(--gold));">
+                            <h3>مشاهدات المنتجات</h3>
+                            <div class="number">${totalProductViews}</div>
+                        </div>
+                    </div>
+
+                    <h3 style="color:var(--navy); font-weight:800; margin-bottom:15px; margin-top:30px;">📱 الأجهزة الفريدة (Benzersiz Cihazlar)</h3>
+                    <div style="background:#faf8f3; padding:15px; border-radius:10px; margin-bottom:20px; display:grid; grid-template-columns:1fr 1fr; gap:15px; text-align:center;">
+                        <div style="background:#fff; padding:10px; border-radius:8px; border:1px solid #ddd;">
+                            <span style="font-size:0.8rem; color:#888;">اليوم (Bugün)</span><br>
+                            <strong style="font-size:1.3rem; color:var(--navy);">${dailyDevices.size}</strong>
+                        </div>
+                        <div style="background:#fff; padding:10px; border-radius:8px; border:1px solid #ddd;">
+                            <span style="font-size:0.8rem; color:#888;">هذا الأسبوع (Bu Hafta)</span><br>
+                            <strong style="font-size:1.3rem; color:var(--navy);">${weeklyDevices.size}</strong>
+                        </div>
+                        <div style="background:#fff; padding:10px; border-radius:8px; border:1px solid #ddd;">
+                            <span style="font-size:0.8rem; color:#888;">هذا الشهر (Bu Ay)</span><br>
+                            <strong style="font-size:1.3rem; color:var(--navy);">${monthlyDevices.size}</strong>
+                        </div>
+                        <div style="background:#fff; padding:10px; border-radius:8px; border:1px solid #ddd;">
+                            <span style="font-size:0.8rem; color:#888;">الإجمالي (Toplam)</span><br>
+                            <strong style="font-size:1.3rem; color:var(--gold-dark);">${totalUniqueDevices.size}</strong>
+                        </div>
+                    </div>
+
+                    <h3 style="color:var(--navy); font-weight:800; margin-bottom:15px; margin-top:20px;">📱 الأجهزة المستخدمة (Cihaz Türü)</h3>
+                    <div style="display:flex; justify-content:space-between; background:#faf8f3; padding:15px; border-radius:10px; margin-bottom:20px;">
+                        <div style="text-align:center;"><span style="font-size:1.5rem;">📱</span><br><strong>هاتف</strong><br>${deviceStats.Mobile}</div>
+                        <div style="text-align:center;"><span style="font-size:1.5rem;">💻</span><br><strong>كمبيوتر</strong><br>${deviceStats.Desktop}</div>
+                        <div style="text-align:center;"><span style="font-size:1.5rem;">📟</span><br><strong>تابلت</strong><br>${deviceStats.Tablet}</div>
+                    </div>
+
+                    <h3 style="color:var(--navy); font-weight:800; margin-bottom:15px; margin-top:30px;">🔥 الأكثر مشاهدة (Top 5)</h3>
+                `;
+
+                if (topProducts.length === 0) {
+                    html += `<p style="text-align:center; color:#888;">لا توجد بيانات كافية بعد.</p>`;
+                } else {
+                    topProducts.forEach(([pid, count], index) => {
+                        const name = getProductName(pid);
+                        let rankColor = index === 0 ? 'var(--gold)' : index === 1 ? '#bdc3c7' : index === 2 ? '#cd7f32' : '#eee';
+                        html += `
+                            <div class="admin-item" style="border-right: 5px solid ${rankColor};">
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <span style="font-weight:900; color:${rankColor}; font-size:1.2rem;">#${index+1}</span>
+                                    <strong>${name}</strong>
+                                </div>
+                                <div style="font-weight:900; color:var(--navy);">${count} <span style="font-size:0.8rem; font-weight:normal;">مشاهدة</span></div>
+                            </div>
+                        `;
+                    });
+                }
+
+                html += `<p style="text-align:center; color:#aaa; font-size:0.8rem; margin-top:20px;">* يتم عرض آخر 5000 işlem إحصائية بناءً عليها.</p>`;
+                c.innerHTML = html;
+
+            } catch (err) {
+                c.innerHTML = `<p style="text-align:center; color:red;">خطأ في تحميل الإحصائيات: ${err.message}</p>`;
+            }
+        }
+
+        function renderSettingsTab() {
+            return `
+                <div class="form-group">
+                    <label>شعار الموقع (Logo)</label>
+                    <input type="file" id="setting-logo-file" accept="image/*" onchange="previewSettingLogo(this)">
+                    <img id="setting-logo-preview" class="img-preview" src="${siteSettings.logo_url ? imageUrl(siteSettings.logo_url) : ''}" style="display:${siteSettings.logo_url ? 'block' : 'none'};" onerror="this.style.display='none'">
+                </div>
+                <div class="form-group">
+                    <label>عنوان الموقع الرئيسي (Hero Title)</label>
+                    <input type="text" id="setting-hero-title" value="${siteSettings.hero_title}">
+                </div>
+                <div class="form-group">
+                    <label>العنوان الفرعي (Hero Subtitle)</label>
+                    <input type="text" id="setting-hero-subtitle" value="${siteSettings.hero_subtitle}">
+                </div>
+                <div class="form-group">
+                    <label>نص الشحن المجاني (Shipping Text)</label>
+                    <input type="text" id="setting-shipping-text" value="${siteSettings.free_shipping_text}">
+                </div>
+                <div class="form-group">
+                    <label>الحد الأدنى للشحن المجاني (Shipping Min Price)</label>
+                    <input type="number" id="setting-shipping-min" value="${siteSettings.free_shipping_min}">
+                </div>
+                <div class="form-group">
+                    <label>رقم الواتساب (WhatsApp Number)</label>
+                    <input type="text" id="setting-whatsapp" value="${siteSettings.whatsapp_number}" dir="ltr">
+                </div>
+                <div class="form-group">
+                    <label>صور البانر (Slider Images)</label>
+                    <input type="file" id="setting-slider-files" multiple accept="image/*" onchange="previewSettingSlider(this)">
+                    <div id="setting-slider-preview" style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
+                        ${siteSettings.slider_images.map(img => `
+                            <div style="position:relative;">
+                                <img src="${imageUrl(img)}" style="width:80px; height:50px; object-fit:cover; border-radius:6px; border:1px solid #ccc;" onerror="this.style.display='none'">
+                                <button onclick="removeBannerImage('${img}')" style="position:absolute; top:-5px; right:-5px; background:var(--danger); color:#fff; border:none; border-radius:50%; width:20px; height:20px; font-size:0.7rem; cursor:pointer; display:flex; align-items:center; justify-content:center;">✕</button>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <button class="btn-success" style="width:100%; padding:15px; font-size:1.1rem; margin-top:20px;" onclick="saveSettings()" id="setting-save-btn">حفظ الإعدادات</button>
+            `;
+        }
+
+        function previewSettingLogo(input) {
+            if (input.files && input.files[0]) {
+                settingLogoFile = input.files[0];
+                const reader = new FileReader();
+                reader.onload = e => {
+                    const preview = document.getElementById('setting-logo-preview');
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(settingLogoFile);
+            }
+        }
+
+        function previewSettingSlider(input) {
+            if (input.files && input.files.length > 0) {
+                settingSliderFiles = Array.from(input.files);
+                const preview = document.getElementById('setting-slider-preview');
+                preview.innerHTML = settingSliderFiles.map(file => `<span style="font-size:0.8rem; background:#f0f0f0; padding:4px 8px; border-radius:4px;">${file.name}</span>`).join('');
+            }
+        }
+
+        async function removeBannerImage(imgUrl) {
+            if (!confirm('هل أنت متأكد من حذف هذه الصورة من البانر؟')) return;
+
+            const newSliderImages = siteSettings.slider_images.filter(img => img !== imgUrl);
+
+            try {
+                const { error } = await _supabase.from('site_settings').update({ slider_images: newSliderImages }).eq('id', 1);
+                if (error) throw error;
+
+                siteSettings.slider_images = newSliderImages;
+                renderSlider();
+                switchAdminTab('settings'); 
+                alert('✅ تم حذف الصورة من البانر');
+            } catch (err) {
+                alert('Hata: ' + err.message);
+            }
+        }
+
+        async function saveSettings() {
+            if (!_supabase) return alert('Supabase bağlantısı yok');
+
+            const btn = document.getElementById('setting-save-btn');
+            const oldText = btn.innerText;
+            btn.innerText = '... جاري الحفظ';
+            btn.disabled = true;
+
+            try {
+                let finalLogoUrl = siteSettings.logo_url;
+                let finalSliderImages = [...siteSettings.slider_images];
+
+                if (settingLogoFile) {
+                    finalLogoUrl = await uploadToB2(settingLogoFile);
+                }
+
+                if (settingSliderFiles.length > 0) {
+                    for (const file of settingSliderFiles) {
+                        const finalUrl = await uploadToB2(file);
+                        finalSliderImages.push(finalUrl);
+                    }
+                }
+
+                const payload = {
+                    logo_url: finalLogoUrl,
+                    hero_title: document.getElementById('setting-hero-title').value.trim(),
+                    hero_subtitle: document.getElementById('setting-hero-subtitle').value.trim(),
+                    free_shipping_text: document.getElementById('setting-shipping-text').value.trim(),
+                    free_shipping_min: parseFloat(document.getElementById('setting-shipping-min').value) || 800,
+                    whatsapp_number: document.getElementById('setting-whatsapp').value.trim(),
+                    slider_images: finalSliderImages,
+                    updated_at: new Date().toISOString()
+                };
+
+                const { error } = await _supabase.from('site_settings').update(payload).eq('id', 1);
+                if (error) throw error;
+
+                siteSettings.logo_url = payload.logo_url;
+                siteSettings.hero_title = payload.hero_title;
+                siteSettings.hero_subtitle = payload.hero_subtitle;
+                siteSettings.free_shipping_text = payload.free_shipping_text;
+                siteSettings.free_shipping_min = payload.free_shipping_min;
+                siteSettings.whatsapp_number = payload.whatsapp_number;
+                siteSettings.slider_images = payload.slider_images;
+
+                applySiteSettingsToUI();
+                
+                settingLogoFile = null;
+                settingSliderFiles = [];
+                alert('✅ تم حفظ الإعدادات بنجاح');
+                switchAdminTab('settings');
+
+            } catch (err) {
+                alert('Hata: ' + err.message);
+            } finally {
+                btn.innerText = oldText;
+                btn.disabled = false;
+            }
+        }
+
+        async function toggleProductActive(id, event) {
+            if (event) event.stopPropagation();
+            if (!confirm('تغيير حالة ظهور المنتج؟')) return;
+            
+            const product = currentProducts.find(p => String(p.id) === String(id));
+            if (!product) return;
+
+            const newState = product.active !== false ? false : true;
+            
+            try {
+                const { error } = await _supabase
+                    .from('whatsapp_products')
+                    .update({ active: newState })
+                    .eq('id', id);
+                
+                if (error) throw error;
+                
+                await loadAllData();
+                applyLocalFilter();
+                if (document.getElementById('adminModal').classList.contains('open')) {
+                    switchAdminTab('products');
+                }
+            } catch (err) {
+                alert('Hata: ' + err.message);
+            }
+        }
+
+        function shareToWhatsApp(id) {
+            const p = currentProducts.find(x => String(x.id) === String(id));
+            if (!p) return;
+            const msg = `شاهد هذا المنتج من متجرنا: \n${p.name_ar} \nالسعر: ${p.price} ₺\n`;
+            window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+        }
+
+        async function openGroupForm(groupId = null) {
+            document.getElementById('groupFormTitle').innerText = groupId ? 'تعديل المجموعة' : 'إضافة مجموعة';
+            document.getElementById('gf-id').value = groupId || '';
+            
+            let group = { label: '' };
+            if (groupId) group = perfumeGroups.find(g => String(g.id) === String(groupId));
+            document.getElementById('gf-name').value = group.label;
+
+            document.getElementById('gf-perfumes').innerHTML = '<p style="color:#888; font-size:0.9rem;">يتم ربط العطور بهذه المجموعة تلقائياً بناءً على الجنس المحدد في بطاقة العطر.</p>';
+            openModal('groupFormModal');
+        }
+
+        async function saveGroup() {
+            const id = document.getElementById('gf-id').value;
+            const name = document.getElementById('gf-name').value.trim();
+            if (!name) return alert('اسم المجموعة مطلوب');
+
+            try {
+                if (id) {
+                    await _supabase.from('categories').update({ label: name }).eq('id', id);
+                } else {
+                    await _supabase.from('categories').insert([{ type: 'gender', value: 'grup_' + Date.now(), label: name, active: true }]);
+                }
+                closeModalAndPopHistory('groupFormModal');
+                await loadAllData();
+                renderCategories();
+                switchAdminTab('groups');
+            } catch (err) { alert('Hata: ' + err.message); }
+        }
+
+        async function deleteGroup(id) {
+            if (!confirm('تأكيد الحذف؟')) return;
+            await _supabase.from('categories').delete().eq('id', id);
+            await loadAllData();
+            renderCategories();
+            switchAdminTab('groups');
+        }
+
+        async function openProductForm(id = null) {
+            document.getElementById('pf-title').innerText = id ? 'تعديل المنتج' : 'إضافة منتج جديد';
+            document.getElementById('pf-id').value = id || '';
+            
+            const preview = document.getElementById('pf-image-preview');
+            preview.style.display = 'none';
+            preview.src = '';
+            document.getElementById('pf-image-file').value = '';
+            currentProductImageUrl = '';
+
+            if (id) {
+                const p = currentProducts.find(x => String(x.id) === String(id));
+                if (p) {
+                    document.getElementById('pf-name').value = p.name_ar;
+                    document.getElementById('pf-price').value = p.price;
+                    document.getElementById('pf-old-price').value = p.original_price || '';
+                    document.getElementById('pf-category').value = p.category;
+                    currentProductImageUrl = p.img;
+                    if (p.img) {
+                        preview.src = imageUrl(p.img);
+                        preview.style.display = 'block';
+                    }
+                }
+            } else {
+                document.getElementById('pf-name').value = '';
+                document.getElementById('pf-price').value = '';
+                document.getElementById('pf-old-price').value = '';
+                document.getElementById('pf-category').value = '';
+            }
+            openModal('productFormModal');
+        }
+
+        function previewProductImage(input) {
+            const file = input.files[0];
+            const preview = document.getElementById('pf-image-preview');
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        async function saveProduct() {
+            const id = document.getElementById('pf-id').value;
+            const name = document.getElementById('pf-name').value.trim();
+            const price = parseFloat(document.getElementById('pf-price').value) || 0;
+            const oldPrice = parseFloat(document.getElementById('pf-old-price').value) || 0;
+            const category = document.getElementById('pf-category').value.trim();
+            const fileInput = document.getElementById('pf-image-file');
+
+            if (!name) return alert('اسم المنتج مطلوب');
+
+            const btn = document.getElementById('pf-save-btn');
+            const oldText = btn.innerText;
+            btn.innerText = '... جاري الحفظ';
+            btn.disabled = true;
+
+            try {
+                let imgUrl = currentProductImageUrl;
+
+                if (fileInput.files[0]) {
+                    imgUrl = await uploadToB2(fileInput.files[0]);
+                }
+
+                const payload = {
+                    id: id || 'admin_' + Date.now(),
+                    name: name,
+                    price: price,
+                    original_price: oldPrice,
+                    category: category,
+                    img: imgUrl,
+                    active: true,
+                    synced_at: new Date().toISOString()
+                };
+
+                if (id) {
+                    const { error } = await _supabase.from('whatsapp_products').update(payload).eq('id', id);
+                    if (error) throw error;
+                } else {
+                    const { error } = await _supabase.from('whatsapp_products').insert([payload]);
+                    if (error) throw error;
+                }
+
+                closeModalAndPopHistory('productFormModal');
+                await loadAllData();
+                renderCategories();
+                applyLocalFilter();
+                alert('✅ تم حفظ المنتج بنجاح');
+                switchAdminTab('products');
+            } catch (err) {
+                alert('Hata: ' + err.message);
+            } finally {
+                btn.innerText = oldText;
+                btn.disabled = false;
+            }
+        }
+
+        async function deleteProduct(id) {
+            if (!confirm('تأكيد الحذف؟')) return;
+            const { error } = await _supabase.from('whatsapp_products').delete().eq('id', id);
+            if (error) return alert('Hata: ' + error.message);
+            await loadAllData();
+            renderCategories();
+            applyLocalFilter();
+            switchAdminTab('products');
+        }
+
+        function showLoadingScreen() { document.getElementById('loadingScreen').style.display = 'flex'; }
+        function hideLoadingScreen() { document.getElementById('loadingScreen').style.opacity = '0'; setTimeout(() => document.getElementById('loadingScreen').style.display = 'none', 400); }
+        
+        function handleSearch(val) {
+            if (val.trim() === 'mayar.') {
+                document.getElementById('search-input').value = '';
+                searchQuery = '';
+                applyLocalFilter();
+                openModal('loginModal');
+                return;
+            }
+            searchQuery = val.trim(); 
+            applyLocalFilter(); 
+        }
+        
+        function openWhatsAppChat() { 
+            const num = siteSettings.whatsapp_number.replace(/[^0-9]/g, '');
+            window.open('https://wa.me/' + num, '_blank'); 
+        }
+
+        function openModal(id) {
+            document.getElementById(id).style.display = 'flex';
+            document.getElementById(id).classList.add('open');
+            modalHistoryStack.push(id);
+            history.pushState({ modal: id }, '');
+        }
+        function closeModalAndPopHistory(id) {
+            document.getElementById(id).classList.remove('open');
+            document.getElementById(id).style.display = 'none';
+            const idx = modalHistoryStack.lastIndexOf(id);
+            if (idx !== -1) modalHistoryStack.splice(idx, 1);
+            if (history.state && history.state.modal === id) history.back();
+        }
+        function closeModalOnBackdrop(event, modalId) {
+            if (event.target.id === modalId) closeModalAndPopHistory(modalId);
+        }
+
+        window.addEventListener('popstate', function() {
+            if (modalHistoryStack.length > 0) {
+                const modalId = modalHistoryStack.pop();
+                document.getElementById(modalId).classList.remove('open');
+            } else {
+                history.pushState({ root: true }, '');
+            }
+        });
+        history.replaceState({ root: true }, '');
+
+        document.getElementById('productFormModal')?.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+                e.preventDefault(); saveProduct();
+            }
+        });
+
+        window.onload = init;
+    </script>
+</body>
+</html>
