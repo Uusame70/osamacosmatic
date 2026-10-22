@@ -419,7 +419,7 @@
             <input type="hidden" id="pf-id">
             
             <div class="form-group">
-                <label>صورة المنتج</label>
+                <label>صورة المنتج <span style="font-size:0.75rem; color:var(--success);">(أو قم بلصق الصورة بالضغط على Ctrl+V)</span></label>
                 <input type="file" id="pf-image-file" accept="image/*" onchange="previewProductImage(this)">
                 <img id="pf-image-preview" class="img-preview" alt="معاينة">
             </div>
@@ -483,6 +483,61 @@
             deviceId = 'dev_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
             localStorage.setItem('mayar_device_id', deviceId);
         }
+
+        // --- YAPIŞTIRMA (PASTE) ÖZELLİĞİ ---
+        document.addEventListener('paste', function(e) {
+            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+            for (let index in items) {
+                const item = items[index];
+                if (item.kind === 'file' && item.type.includes('image')) {
+                    const blob = item.getAsFile();
+                    const file = new File([blob], "yapistirilan_resim.png", { type: blob.type });
+                    
+                    // Hangi form açıksa resmi oraya ata
+                    if (document.getElementById('perfumeFormModal')) {
+                        const input = document.getElementById('perfume-form-image');
+                        if(input) {
+                            const dt = new DataTransfer();
+                            dt.items.add(file);
+                            input.files = dt.files;
+                            previewPerfumeImage(input);
+                            return;
+                        }
+                    }
+                    if (document.getElementById('productFormModal') && document.getElementById('productFormModal').classList.contains('open')) {
+                        const input = document.getElementById('pf-image-file');
+                        if(input) {
+                            const dt = new DataTransfer();
+                            dt.items.add(file);
+                            input.files = dt.files;
+                            previewProductImage(input);
+                            return;
+                        }
+                    }
+                    if (document.getElementById('bottleFormModal')) {
+                        const input = document.getElementById('bottle-form-image');
+                        if(input) {
+                            const dt = new DataTransfer();
+                            dt.items.add(file);
+                            input.files = dt.files;
+                            previewBottleImage(input);
+                            return;
+                        }
+                    }
+                    if (document.getElementById('adminModal') && document.getElementById('adminModal').classList.contains('open')) {
+                        const settingsLogoInput = document.getElementById('setting-logo-file');
+                        if(settingsLogoInput) {
+                             const dt = new DataTransfer();
+                             dt.items.add(file);
+                             settingsLogoInput.files = dt.files;
+                             previewSettingLogo(settingsLogoInput);
+                             return;
+                        }
+                    }
+                }
+            }
+        });
+        // -----------------------------------
 
         function initSupabase() {
             if (typeof supabase !== 'undefined' && supabase.createClient) {
@@ -1190,7 +1245,7 @@
                         <input type="hidden" id="perfume-form-existing-image" value="${p.image_url || ''}">
                         
                         <div class="form-group">
-                            <label>صورة العطر (Fotoğraf)</label>
+                            <label>صورة العطر <span style="font-size:0.75rem; color:var(--success);">(أو قم بلصق الصورة بالضغط على Ctrl+V)</span></label>
                             <input type="file" id="perfume-form-image" accept="image/*" onchange="previewPerfumeImage(this)">
                             <img id="perfume-form-preview" class="img-preview" src="${p.image_url ? imageUrl(p.image_url) : ''}" style="display:${p.image_url ? 'block' : 'none'};">
                         </div>
@@ -1291,7 +1346,7 @@
                         <input type="hidden" id="bottle-form-existing-image" value="${b.image_url || ''}">
                         
                         <div class="form-group">
-                            <label>صورة الزجاجة</label>
+                            <label>صورة الزجاجة <span style="font-size:0.75rem; color:var(--success);">(أو قم بلصق الصورة بالضغط على Ctrl+V)</span></label>
                             <input type="file" id="bottle-form-image" accept="image/*" onchange="previewBottleImage(this)">
                             <img id="bottle-form-preview" class="img-preview" src="${b.image_url ? imageUrl(b.image_url) : ''}" style="display:${b.image_url ? 'block' : 'none'};" onerror="this.style.display='none'">
                         </div>
@@ -1528,7 +1583,7 @@
         function renderSettingsTab() {
             return `
                 <div class="form-group">
-                    <label>شعار الموقع (Logo)</label>
+                    <label>شعار الموقع (Logo) <span style="font-size:0.75rem; color:var(--success);">(أو قم بلصق الصورة بالضغط على Ctrl+V)</span></label>
                     <input type="file" id="setting-logo-file" accept="image/*" onchange="previewSettingLogo(this)">
                     <img id="setting-logo-preview" class="img-preview" src="${siteSettings.logo_url ? imageUrl(siteSettings.logo_url) : ''}" style="display:${siteSettings.logo_url ? 'block' : 'none'};" onerror="this.style.display='none'">
                 </div>
