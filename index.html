@@ -393,8 +393,9 @@
             </div>
             <div class="admin-tab-bar">
                 <button class="admin-tab active" onclick="switchAdminTab('products', this)">إدارة المنتجات</button>
-                <button class="admin-tab" onclick="switchAdminTab('groups', this)">المجموعات</button>
                 <button class="admin-tab" onclick="switchAdminTab('perfumes', this)">العطور</button>
+                <button class="admin-tab" onclick="switchAdminTab('prices', this)">الأسعار (Fiyatlar)</button>
+                <button class="admin-tab" onclick="switchAdminTab('groups', this)">المجموعات</button>
                 <button class="admin-tab" onclick="switchAdminTab('bottles', this)">الزجاجات</button>
                 <button class="admin-tab" onclick="switchAdminTab('settings', this)">الإعدادات</button>
                 <button class="admin-tab" onclick="switchAdminTab('analytics', this)">التحليلات (Analytics)</button>
@@ -478,7 +479,8 @@
         let siteSettings = { 
             logo_url: '', slider_images: [], hero_title: 'متجر ميار للتسوق', 
             hero_subtitle: 'جمالك يبدأ من هنا', free_shipping_text: 'احصل على شحن مجاني عند طلبك بقيمة 800 وأكثر', 
-            free_shipping_min: 800, whatsapp_number: '905388444275' 
+            free_shipping_min: 800, whatsapp_number: '905388444275',
+            custom_categories_order: []
         };
         
         let currentSlide = 0;
@@ -700,6 +702,7 @@
                     siteSettings.free_shipping_min = parseFloat(data.free_shipping_min) || 800;
                     siteSettings.whatsapp_number = data.whatsapp_number || '905388444275';
                     siteSettings.slider_images = Array.isArray(data.slider_images) ? data.slider_images : [];
+                    siteSettings.custom_categories_order = Array.isArray(data.custom_categories_order) ? data.custom_categories_order : [];
                 }
                 applySiteSettingsToUI();
             } catch(e) { console.error('Settings yüklenemedi', e); }
@@ -801,6 +804,19 @@
             }
         }
 
+        function getUniqueCosmeticCats() {
+            const cats = new Set();
+            currentProducts.forEach(p => {
+                if (p.category) {
+                    p.category.split(/[,;\/|]+/).forEach(c => {
+                        const trimmed = c.trim();
+                        if (trimmed) cats.add(trimmed);
+                    });
+                }
+            });
+            return Array.from(cats);
+        }
+
         function renderCategories() {
             const bar = document.getElementById('categoriesBar');
             bar.innerHTML = '';
@@ -811,17 +827,21 @@
             allBtn.onclick = () => { selectedCategory = 'ALL'; renderCategories(); applyLocalFilter(); };
             bar.appendChild(allBtn);
 
-            const kozmetikCats = new Set();
-            currentProducts.forEach(p => {
-                if (p.category) {
-                    p.category.split(/[,;\/|]+/).forEach(c => {
-                        const trimmed = c.trim();
-                        if (trimmed) kozmetikCats.add(trimmed);
-                    });
-                }
-            });
+            const kozmetikCats = getUniqueCosmeticCats();
+            let sortedCats = [...kozmetikCats].sort();
             
-            Array.from(kozmetikCats).sort().forEach(cat => {
+            if (siteSettings.custom_categories_order && siteSettings.custom_categories_order.length > 0) {
+                const order = siteSettings.custom_categories_order;
+                sortedCats.sort((a, b) => {
+                    let idxA = order.indexOf(a);
+                    let idxB = order.indexOf(b);
+                    if (idxA === -1) idxA = 9999;
+                    if (idxB === -1) idxB = 9999;
+                    return idxA - idxB;
+                });
+            }
+            
+            sortedCats.forEach(cat => {
                 const btn = document.createElement('button');
                 btn.className = 'cat-btn' + (selectedCategory === cat ? ' active' : '');
                 btn.innerText = cat;
@@ -1026,7 +1046,7 @@
                 type: 'perfume',
                 id: p.id,
                 name: p.name,
-                details: `${intLabel} - ${bottle.name} - ${genderLabel}`, // İSTENİLEN FORMAT
+                details: `${intLabel} - ${bottle.name} - ${genderLabel}`,
                 price: parseFloat(totalTxt.replace(' ₺', '')),
                 qty: 1
             });
@@ -1128,14 +1148,9 @@
             if (cart.length === 0) return alert('السلة فارغة!');
             let msg = 'طلب جديد:\n\n'; let total = 0;
             cart.forEach(c => {
-                // İSTENİLEN WHATSAPP MESAJ FORMATI
                 let detailsStr = '';
                 if (c.details) {
-                    if (c.type === 'perfume') {
-                        detailsStr = ` (${c.details})`;
-                    } else {
-                        detailsStr = ` (${c.details})`;
-                    }
+                    detailsStr = ` (${c.details})`;
                 }
                 msg += `• ${c.name}${detailsStr}\n  ${c.price} ₺ × ${c.qty} = ${c.price * c.qty} ₺\n`;
                 total += c.price * c.qty;
@@ -1200,11 +1215,59 @@
             if (btn) btn.classList.add('active');
             const c = document.getElementById('adminContent');
 
-            if (tab === 'groups') {
-                const sortedGroups = [...perfumeGroups].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+            if (tab === 'prices') {
+                // YENİ FİYAT YÖNETİMİ SEKMESİ
+                const sortedPrices = [...prices].sort((a, b) => {
+                    const pA = currentPerfumes.find(x => x.id === a.perfume_id);
+                    const pB = currentPerfumes.find(x => x.id === b.perfume_id);
+                    if(!pA || !pB) return 0;
+                    return pA.name.localeCompare(pB.name, 'ar');
+                });
+
                 c.innerHTML = `
-                    <button class="btn-gold" style="margin-bottom:15px; width:100%; padding:12px;" onclick="openGroupForm()">+ إضافة مجموعة جديدة</button>
-                    <p style="color:#888; text-align:center; margin-bottom:15px;">يمكنك تغيير الترتيب باستخدام الأسهم</p>
+                    <p style="color:#888; text-align:center; margin-bottom:15px;">يمكنك تعديل سعر كل عطر حسب التركيز والزجاجة هنا.</p>
+                    <div style="max-height: 500px; overflow-y: auto; padding-right: 5px;">
+                    ${sortedPrices.map(pr => {
+                        const perf = currentPerfumes.find(p => p.id === pr.perfume_id);
+                        const inten = intensities.find(i => i.id === pr.intensity_id);
+                        const bott = bottles.find(b => b.id === pr.size_id);
+                        
+                        if (!perf) return '';
+
+                        return `
+                        <div class="admin-item" style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; padding:12px; border-bottom:1px solid #eee;">
+                            <div style="flex:1; min-width:150px;">
+                                <strong style="color:var(--navy); font-size:1.05rem;">${perf.name}</strong><br>
+                                <small style="color:#666;">${inten ? inten.name : '-'} | ${bott ? bott.name : 'زجاجة'}</small>
+                            </div>
+                            <div style="display:flex; gap:8px; align-items:center; margin-top:5px;">
+                                <input type="number" id="price-input-${pr.id}" value="${pr.price}" style="width:90px; padding:8px; border:1px solid #ccc; border-radius:6px; text-align:center;" step="1">
+                                <span style="font-weight:bold; color:var(--gold-dark);">₺</span>
+                                <button class="btn-success" onclick="saveSinglePrice('${pr.id}')" style="padding:8px 12px; font-weight:bold;">حفظ</button>
+                            </div>
+                        </div>
+                        `;
+                    }).join('')}
+                    </div>
+                `;
+            } else if (tab === 'groups') {
+                const sortedGroups = [...perfumeGroups].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+                const cosmeticCats = getUniqueCosmeticCats();
+                let sortedCosmeticCats = [...cosmeticCats].sort();
+                const catOrder = siteSettings.custom_categories_order || [];
+                if (catOrder.length > 0) {
+                    sortedCosmeticCats.sort((a, b) => {
+                        let iA = catOrder.indexOf(a);
+                        let iB = catOrder.indexOf(b);
+                        if (iA === -1) iA = 9999;
+                        if (iB === -1) iB = 9999;
+                        return iA - iB;
+                    });
+                }
+
+                c.innerHTML = `
+                    <h3 style="margin-bottom:10px; color:var(--navy);">مجموعات العطور</h3>
+                    <button class="btn-gold" style="margin-bottom:15px; width:100%; padding:12px;" onclick="openGroupForm()">+ إضافة مجموعة عطور</button>
                     ${sortedGroups.map((g, index) => `
                         <div class="admin-item">
                             <strong>${g.label}</strong>
@@ -1213,6 +1276,20 @@
                                 ${index < sortedGroups.length - 1 ? `<button class="btn-gold" onclick="moveGroup('${g.id}', 1)" style="padding:6px 10px; font-weight:bold;">⬇️</button>` : ''}
                                 <button class="btn-gold" onclick="openGroupForm('${g.id}')" style="padding:6px 10px; margin-right:10px;">✎</button>
                                 <button class="btn-danger" onclick="deleteGroup('${g.id}')" style="padding:6px 10px;">🗑</button>
+                            </div>
+                        </div>
+                    `).join('')}
+
+                    <hr style="margin: 20px 0; border-color:#ddd;">
+
+                    <h3 style="margin-bottom:10px; color:var(--navy);">أقسام الكوزمتيك</h3>
+                    <p style="color:#888; font-size:0.85rem; margin-bottom:15px;">* يتم إنشاء هذه الأقسام تلقائياً من المنتجات المضافة. استخدم الأسهم لتغيير الترتيب.</p>
+                    ${sortedCosmeticCats.map((cat, index) => `
+                        <div class="admin-item">
+                            <strong>${cat}</strong>
+                            <div style="display:flex; gap:5px; align-items:center;">
+                                ${index > 0 ? `<button class="btn-gold" onclick="moveCosmeticCat('${cat}', -1)" style="padding:6px 10px; font-weight:bold;">⬆️</button>` : ''}
+                                ${index < sortedCosmeticCats.length - 1 ? `<button class="btn-gold" onclick="moveCosmeticCat('${cat}', 1)" style="padding:6px 10px; font-weight:bold;">⬇️</button>` : ''}
                             </div>
                         </div>
                     `).join('')}
@@ -1285,7 +1362,28 @@
             }
         }
 
-        // --- GRUP SIRALAMA FONKSİYONU ---
+        // --- FİYAT KAYDETME FONKSİYONU ---
+        async function saveSinglePrice(priceId) {
+            const inputVal = document.getElementById(`price-input-${priceId}`).value;
+            const newPrice = parseFloat(inputVal);
+            
+            if (isNaN(newPrice)) return alert('يرجى إدخال سعر صحيح');
+
+            try {
+                const { error } = await _supabase.from('perfume_prices').update({ price: newPrice }).eq('id', priceId);
+                if (error) throw error;
+                
+                // Güncel veriyi yerel diziye de yansıt
+                const priceObj = prices.find(p => p.id === priceId);
+                if (priceObj) priceObj.price = newPrice;
+                
+                alert('✅ تم تحديث السعر بنجاح');
+            } catch (err) {
+                alert('Hata: ' + err.message);
+            }
+        }
+
+        // --- SIRALAMA FONKSİYONLARI ---
         async function moveGroup(id, direction) {
             const sortedGroups = [...perfumeGroups].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
             const index = sortedGroups.findIndex(g => g.id === id);
@@ -1297,7 +1395,6 @@
             const currentGroup = sortedGroups[index];
             const targetGroup = sortedGroups[targetIndex];
 
-            // Varsayılan sıralama değeri atama (eğer null ise)
             let order1 = currentGroup.sort_order;
             let order2 = targetGroup.sort_order;
             
@@ -1305,17 +1402,42 @@
             if (order2 === null || order2 === undefined) order2 = 100 + targetIndex;
 
             try {
-                // Veritabanında takas et
                 await _supabase.from('categories').update({ sort_order: order2 }).eq('id', currentGroup.id);
                 await _supabase.from('categories').update({ sort_order: order1 }).eq('id', targetGroup.id);
                 
-                // Yerel dizide takas et (sayfa yenilenmeden görünmesi için)
                 currentGroup.sort_order = order2;
                 targetGroup.sort_order = order1;
                 
                 switchAdminTab('groups');
-                renderCategories(); // Kategori barını da güncelle
+                renderCategories();
             } catch (err) { alert('Hata: ' + err.message); }
+        }
+
+        async function moveCosmeticCat(catName, direction) {
+            let currentOrder = siteSettings.custom_categories_order || [];
+            const allCats = getUniqueCosmeticCats().sort();
+
+            if (currentOrder.length === 0) {
+                currentOrder = [...allCats];
+            }
+            allCats.forEach(c => {
+                if (!currentOrder.includes(c)) currentOrder.push(c);
+            });
+
+            const index = currentOrder.indexOf(catName);
+            if (index === -1) return;
+
+            const targetIndex = index + direction;
+            if (targetIndex < 0 || targetIndex >= currentOrder.length) return;
+
+            [currentOrder[index], currentOrder[targetIndex]] = [currentOrder[targetIndex], currentOrder[index]];
+
+            try {
+                await _supabase.from('site_settings').update({ custom_categories_order: currentOrder }).eq('id', 1);
+                siteSettings.custom_categories_order = currentOrder;
+                switchAdminTab('groups');
+                renderCategories();
+            } catch(err) { alert('Hata: ' + err.message); }
         }
 
         function openPerfumeForm(id = null) {
