@@ -628,7 +628,7 @@
                 <input type="text" id="pt-name" placeholder="مثال: عروض الصيف، أسعار الجملة...">
             </div>
 
-            <!-- YENİ: TOPLU FİYAT ALANI -->
+            <!-- TOPLU FİYAT ALANI -->
             <div class="form-group" style="background:#faf8f3; padding:15px; border-radius:10px; border:1px solid #e0dcd0;">
                 <label style="margin-bottom:10px; display:block; color:var(--navy); font-weight:800;">الأسعار الجماعية (Toplu Fiyatlar)</label>
                 <p style="font-size:0.8rem; color:#888; margin-bottom:10px;">سيتم تطبيق هذه الأسعار على جميع العطور المختارة أدناه.</p>
@@ -715,7 +715,6 @@
         let settingLogoFile = null; 
         let settingSliderFiles = []; 
 
-        // Yeni: Fiyat listesi formu geçici verisi
         let currentPriceTagPerfumes = []; 
         let currentPriceTagBulkPrices = {};
 
@@ -1623,7 +1622,6 @@
                 const list = siteSettings.pricing_lists.find(l => l.id === id);
                 if (list) {
                     document.getElementById('pt-name').value = list.name;
-                    // Eski formattan yeniye geçiş (uyumluluk)
                     if (list.items && !list.perfume_ids) {
                         currentPriceTagPerfumes = list.items.map(i => i.perfume_id);
                         if (list.items.length > 0 && list.items[0].prices) {
@@ -1747,7 +1745,13 @@
                 }
 
                 const { error } = await _supabase.from('site_settings').update({ pricing_lists: updatedLists }).eq('id', 1);
-                if (error) throw error;
+                if (error) {
+                    if (error.message.includes("Could not find the 'pricing_lists' column")) {
+                        alert("Hata: Veritabanınızda 'pricing_lists' sütunu eksik. Lütfen Supabase üzerinden bu sütunu ekleyin. (Detaylar sohbette)");
+                        return;
+                    }
+                    throw error;
+                }
 
                 siteSettings.pricing_lists = updatedLists;
                 closeModalAndPopHistory('priceTagFormModal');
@@ -2056,7 +2060,14 @@
                     imgUrl = await uploadToB2(fileInput.files[0]);
                 }
 
-                const payload = { name, gender_id, image_url: imgUrl, active: true };
+                // ID hatasını çözmek için eklendi
+                const payload = { 
+                    id: id || 'perf_' + Date.now(), 
+                    name: name, 
+                    gender_id: gender_id, 
+                    image_url: imgUrl, 
+                    active: true 
+                };
 
                 let perfumeId = id;
 
