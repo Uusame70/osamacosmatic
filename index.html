@@ -40,6 +40,7 @@
         .modal-content::-webkit-scrollbar-thumb { background: var(--gold); border: 2px solid #f4f4f4; }
 
         .icon { display: inline-block; vertical-align: middle; width: 1.15em; height: 1.15em; stroke-width: 2.2; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+        button .icon { margin-left: 4px; margin-right: 4px; }
         
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
@@ -73,7 +74,8 @@
         .slider { position: relative; border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-lg); aspect-ratio: 16/9; background: var(--navy); }
         .slider-track { display: flex; height: 100%; transition: transform 0.5s ease; }
         .slider-slide { min-width: 100%; height: 100%; position: relative; }
-        .slider-slide img { width: 100%; height: 100%; object-fit: contain; display: block; background: var(--navy); }
+        /* Banner boşluklarını kapatmak için cover kullanıldı */
+        .slider-slide img { width: 100%; height: 100%; object-fit: cover; display: block; }
         
         .slider-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(26,41,66,0.6); color: var(--gold); border: 2px solid var(--gold); width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 3; transition: all 0.2s; backdrop-filter: blur(4px); }
         .slider-nav:hover { background: var(--gold); color: var(--navy); transform: translateY(-50%) scale(1.1); }
@@ -171,7 +173,7 @@
         .btn-add { background: #25d366; color: #fff; border: none; padding: 16px 24px; border-radius: 14px; font-weight: 800; font-size: 1rem; cursor: pointer; flex: 1; display: flex; justify-content: center;}
         .btn-add:disabled { background: #ccc; cursor: not-allowed; }
 
-        /* SABİT ALT SEPET ÇUBUĞU (MOBİL İÇİN) */
+        /* SABİT ALT SEPET ÇUBUĞU */
         #mainCartBar {
             position: fixed; 
             bottom: 0; 
@@ -252,6 +254,9 @@
             max-width: 85vw;
             text-align: center;
             border: 2px solid var(--gold);
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 
@@ -288,9 +293,9 @@
             .toast { bottom: calc(150px + env(safe-area-inset-bottom)); }
         }
 
-        /* BİLGİSAYAR (DESKTOP) EKRAN DÜZENLEMELERİ (Masaüstünde Her Şeyi Düzeltir) */
+        /* BİLGİSAYAR (DESKTOP) EKRAN DÜZENLEMELERİ */
         @media (min-width: 768px) {
-            body { padding-bottom: 120px; } /* Alt bardan dolayı boşluk */
+            body { padding-bottom: 140px; } /* Alt bardan dolayı boşluk */
             
             /* 1. Header (Üst Kısım) Düzeni */
             header { 
@@ -340,30 +345,30 @@
             /* 6. Sepet Çubuğu (Yüzen Şık Buton) */
             #mainCartBar {
                 position: fixed;
-                bottom: 30px;
+                bottom: 25px;
                 left: 50%;
                 right: auto;
                 transform: translateX(-50%);
                 width: 100%;
-                max-width: 700px;
+                max-width: 650px; /* Daha kompakt */
                 border-radius: 50px;
                 box-shadow: 0 10px 40px rgba(26,41,66,0.4);
-                padding: 12px 30px;
+                padding: 10px 25px;
                 border: 1px solid rgba(255,255,255,0.1);
             }
-            #mainCartBar button { padding: 15px 30px; font-size: 1.05rem; border-radius: 30px; }
-            #mainCartBar .total-price { font-size: 1.5rem; }
+            #mainCartBar button { padding: 12px 30px; font-size: 1.05rem; border-radius: 30px; }
+            #mainCartBar .total-price { font-size: 1.4rem; }
 
             /* 7. Yüzen Butonlar (WhatsApp vs) */
-            #whatsappFloat { bottom: 30px; right: 30px; width: 60px; height: 60px; z-index: 90; }
-            #scrollTopBtn { bottom: 105px; right: 37px; }
+            #whatsappFloat { bottom: 25px; right: 30px; width: 60px; height: 60px; z-index: 90; }
+            #scrollTopBtn { bottom: 100px; right: 37px; }
 
             /* 8. Modallar */
             .modal { align-items: center; }
             .modal-content { margin: 0 auto; border-radius: var(--radius-lg); max-height: 85vh; }
             
             /* 9. Toast */
-            .toast { bottom: 120px; }
+            .toast { bottom: 100px; }
         }
 
         /* Dokunmatik cihazlarda hover takılmasın */
@@ -425,7 +430,11 @@
 
     <div class="container">
         <div id="adminBar" class="admin-bar" style="display: none;">
-            <strong>👑 وضع المسؤول <span style="background:var(--gold); color:var(--navy); padding:2px 8px; border-radius:10px; font-size:0.7rem; margin-right:5px;">ADMIN</span></strong>
+            <strong>
+                <svg class="icon" viewBox="0 0 24 24" style="color:var(--gold); width:1.3em; height:1.3em;"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14v2H5v-2z"/></svg>
+                وضع المسؤول 
+                <span style="background:var(--gold); color:var(--navy); padding:2px 8px; border-radius:10px; font-size:0.7rem; margin-right:5px;">ADMIN</span>
+            </strong>
             <div style="display: flex; gap: 8px;">
                 <button onclick="openAdmin()" class="btn-gold">لوحة التحكم</button>
                 <button onclick="handleSupabaseLogout()" class="btn-danger">خروج</button>
@@ -436,7 +445,7 @@
         <div id="perfumesList" style="display:none;"></div>
     </div>
 
-    <!-- SABİT SEPET ÇUBUĞU (Bilgisayarda ortada kapsül, mobilde alt bar olur) -->
+    <!-- SABİT SEPET ÇUBUĞU -->
     <div class="cart-bar" id="mainCartBar">
         <div style="font-size: 0.95rem; display: flex; align-items: center; gap: 8px; color:white;">
             <span>المجموع:</span>
@@ -457,7 +466,9 @@
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header-row">
                 <div><h2 id="pd-name" style="margin-bottom:4px;">-</h2></div>
-                <button class="btn-danger" onclick="closeModalAndPopHistory('perfumeDetailModal')" style="border-radius:50%; width:36px; height:36px; padding:0; min-height: unset;">✕</button>
+                <button class="btn-danger" onclick="closeModalAndPopHistory('perfumeDetailModal')" style="border-radius:50%; width:36px; height:36px; padding:0; min-height: unset;">
+                    <svg class="icon" viewBox="0 0 24 24" style="width:18px;height:18px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
             </div>
             
             <div id="pd-image-container" style="display:none; margin-bottom: 16px; text-align: center;">
@@ -531,7 +542,9 @@
         <div class="modal-content" style="max-width: 800px;" onclick="event.stopPropagation()">
             <div class="modal-header-row">
                 <h2>لوحة التحكم</h2>
-                <button class="btn-danger" onclick="closeModalAndPopHistory('adminModal')" style="border-radius:50%; width:36px; height:36px; padding:0; min-height: unset;">✕</button>
+                <button class="btn-danger" onclick="closeModalAndPopHistory('adminModal')" style="border-radius:50%; width:36px; height:36px; padding:0; min-height: unset;">
+                    <svg class="icon" viewBox="0 0 24 24" style="width:18px;height:18px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
             </div>
             <div class="admin-tab-bar">
                 <button class="admin-tab active" onclick="switchAdminTab('products', this)">إدارة المنتجات</button>
@@ -575,8 +588,14 @@
             <div class="form-group">
                 <label>صورة المنتج</label>
                 <div style="display:flex; gap:10px; margin-bottom:10px;">
-                    <button type="button" class="btn-gold" onclick="document.getElementById('pf-image-file').click()" style="flex:1;">📁 اختيار صورة</button>
-                    <button type="button" class="btn-success" onclick="pasteImage('pf-image-file', 'previewProductImage')" style="flex:1;">📋 لصق صورة</button>
+                    <button type="button" class="btn-gold" onclick="document.getElementById('pf-image-file').click()" style="flex:1;">
+                        <svg class="icon" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                        اختيار صورة
+                    </button>
+                    <button type="button" class="btn-success" onclick="pasteImage('pf-image-file', 'previewProductImage')" style="flex:1;">
+                        <svg class="icon" viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+                        لصق صورة
+                    </button>
                 </div>
                 <input type="file" id="pf-image-file" accept="image/*" onchange="previewProductImage(this)" style="display:none;">
                 <img id="pf-image-preview" class="img-preview" alt="معاينة">
@@ -652,7 +671,7 @@
                 toast.className = 'toast';
                 document.body.appendChild(toast);
             }
-            toast.textContent = message;
+            toast.innerHTML = `<svg class="icon" viewBox="0 0 24 24" style="color:var(--gold); width:1.2em; height:1.2em;"><path d="M20 6 9 17l-5-5"/></svg> <span>${message}</span>`;
             void toast.offsetWidth;
             toast.classList.add('show');
             clearTimeout(toast._t);
@@ -1025,7 +1044,11 @@
                 const isSelected = (item.type === 'perfume_group' && selectedCategory === 'perfume_group_' + item.originalId) ||
                                    (item.type === 'cosmetic' && selectedCategory === item.originalId);
                 btn.className = 'cat-btn' + (isSelected ? ' active' : '');
-                btn.innerHTML = item.type === 'perfume_group' ? `🌸 ${item.label}` : item.label;
+                if(item.type === 'perfume_group') {
+                    btn.innerHTML = `<svg class="icon" viewBox="0 0 24 24" style="color:#e91e63;"><path d="M12 2a3 3 0 0 0-3 3c0 1.3.8 2.4 2 2.8V10h2V7.8c1.2-.4 2-1.5 2-2.8a3 3 0 0 0-3-3z"/><path d="M12 22a3 3 0 0 0 3-3c0-1.3-.8-2.4-2-2.8V14h-2v2.2c-1.2.4-2 1.5-2 2.8a3 3 0 0 0 3 3z"/><path d="M5.5 5.5a3 3 0 0 0-3 3c0 1.3.8 2.4 2 2.8V13h2v-1.7c1.2-.4 2-1.5 2-2.8a3 3 0 0 0-3-3z"/><path d="M18.5 18.5a3 3 0 0 0 3-3c0-1.3-.8-2.4-2-2.8V11h-2v1.7c-1.2.4-2 1.5-2 2.8a3 3 0 0 0 3 3z"/><circle cx="12" cy="12" r="2.5"/></svg> ${item.label}`;
+                } else {
+                    btn.innerHTML = item.label;
+                }
                 btn.onclick = () => {
                     selectedCategory = item.type === 'perfume_group' ? 'perfume_group_' + item.originalId : item.originalId;
                     renderCategories();
@@ -1115,10 +1138,18 @@
                     if (isAdmin) {
                         actionsHtml = `
                             <div class="admin-actions">
-                                <button class="btn-hide" onclick="toggleProductActive('${p.id}', event)" title="إخفاء/إظهار">👁️</button>
-                                <button class="btn-edit" onclick="openProductForm('${p.id}')" title="تعديل">✏️</button>
-                                <button class="btn-wa" onclick="shareToWhatsApp('${p.id}')" title="مشاركة">💬</button>
-                                <button class="btn-del" onclick="deleteProduct('${p.id}')" title="حذف">🗑️</button>
+                                <button class="btn-hide" onclick="toggleProductActive('${p.id}', event)" title="إخفاء/إظهار">
+                                    <svg class="icon" viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                                </button>
+                                <button class="btn-edit" onclick="openProductForm('${p.id}')" title="تعديل">
+                                    <svg class="icon" viewBox="0 0 24 24"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+                                </button>
+                                <button class="btn-wa" onclick="shareToWhatsApp('${p.id}')" title="مشاركة">
+                                    <svg class="icon" viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                                </button>
+                                <button class="btn-del" onclick="deleteProduct('${p.id}')" title="حذف">
+                                    <svg class="icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                </button>
                                 <button class="btn-add-cart" onclick="addToCart('${p.id}')">إضافة</button>
                             </div>
                         `;
@@ -1242,7 +1273,7 @@
             });
             saveCart();
             updateCartUI();
-            showToast('✓ تمت إضافة العطر للسلة');
+            showToast('تمت إضافة العطر للسلة');
             triggerCartBadgePop();
             closeModalAndPopHistory('perfumeDetailModal');
         }
@@ -1280,7 +1311,7 @@
             else cart.push({ type: 'kozmetik', id: p.id, name: p.name_ar, price: p.price, qty: 1 });
             saveCart(); 
             updateCartUI();
-            showToast('✓ تمت الإضافة للسلة');
+            showToast('تمت الإضافة للسلة');
             triggerCartBadgePop();
         }
 
@@ -1361,7 +1392,7 @@
         }
 
         function completeOrder() {
-            if (cart.length === 0) { showToast('🛒 سلتك فارغة، أضف منتجات أولاً'); return; }
+            if (cart.length === 0) { showToast('سلتك فارغة، أضف منتجات أولاً'); return; }
             let msg = 'طلب جديد:\n\n'; let total = 0;
             cart.forEach(c => {
                 let detailsStr = '';
@@ -1406,7 +1437,7 @@
             isAdmin = true;
             closeModalAndPopHistory('loginModal');
             document.getElementById('adminBar').style.display = 'flex';
-            showToast('✓ تم تسجيل الدخول بنجاح');
+            showToast('تم تسجيل الدخول بنجاح');
             openAdmin();
             
             btn.innerText = oldText;
@@ -1482,13 +1513,13 @@
                     <p style="color:#888; font-size:0.85rem; margin-bottom:15px;">يمكنك خلط وترتيب جميع الأقسام (عطور وأخرى) كما تشاء.</p>
                     ${unifiedCats.map((item, index) => `
                         <div class="admin-item">
-                            <strong>${item.type === 'perfume_group' ? '🌸 ' + item.label : item.label}</strong>
+                            <strong>${item.type === 'perfume_group' ? `<svg class="icon" viewBox="0 0 24 24" style="color:#e91e63;"><path d="M12 2a3 3 0 0 0-3 3c0 1.3.8 2.4 2 2.8V10h2V7.8c1.2-.4 2-1.5 2-2.8a3 3 0 0 0-3-3z"/><path d="M12 22a3 3 0 0 0 3-3c0-1.3-.8-2.4-2-2.8V14h-2v2.2c-1.2.4-2 1.5-2 2.8a3 3 0 0 0 3 3z"/><path d="M5.5 5.5a3 3 0 0 0-3 3c0 1.3.8 2.4 2 2.8V13h2v-1.7c1.2-.4 2-1.5 2-2.8a3 3 0 0 0-3-3z"/><path d="M18.5 18.5a3 3 0 0 0 3-3c0-1.3-.8-2.4-2-2.8V11h-2v1.7c-1.2.4-2 1.5-2 2.8a3 3 0 0 0 3 3z"/><circle cx="12" cy="12" r="2.5"/></svg>` : ''} ${item.label}</strong>
                             <div style="display:flex; gap:5px; align-items:center;">
-                                ${index > 0 ? `<button class="btn-gold" onclick="moveCategory('${item.id}', -1)" style="padding:6px 10px; font-weight:bold;">⬆️</button>` : ''}
-                                ${index < unifiedCats.length - 1 ? `<button class="btn-gold" onclick="moveCategory('${item.id}', 1)" style="padding:6px 10px; font-weight:bold;">⬇️</button>` : ''}
+                                ${index > 0 ? `<button class="btn-gold" onclick="moveCategory('${item.id}', -1)" style="padding:6px 10px; font-weight:bold;"><svg class="icon" viewBox="0 0 24 24"><path d="m18 15-6-6-6 6"/></svg></button>` : ''}
+                                ${index < unifiedCats.length - 1 ? `<button class="btn-gold" onclick="moveCategory('${item.id}', 1)" style="padding:6px 10px; font-weight:bold;"><svg class="icon" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button>` : ''}
                                 ${item.type === 'perfume_group' ? `
-                                    <button class="btn-gold" onclick="openGroupForm('${item.originalId}')" style="padding:6px 10px; margin-right:10px;">✎</button>
-                                    <button class="btn-danger" onclick="deleteGroup('${item.originalId}')" style="padding:6px 10px;">🗑</button>
+                                    <button class="btn-gold" onclick="openGroupForm('${item.originalId}')" style="padding:6px 10px; margin-right:10px;"><svg class="icon" viewBox="0 0 24 24"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg></button>
+                                    <button class="btn-danger" onclick="deleteGroup('${item.originalId}')" style="padding:6px 10px;"><svg class="icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
                                 ` : ''}
                             </div>
                         </div>
@@ -1508,8 +1539,12 @@
                                 <strong>${p.name}</strong>
                             </div>
                             <div style="display:flex; gap:5px;">
-                                <button class="btn-gold" onclick="openPerfumeForm('${p.id}')" style="padding:6px 10px;">✎ تعديل</button>
-                                <button class="btn-danger" onclick="deletePerfume('${p.id}')" style="padding:6px 10px;">🗑 حذف</button>
+                                <button class="btn-gold" onclick="openPerfumeForm('${p.id}')" style="padding:6px 10px;">
+                                    <svg class="icon" viewBox="0 0 24 24"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg> تعديل
+                                </button>
+                                <button class="btn-danger" onclick="deletePerfume('${p.id}')" style="padding:6px 10px;">
+                                    <svg class="icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> حذف
+                                </button>
                             </div>
                         </div>
                     `).join('')}
@@ -1529,8 +1564,12 @@
                                 </div>
                             </div>
                             <div style="display:flex; gap:5px;">
-                                <button class="btn-gold" onclick="openBottleForm('${b.id}')" style="padding:6px 10px;">✎ تعديل</button>
-                                <button class="btn-danger" onclick="deleteBottle('${b.id}')" style="padding:6px 10px;">🗑 حذف</button>
+                                <button class="btn-gold" onclick="openBottleForm('${b.id}')" style="padding:6px 10px;">
+                                    <svg class="icon" viewBox="0 0 24 24"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg> تعديل
+                                </button>
+                                <button class="btn-danger" onclick="deleteBottle('${b.id}')" style="padding:6px 10px;">
+                                    <svg class="icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> حذف
+                                </button>
                             </div>
                         </div>
                     `).join('')}
@@ -1550,9 +1589,15 @@
                                 </div>
                             </div>
                             <div style="display:flex; gap:5px;">
-                                <button onclick="toggleProductActive('${p.id}', event)" style="background:${p.active !== false ? '#f39c12' : '#27ae60'}; padding:6px 10px;" title="${p.active !== false ? 'إخفاء' : 'إظهار'}">👁️</button>
-                                <button class="btn-gold" onclick="openProductForm('${p.id}')" style="padding:6px 10px;">✎ تعديل</button>
-                                <button class="btn-danger" onclick="deleteProduct('${p.id}')" style="padding:6px 10px;">🗑 حذف</button>
+                                <button onclick="toggleProductActive('${p.id}', event)" style="background:${p.active !== false ? '#f39c12' : '#27ae60'}; padding:6px 10px;" title="${p.active !== false ? 'إخفاء' : 'إظهار'}">
+                                    <svg class="icon" viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                                </button>
+                                <button class="btn-gold" onclick="openProductForm('${p.id}')" style="padding:6px 10px;">
+                                    <svg class="icon" viewBox="0 0 24 24"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg> تعديل
+                                </button>
+                                <button class="btn-danger" onclick="deleteProduct('${p.id}')" style="padding:6px 10px;">
+                                    <svg class="icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> حذف
+                                </button>
                             </div>
                         </div>
                     `).join('')}
@@ -1577,7 +1622,7 @@
                 const priceObj = prices.find(p => p.id === priceId);
                 if (priceObj) priceObj.price = newPrice;
                 
-                showToast('✓ تم تحديث السعر');
+                showToast('تم تحديث السعر');
             } catch (err) {
                 alert('Hata: ' + err.message);
             }
@@ -1617,6 +1662,22 @@
             
             const genderOptions = perfumeGroups.map(g => `<option value="${g.id}" ${p.gender_id == g.id ? 'selected' : ''}>${g.label}</option>`).join('');
 
+            // Fiyat alanlarını oluştur
+            let priceFieldsHtml = '';
+            if (intensities.length > 0) {
+                priceFieldsHtml = `<div class="form-group" style="background:#faf8f3; padding:15px; border-radius:10px; margin-top:15px; border:1px solid #e0dcd0;">
+                    <label style="margin-bottom:10px; display:block; color:var(--navy); font-weight:800;">الأسعار حسب التركيز (₺)</label>
+                    ${intensities.map(inten => {
+                        const existingPrice = p.id ? prices.find(pr => pr.perfume_id === p.id && pr.intensity_id === inten.id && pr.size_id === 2) : null;
+                        const val = existingPrice ? existingPrice.price : '';
+                        return `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                            <span style="font-weight:bold; font-size:0.9rem; color:#555;">${inten.name}</span>
+                            <input type="number" id="price-input-int-${inten.id}" value="${val}" placeholder="0" style="width:100px; padding:8px; border:1px solid #ccc; border-radius:6px; text-align:center;">
+                        </div>`;
+                    }).join('')}
+                </div>`;
+            }
+
             const html = `
                 <div class="modal open" id="perfumeFormModal" onclick="closeModalOnBackdrop(event, 'perfumeFormModal')" style="display:flex; z-index:1001;">
                     <div class="modal-content" onclick="event.stopPropagation()">
@@ -1627,8 +1688,12 @@
                         <div class="form-group">
                             <label>صورة العطر</label>
                             <div style="display:flex; gap:10px; margin-bottom:10px;">
-                                <button type="button" class="btn-gold" onclick="document.getElementById('perfume-form-image').click()" style="flex:1;">📁 اختيار صورة</button>
-                                <button type="button" class="btn-success" onclick="pasteImage('perfume-form-image', 'previewPerfumeImage')" style="flex:1;">📋 لصق صورة</button>
+                                <button type="button" class="btn-gold" onclick="document.getElementById('perfume-form-image').click()" style="flex:1;">
+                                    <svg class="icon" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg> اختيار صورة
+                                </button>
+                                <button type="button" class="btn-success" onclick="pasteImage('perfume-form-image', 'previewPerfumeImage')" style="flex:1;">
+                                    <svg class="icon" viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg> لصق صورة
+                                </button>
                             </div>
                             <input type="file" id="perfume-form-image" accept="image/*" onchange="previewPerfumeImage(this)" style="display:none;">
                             <img id="perfume-form-preview" class="img-preview" src="${p.image_url ? imageUrl(p.image_url) : ''}" style="display:${p.image_url ? 'block' : 'none'};">
@@ -1645,6 +1710,8 @@
                                 ${genderOptions}
                             </select>
                         </div>
+
+                        ${priceFieldsHtml}
                         
                         <div style="display: flex; gap: 10px; margin-top: 20px;">
                             <button class="btn-success" id="perfume-save-btn" style="flex:1; padding:12px;" onclick="savePerfume()">حفظ</button>
@@ -1691,16 +1758,39 @@
 
                 const payload = { name, gender_id, image_url: imgUrl, active: true };
 
+                let perfumeId = id;
+
                 if (id) {
                     await _supabase.from('perfumes').update(payload).eq('id', id);
                 } else {
-                    await _supabase.from('perfumes').insert([payload]);
+                    const { data, error } = await _supabase.from('perfumes').insert([payload]).select();
+                    if (error) throw error;
+                    if (data && data[0]) perfumeId = data[0].id;
                 }
+
+                // Kaydet fiyatlar
+                if (perfumeId) {
+                    for (const inten of intensities) {
+                        const priceInput = document.getElementById(`price-input-int-${inten.id}`);
+                        if (priceInput) {
+                            const priceVal = parseFloat(priceInput.value);
+                            if (!isNaN(priceVal)) {
+                                const existing = prices.find(pr => pr.perfume_id === perfumeId && pr.intensity_id === inten.id && pr.size_id === 2);
+                                if (existing) {
+                                    await _supabase.from('perfume_prices').update({ price: priceVal }).eq('id', existing.id);
+                                } else {
+                                    await _supabase.from('perfume_prices').insert([{ perfume_id: perfumeId, intensity_id: inten.id, size_id: 2, price: priceVal }]);
+                                }
+                            }
+                        }
+                    }
+                }
+
                 document.getElementById('perfumeFormModal').remove();
                 await loadAllData();
                 applyLocalFilter();
                 switchAdminTab('perfumes');
-                showToast('✓ تم حفظ العطر');
+                showToast('تم حفظ العطر بنجاح');
             } catch (err) { 
                 alert('Hata: ' + err.message); 
                 btn.innerText = oldText;
@@ -1732,8 +1822,12 @@
                         <div class="form-group">
                             <label>صورة الزجاجة</label>
                             <div style="display:flex; gap:10px; margin-bottom:10px;">
-                                <button type="button" class="btn-gold" onclick="document.getElementById('bottle-form-image').click()" style="flex:1;">📁 اختيار صورة</button>
-                                <button type="button" class="btn-success" onclick="pasteImage('bottle-form-image', 'previewBottleImage')" style="flex:1;">📋 لصق صورة</button>
+                                <button type="button" class="btn-gold" onclick="document.getElementById('bottle-form-image').click()" style="flex:1;">
+                                    <svg class="icon" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg> اختيار صورة
+                                </button>
+                                <button type="button" class="btn-success" onclick="pasteImage('bottle-form-image', 'previewBottleImage')" style="flex:1;">
+                                    <svg class="icon" viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg> لصق صورة
+                                </button>
                             </div>
                             <input type="file" id="bottle-form-image" accept="image/*" onchange="previewBottleImage(this)" style="display:none;">
                             <img id="bottle-form-preview" class="img-preview" src="${b.image_url ? imageUrl(b.image_url) : ''}" style="display:${b.image_url ? 'block' : 'none'};" onerror="this.style.display='none'">
@@ -1801,7 +1895,7 @@
                 document.getElementById('bottleFormModal').remove();
                 await loadAllData();
                 switchAdminTab('bottles');
-                showToast('✓ تم حفظ الزجاجة');
+                showToast('تم حفظ الزجاجة');
             } catch (err) { 
                 alert('Hata: ' + err.message); 
                 btn.innerText = oldText;
@@ -1829,7 +1923,7 @@
 
                 if (error) throw error;
 
-                showToast('✓ تم تصفير جميع الإحصائيات');
+                showToast('تم تصفير جميع الإحصائيات');
                 loadAnalyticsTab(); 
             } catch (err) {
                 alert('Hata: ' + err.message);
@@ -1898,7 +1992,9 @@
                 };
 
                 let html = `
-                    <button class="btn-danger" style="margin-bottom: 20px; width: 100%; padding: 12px; font-size: 1rem;" onclick="resetAnalytics()">🗑 تصفير جميع الإحصائيات</button>
+                    <button class="btn-danger" style="margin-bottom: 20px; width: 100%; padding: 12px; font-size: 1rem;" onclick="resetAnalytics()">
+                        <svg class="icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> تصفير جميع الإحصائيات
+                    </button>
                     
                     <div class="stats-grid">
                         <div class="stat-box">
@@ -1911,7 +2007,9 @@
                         </div>
                     </div>
 
-                    <h3 style="color:var(--navy); font-weight:800; margin-bottom:15px; margin-top:30px;">📱 الأجهزة الفريدة</h3>
+                    <h3 style="color:var(--navy); font-weight:800; margin-bottom:15px; margin-top:30px; display:flex; align-items:center; gap:8px;">
+                        <svg class="icon" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg> الأجهزة الفريدة
+                    </h3>
                     <div style="background:#faf8f3; padding:15px; border-radius:10px; margin-bottom:20px; display:grid; grid-template-columns:1fr 1fr; gap:15px; text-align:center;">
                         <div style="background:#fff; padding:10px; border-radius:8px; border:1px solid #ddd;">
                             <span style="font-size:0.8rem; color:#888;">اليوم</span><br>
@@ -1931,14 +2029,27 @@
                         </div>
                     </div>
 
-                    <h3 style="color:var(--navy); font-weight:800; margin-bottom:15px; margin-top:20px;">📱 الأجهزة المستخدمة</h3>
+                    <h3 style="color:var(--navy); font-weight:800; margin-bottom:15px; margin-top:20px; display:flex; align-items:center; gap:8px;">
+                        <svg class="icon" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg> الأجهزة المستخدمة
+                    </h3>
                     <div style="display:flex; justify-content:space-between; background:#faf8f3; padding:15px; border-radius:10px; margin-bottom:20px;">
-                        <div style="text-align:center;"><span style="font-size:1.5rem;">📱</span><br><strong>هاتف</strong><br>${deviceStats.Mobile}</div>
-                        <div style="text-align:center;"><span style="font-size:1.5rem;">💻</span><br><strong>كمبيوتر</strong><br>${deviceStats.Desktop}</div>
-                        <div style="text-align:center;"><span style="font-size:1.5rem;">📟</span><br><strong>تابلت</strong><br>${deviceStats.Tablet}</div>
+                        <div style="text-align:center;">
+                            <svg class="icon" viewBox="0 0 24 24" style="width:2rem;height:2rem;color:var(--navy);margin-bottom:5px;"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg><br>
+                            <strong>هاتف</strong><br>${deviceStats.Mobile}
+                        </div>
+                        <div style="text-align:center;">
+                            <svg class="icon" viewBox="0 0 24 24" style="width:2rem;height:2rem;color:var(--navy);margin-bottom:5px;"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg><br>
+                            <strong>كمبيوتر</strong><br>${deviceStats.Desktop}
+                        </div>
+                        <div style="text-align:center;">
+                            <svg class="icon" viewBox="0 0 24 24" style="width:2rem;height:2rem;color:var(--navy);margin-bottom:5px;"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/></svg><br>
+                            <strong>تابلت</strong><br>${deviceStats.Tablet}
+                        </div>
                     </div>
 
-                    <h3 style="color:var(--navy); font-weight:800; margin-bottom:15px; margin-top:30px;">🔥 الأكثر مشاهدة</h3>
+                    <h3 style="color:var(--navy); font-weight:800; margin-bottom:15px; margin-top:30px; display:flex; align-items:center; gap:8px;">
+                        <svg class="icon" viewBox="0 0 24 24" style="color:var(--danger);"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg> الأكثر مشاهدة
+                    </h3>
                 `;
 
                 if (topProducts.length === 0) {
@@ -1972,8 +2083,12 @@
                 <div class="form-group">
                     <label>شعار الموقع (Logo)</label>
                     <div style="display:flex; gap:10px; margin-bottom:10px;">
-                        <button type="button" class="btn-gold" onclick="document.getElementById('setting-logo-file').click()" style="flex:1;">📁 اختيار صورة</button>
-                        <button type="button" class="btn-success" onclick="pasteImage('setting-logo-file', 'previewSettingLogo')" style="flex:1;">📋 لصق صورة</button>
+                        <button type="button" class="btn-gold" onclick="document.getElementById('setting-logo-file').click()" style="flex:1;">
+                            <svg class="icon" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg> اختيار صورة
+                        </button>
+                        <button type="button" class="btn-success" onclick="pasteImage('setting-logo-file', 'previewSettingLogo')" style="flex:1;">
+                            <svg class="icon" viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg> لصق صورة
+                        </button>
                     </div>
                     <input type="file" id="setting-logo-file" accept="image/*" onchange="previewSettingLogo(this)" style="display:none;">
                     <img id="setting-logo-preview" class="img-preview" src="${siteSettings.logo_url ? imageUrl(siteSettings.logo_url) : ''}" style="display:${siteSettings.logo_url ? 'block' : 'none'};" onerror="this.style.display='none'">
@@ -2005,7 +2120,9 @@
                         ${siteSettings.slider_images.map(img => `
                             <div style="position:relative;">
                                 <img src="${imageUrl(img)}" style="width:80px; height:50px; object-fit:cover; border-radius:6px; border:1px solid #ccc;" onerror="this.style.display='none'">
-                                <button onclick="removeBannerImage('${img}')" style="position:absolute; top:-5px; right:-5px; background:var(--danger); color:#fff; border:none; border-radius:50%; width:20px; height:20px; font-size:0.7rem; cursor:pointer; display:flex; align-items:center; justify-content:center; min-height: unset; padding:0;">✕</button>
+                                <button onclick="removeBannerImage('${img}')" style="position:absolute; top:-5px; right:-5px; background:var(--danger); color:#fff; border:none; border-radius:50%; width:20px; height:20px; font-size:0.7rem; cursor:pointer; display:flex; align-items:center; justify-content:center; min-height: unset; padding:0;">
+                                    <svg class="icon" viewBox="0 0 24 24" style="width:12px;height:12px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                </button>
                             </div>
                         `).join('')}
                     </div>
@@ -2047,7 +2164,7 @@
                 siteSettings.slider_images = newSliderImages;
                 renderSlider();
                 switchAdminTab('settings'); 
-                showToast('✓ تم حذف الصورة');
+                showToast('تم حذف الصورة');
             } catch (err) {
                 alert('Hata: ' + err.message);
             }
@@ -2102,7 +2219,7 @@
                 
                 settingLogoFile = null;
                 settingSliderFiles = [];
-                showToast('✓ تم حفظ الإعدادات');
+                showToast('تم حفظ الإعدادات');
                 switchAdminTab('settings');
 
             } catch (err) {
@@ -2275,7 +2392,7 @@
                 await loadAllData();
                 renderCategories();
                 applyLocalFilter();
-                showToast('✓ تم حفظ المنتج');
+                showToast('تم حفظ المنتج');
                 switchAdminTab('products');
             } catch (err) {
                 alert('Hata: ' + err.message);
