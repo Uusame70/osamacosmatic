@@ -103,9 +103,6 @@
 
         .categories-bar { display: flex; gap: 10px; overflow-x: auto; padding: 14px 15px; background: var(--white); border-bottom: 1px solid #e8ecf0; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(26,41,66,0.06); position: relative; scrollbar-width: none; }
         .categories-bar::-webkit-scrollbar { display: none; }
-        .categories-bar::before, .categories-bar::after { content: ''; position: absolute; top: 0; bottom: 0; width: 30px; pointer-events: none; z-index: 2; }
-        .categories-bar::before { inset-inline-start: 0; background: linear-gradient(to right, var(--white), transparent); }
-        .categories-bar::after { inset-inline-end: 0; background: linear-gradient(to left, var(--white), transparent); }
         .cat-btn { background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%); color: var(--gold); border: 2px solid var(--gold); padding: 9px 20px; border-radius: 25px; white-space: nowrap; font-size: 0.88rem; font-weight: 800; cursor: pointer; transition: all 0.25s; font-family: inherit; box-shadow: 0 2px 6px rgba(26,41,66,0.15); display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; }
         .cat-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(212,175,55,0.3); }
         .cat-btn.active { background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%); color: var(--navy); border-color: var(--gold-light); box-shadow: 0 4px 14px rgba(212,175,55,0.5); }
@@ -117,13 +114,14 @@
         .perfume-row .arrow-icon { width: 32px; height: 32px; border-radius: 50%; background: var(--cream); color: var(--gold-dark); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; }
         .perfume-row:hover .arrow-icon { background: var(--gold); color: var(--white); }
 
-        .products-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+        .products-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
         .product-card { background: var(--white); border-radius: var(--radius-md); overflow: hidden; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; position: relative; border: 1px solid rgba(212,175,55,0.1); transition: all 0.3s; animation: card-fade 0.3s ease both; }
         .product-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-6px); border-color: var(--gold); }
         
         .product-card img { 
             width: 100%; 
-            height: 260px; 
+            height: auto;
+            aspect-ratio: 1 / 1;
             object-fit: contain; 
             background: #ffffff; 
             padding: 10px; 
@@ -172,6 +170,21 @@
         .total-price { flex: 1; font-size: 1.5rem; font-weight: 900; color: var(--gold-dark); }
         .btn-add { background: #25d366; color: #fff; border: none; padding: 16px 24px; border-radius: 14px; font-weight: 800; font-size: 1rem; cursor: pointer; flex: 1; display: flex; justify-content: center;}
         .btn-add:disabled { background: #ccc; cursor: not-allowed; }
+
+        /* SABİT ALT SEPET ÇUBUĞU (MOBİL İÇİN) */
+        #mainCartBar {
+            position: fixed; 
+            bottom: 0; 
+            left: 0; 
+            right: 0; 
+            z-index: 90; 
+            padding: 14px 18px; 
+            padding-bottom: calc(14px + env(safe-area-inset-bottom)); 
+            background: var(--navy);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
 
         .admin-bar { background: linear-gradient(135deg, var(--navy), var(--navy-light)); color: var(--gold); padding: 14px 20px; border-radius: var(--radius-md); margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; box-shadow: var(--shadow-md); }
         .admin-bar strong { display: flex; align-items: center; gap: 6px; font-size: 1.1rem; }
@@ -240,30 +253,20 @@
             text-align: center;
             border: 2px solid var(--gold);
         }
-        .toast.show {
-            transform: translateX(-50%) translateY(0);
-            opacity: 1;
-        }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 
         /* --- BOŞ DURUM --- */
         .empty-state {
-            text-align: center;
-            padding: 50px 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-light);
+            text-align: center; padding: 50px 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-light);
         }
         .empty-state svg { color: var(--gold); opacity: 0.3; margin-bottom: 14px; }
 
-        @media (max-width: 900px) { .products-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; } }
-        
+        /* MOBİL EKRAN DÜZENLEMELERİ */
         @media (max-width: 600px) {
             body { padding-bottom: calc(120px + env(safe-area-inset-bottom)); }
             .products-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
             .product-card { border-radius: 12px; }
-            .product-card img { height: auto; aspect-ratio: 1 / 1; padding: 8px; }
+            .product-card img { padding: 8px; }
             .product-title { font-size: 0.9rem; font-weight: 800; }
             .product-price { font-size: 1.1rem; }
             .admin-actions button { font-size: 0.8rem; padding: 8px 0; border-radius: 6px; }
@@ -272,9 +275,9 @@
             .hero { padding: 30px 15px 40px; }
             .hero-title { font-size: 1.5rem; }
             .hero-logo { width: 70px; height: 70px; top: 15px; right: 15px; }
-            .cart-bar { padding: 12px 15px; gap: 10px; }
-            .cart-bar button { padding: 12px 15px; font-size: 0.95rem; }
-            .total-price { font-size: 1.2rem; }
+            #mainCartBar { padding: 12px 15px; gap: 10px; }
+            #mainCartBar button { padding: 12px 15px; font-size: 0.95rem; }
+            #mainCartBar .total-price { font-size: 1.2rem; }
             #whatsappFloat { bottom: calc(75px + env(safe-area-inset-bottom)); right: 15px; width: 50px; height: 50px; }
             #scrollTopBtn { bottom: calc(135px + env(safe-area-inset-bottom)); right: 15px; width: 42px; height: 42px; }
             .modal-content { border-radius: 20px 20px 0 0; padding: 20px 15px; padding-bottom: calc(20px + env(safe-area-inset-bottom)); }
@@ -285,10 +288,82 @@
             .toast { bottom: calc(150px + env(safe-area-inset-bottom)); }
         }
 
-        /* Masaüstünde modal ortalanır */
+        /* BİLGİSAYAR (DESKTOP) EKRAN DÜZENLEMELERİ (Masaüstünde Her Şeyi Düzeltir) */
         @media (min-width: 768px) {
+            body { padding-bottom: 120px; } /* Alt bardan dolayı boşluk */
+            
+            /* 1. Header (Üst Kısım) Düzeni */
+            header { 
+                display: flex; 
+                align-items: center; 
+                justify-content: space-between; 
+                padding: 15px 40px; 
+                margin-top: 0; 
+                border-radius: 0;
+                gap: 30px;
+            }
+            .header-top { margin-bottom: 0; width: auto; }
+            .header-btns { justify-content: flex-start; }
+            .search-box { max-width: 500px; flex: 1; }
+            .cart-btn { padding: 12px 24px; font-size: 1rem; }
+
+            /* 2. Banner (Hero) Düzeni */
+            .hero { 
+                max-width: 1200px; 
+                margin: 20px auto; 
+                border-radius: var(--radius-lg); 
+                padding: 50px 20px; 
+            }
+            .hero-title { font-size: 2.5rem; }
+            .hero-subtitle { font-size: 1.2rem; }
+
+            /* 3. Slider Düzeni */
+            .slider-container { max-width: 1000px; margin: 20px auto 30px; }
+            .slider { aspect-ratio: 21/9; }
+
+            /* 4. Kategori Çubuğu */
+            .categories-bar {
+                flex-wrap: wrap;
+                justify-content: center;
+                overflow-x: visible;
+                max-width: 1200px;
+                margin: 20px auto;
+                border-radius: var(--radius-lg);
+                padding: 15px 30px;
+            }
+            .cat-btn { padding: 10px 24px; font-size: 0.95rem; }
+
+            /* 5. Ürünler (4 Sütun) */
+            .products-grid { grid-template-columns: repeat(4, 1fr); gap: 24px; }
+            .product-card img { height: 280px; }
+
+            /* 6. Sepet Çubuğu (Yüzen Şık Buton) */
+            #mainCartBar {
+                position: fixed;
+                bottom: 30px;
+                left: 50%;
+                right: auto;
+                transform: translateX(-50%);
+                width: 100%;
+                max-width: 700px;
+                border-radius: 50px;
+                box-shadow: 0 10px 40px rgba(26,41,66,0.4);
+                padding: 12px 30px;
+                border: 1px solid rgba(255,255,255,0.1);
+            }
+            #mainCartBar button { padding: 15px 30px; font-size: 1.05rem; border-radius: 30px; }
+            #mainCartBar .total-price { font-size: 1.5rem; }
+
+            /* 7. Yüzen Butonlar (WhatsApp vs) */
+            #whatsappFloat { bottom: 30px; right: 30px; width: 60px; height: 60px; z-index: 90; }
+            #scrollTopBtn { bottom: 105px; right: 37px; }
+
+            /* 8. Modallar */
             .modal { align-items: center; }
-            .modal-content { border-radius: var(--radius-lg); max-height: 85vh; }
+            .modal-content { margin: 0 auto; border-radius: var(--radius-lg); max-height: 85vh; }
+            
+            /* 9. Toast */
+            .toast { bottom: 120px; }
         }
 
         /* Dokunmatik cihazlarda hover takılmasın */
@@ -361,10 +436,11 @@
         <div id="perfumesList" style="display:none;"></div>
     </div>
 
-    <div class="cart-bar" style="position:fixed; bottom:0; left:0; right:0; z-index:90; padding:14px 18px; padding-bottom: calc(14px + env(safe-area-inset-bottom)); background:var(--navy);">
+    <!-- SABİT SEPET ÇUBUĞU (Bilgisayarda ortada kapsül, mobilde alt bar olur) -->
+    <div class="cart-bar" id="mainCartBar">
         <div style="font-size: 0.95rem; display: flex; align-items: center; gap: 8px; color:white;">
             <span>المجموع:</span>
-            <strong id="cart-total-price" style="color: var(--gold); font-size: 1.2rem; font-weight: 900;">0</strong>
+            <strong id="cart-total-price" class="total-price" style="color: var(--gold); margin:0; flex:none;">0</strong>
             <span>₺</span>
         </div>
         <button onclick="completeOrder()" class="btn-success">
@@ -863,7 +939,6 @@
         }
 
         async function loadAllData() {
-            // Kozmetik ürünleri: API önce, olmazsa Supabase fallback
             try {
                 const res = await fetch('/api/products?t=' + Date.now());
                 if (!res.ok) throw new Error('API ' + res.status);
