@@ -71,7 +71,6 @@
         .hero-subtitle { font-size: 0.95rem; color: var(--sky-light); font-weight: 500; position: relative; z-index: 1; }
 
         .slider-container { max-width: 1200px; margin: 15px auto 20px; padding: 0 15px; position: relative; z-index: 10; }
-        /* Banner 16:9 Oranında Sabitlendi ve Kırpılma Engellendi */
         .slider { position: relative; border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-lg); aspect-ratio: 16/9; background: var(--navy); }
         .slider-track { display: flex; height: 100%; transition: transform 0.5s ease; }
         .slider-slide { min-width: 100%; height: 100%; position: relative; }
@@ -106,7 +105,6 @@
         .categories-bar { display: flex; gap: 10px; overflow-x: auto; padding: 14px 15px; background: var(--white); border-bottom: 1px solid #e8ecf0; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(26,41,66,0.06); position: relative; scrollbar-width: none; }
         .categories-bar::-webkit-scrollbar { display: none; }
         .cat-btn { background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%); color: var(--gold); border: 2px solid var(--gold); padding: 9px 20px; border-radius: 25px; white-space: nowrap; font-size: 0.88rem; font-weight: 800; cursor: pointer; transition: all 0.25s; font-family: inherit; box-shadow: 0 2px 6px rgba(26,41,66,0.15); display: inline-flex; align-items: center; justify-content: center; gap: 8px; flex-shrink: 0; }
-        /* Kategori İkon Hizalaması Düzeltildi */
         .cat-btn svg { width: 18px; height: 18px; flex-shrink: 0; }
         .cat-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(212,175,55,0.3); }
         .cat-btn.active { background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%); color: var(--navy); border-color: var(--gold-light); box-shadow: 0 4px 14px rgba(212,175,55,0.5); }
@@ -323,7 +321,6 @@
             .hero-subtitle { font-size: 1.2rem; }
 
             .slider-container { max-width: 1000px; margin: 20px auto 30px; }
-            /* Masaüstünde de 16:9 oranı zorunlu kılındı */
             .slider { aspect-ratio: 16/9; }
 
             .categories-bar {
@@ -543,6 +540,8 @@
             <div class="admin-tab-bar">
                 <button class="admin-tab active" onclick="switchAdminTab('products', this)">إدارة المنتجات</button>
                 <button class="admin-tab" onclick="switchAdminTab('perfumes', this)">العطور</button>
+                <!-- Toplu Fiyatlandırma Sekmesi Eklendi -->
+                <button class="admin-tab" onclick="switchAdminTab('price_tags', this)">شارة السعر (Toplu Fiyat)</button>
                 <button class="admin-tab" onclick="switchAdminTab('groups', this)">الترتيب والأقسام</button>
                 <button class="admin-tab" onclick="switchAdminTab('bottles', this)">الزجاجات</button>
                 <button class="admin-tab" onclick="switchAdminTab('settings', this)">الإعدادات</button>
@@ -617,6 +616,35 @@
         </div>
     </div>
 
+    <!-- Toplu Fiyat Listesi Form Modal -->
+    <div id="priceTagFormModal" class="modal" onclick="closeModalOnBackdrop(event, 'priceTagFormModal')">
+        <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 800px;">
+            <div class="modal-header-row">
+                <h2 id="priceTagFormTitle">قائمة أسعار جديدة</h2>
+                <button class="btn-danger" onclick="closeModalAndPopHistory('priceTagFormModal')" style="border-radius:50%; width:36px; height:36px; padding:0; min-height: unset;">✕</button>
+            </div>
+            
+            <div class="form-group">
+                <label>اسم قائمة الأسعار *</label>
+                <input type="text" id="pt-name" placeholder="مثال: عروض الصيف، أسعار الجملة...">
+            </div>
+
+            <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
+                <span>المنتجات المدرجة في القائمة</span>
+                <button class="btn-gold" style="padding: 6px 12px; font-size: 0.8rem;" onclick="addPerfumeToPriceTag()">+ إضافة عطر للقائمة</button>
+            </div>
+            
+            <div id="pt-items-list" style="background: #faf8f3; padding: 15px; border-radius: 10px; max-height: 400px; overflow-y: auto;">
+                <!-- Dinamik olarak doldurulacak -->
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="btn-success" style="flex:1; padding:12px;" onclick="savePriceTag()" id="pt-save-btn">حفظ القائمة</button>
+                <button class="btn-danger" style="flex:1; padding:12px;" onclick="closeModalAndPopHistory('priceTagFormModal')">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const SUPABASE_URL = 'https://xmrdqepjtfycvtgcbkyy.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_MgJhvhCdIg9oC40t--FZxQ_04A8dWkU';
@@ -634,7 +662,8 @@
             logo_url: '', slider_images: [], hero_title: 'متجر ميار للتسوق', 
             hero_subtitle: 'جمالك يبدأ من هنا', free_shipping_text: 'احصل على شحن مجاني عند طلبك بقيمة 800 وأكثر', 
             free_shipping_min: 800, whatsapp_number: '905388444275',
-            custom_categories_order: []
+            custom_categories_order: [],
+            pricing_lists: [] // YENİ: Toplu fiyat listeleri burada tutulacak
         };
         
         let currentSlide = 0;
@@ -648,6 +677,9 @@
         let currentProductImageUrl = ''; 
         let settingLogoFile = null; 
         let settingSliderFiles = []; 
+
+        // Yeni: Fiyat listesi formu geçici verisi
+        let currentPriceTagItems = []; 
 
         let deviceId = localStorage.getItem('mayar_device_id');
         if (!deviceId) {
@@ -873,6 +905,13 @@
                     siteSettings.whatsapp_number = data.whatsapp_number || '905388444275';
                     siteSettings.slider_images = Array.isArray(data.slider_images) ? data.slider_images : [];
                     siteSettings.custom_categories_order = Array.isArray(data.custom_categories_order) ? data.custom_categories_order : [];
+                    
+                    // Fiyat listelerini yükle
+                    if (data.pricing_lists && Array.isArray(data.pricing_lists)) {
+                        siteSettings.pricing_lists = data.pricing_lists;
+                    } else {
+                        siteSettings.pricing_lists = [];
+                    }
                 }
                 applySiteSettingsToUI();
             } catch(e) { console.error('Settings yüklenemedi', e); }
@@ -1051,12 +1090,10 @@
             bar.appendChild(allBtn);
         }
 
-        // İSTEK 1: Arama ve Kategori Mantığı Güncellendi
         function applyLocalFilter() {
             const grid = document.getElementById('productsGrid');
             const list = document.getElementById('perfumesList');
             
-            // Eğer özel bir parfüm grubu seçiliyse sadece o parfümleri göster
             if (typeof selectedCategory === 'string' && selectedCategory.startsWith('perfume_group_')) {
                 grid.style.display = 'none';
                 list.style.display = 'flex';
@@ -1099,7 +1136,6 @@
             grid.style.display = 'grid';
             
             let filteredCosmetics = currentProducts;
-            // Seçili kategori varsa kozmetikleri filtrele
             if (selectedCategory !== 'ALL') {
                 filteredCosmetics = filteredCosmetics.filter(p => {
                     if (!p.category) return false;
@@ -1109,7 +1145,6 @@
             }
             
             let filteredPerfumes = [];
-            // Arama varsa veya "Tümü" seçiliyse parfümleri de dahil et
             if (searchQuery || selectedCategory === 'ALL') {
                 filteredPerfumes = currentPerfumes;
                 if (searchQuery) {
@@ -1119,7 +1154,6 @@
                 }
             }
 
-            // Kozmetik Ürünleri Render Et
             if (filteredCosmetics.length === 0 && filteredPerfumes.length === 0) {
                 grid.innerHTML = `
                     <div class="empty-state" style="grid-column: 1/-1;">
@@ -1182,12 +1216,11 @@
                 `}).join('');
             }
 
-            // Parfümleri En Alta Render Et
             if (filteredPerfumes.length > 0) {
                 list.style.display = 'flex';
                 list.style.flexDirection = 'column';
                 list.style.gap = '12px';
-                list.style.marginTop = '30px'; // Araya boşluk
+                list.style.marginTop = '30px';
                 
                 filteredPerfumes.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ar'));
                 list.innerHTML = `
@@ -1482,12 +1515,221 @@
             switchAdminTab('products');
         }
 
+        // --- TOPLU FİYATLANDIRMA (FİYAT LİSTELERİ) FONKSİYONLARI ---
+        function renderPriceTagsTab() {
+            const c = document.getElementById('adminContent');
+            const lists = siteSettings.pricing_lists || [];
+
+            c.innerHTML = `
+                <h3 style="margin-bottom:10px; color:var(--navy);">قوائم الأسعار (Toplu Fiyatlandırma)</h3>
+                <p style="color:#888; font-size:0.85rem; margin-bottom:15px;">يمكنك إنشاء قوائم لأسعار معينة وتطبيقها على العطور بضغطة زر.</p>
+                <button class="btn-gold" style="margin-bottom:15px; width:100%; padding:12px;" onclick="openPriceTagForm()">+ إنشاء قائمة أسعار جديدة</button>
+                
+                ${lists.length === 0 ? '<p style="text-align:center; color:#888; padding:20px;">لا توجد قوائم أسعار بعد.</p>' : ''}
+                
+                ${lists.map(list => `
+                    <div class="admin-item" style="padding:15px; align-items:flex-start; flex-direction:column; gap:10px;">
+                        <div style="display:flex; justify-content:space-between; width:100%; align-items:center;">
+                            <strong style="font-size:1.1rem; color:var(--navy);">${list.name}</strong>
+                            <span style="font-size:0.8rem; color:#888;">${list.items.length} عطر</span>
+                        </div>
+                        <div style="display:flex; gap:8px; width:100%; justify-content:flex-end; margin-top:5px;">
+                            <button class="btn-success" onclick="applyPriceTag('${list.id}')" style="flex:1; font-size:0.9rem;">
+                                <svg class="icon" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg> تطبيق الأسعار
+                            </button>
+                            <button class="btn-gold" onclick="openPriceTagForm('${list.id}')" style="padding:6px 12px;">
+                                <svg class="icon" viewBox="0 0 24 24"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+                            </button>
+                            <button class="btn-danger" onclick="deletePriceTag('${list.id}')" style="padding:6px 12px;">
+                                <svg class="icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                `).join('')}
+            `;
+        }
+
+        function openPriceTagForm(id = null) {
+            document.getElementById('priceTagFormTitle').innerText = id ? 'تعديل قائمة الأسعار' : 'إنشاء قائمة أسعار جديدة';
+            document.getElementById('pt-name').value = '';
+            currentPriceTagItems = [];
+
+            if (id) {
+                const list = siteSettings.pricing_lists.find(l => l.id === id);
+                if (list) {
+                    document.getElementById('pt-name').value = list.name;
+                    currentPriceTagItems = JSON.parse(JSON.stringify(list.items)); // Kopyala
+                }
+                document.getElementById('priceTagFormModal').setAttribute('data-edit-id', id);
+            } else {
+                document.getElementById('priceTagFormModal').removeAttribute('data-edit-id');
+            }
+
+            renderPriceTagItems();
+            openModal('priceTagFormModal');
+        }
+
+        function renderPriceTagItems() {
+            const listEl = document.getElementById('pt-items-list');
+            if (currentPriceTagItems.length === 0) {
+                listEl.innerHTML = '<p style="text-align:center; color:#888; font-size:0.9rem;">لم يتم إضافة أي عطر بعد.</p>';
+                return;
+            }
+
+            listEl.innerHTML = currentPriceTagItems.map((item, index) => {
+                const perfume = currentPerfumes.find(p => p.id === item.perfume_id);
+                if (!perfume) return '';
+                return `
+                    <div style="background:#fff; padding:10px; border-radius:8px; border:1px solid #ddd; margin-bottom:10px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                            <strong style="color:var(--navy); font-size:0.95rem;">${perfume.name}</strong>
+                            <button onclick="removePerfumeFromPriceTag(${index})" class="btn-danger" style="padding:2px 8px; min-height:unset; font-size:0.8rem;">✕</button>
+                        </div>
+                        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(80px, 1fr)); gap:8px;">
+                            ${intensities.map(inten => {
+                                const priceVal = item.prices[inten.id] || '';
+                                return `
+                                    <div style="display:flex; flex-direction:column;">
+                                        <label style="font-size:0.75rem; color:#666; margin-bottom:2px;">${inten.name}</label>
+                                        <input type="number" value="${priceVal}" placeholder="₺" onchange="updatePriceTagItem(${index}, ${inten.id}, this.value)" style="padding:6px; text-align:center; border:1px solid #ccc; border-radius:6px;">
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function addPerfumeToPriceTag() {
+            const availablePerfumes = currentPerfumes.filter(p => !currentPriceTagItems.some(item => item.perfume_id === p.id));
+            if (availablePerfumes.length === 0) return showToast('كل العطور مضافة بالفعل!');
+
+            // Basit bir prompt veya basit bir seçim kutusu. 
+            // Daha iyi bir UI için modal açılabilir ama şimdilik basit tutuyoruz.
+            const perfumeNames = availablePerfumes.map((p, i) => `${i + 1}. ${p.name}`).join('\n');
+            const selection = prompt(`Eklemek istediğiniz parfümün numarasını girin:\n\n${perfumeNames}`);
+            
+            if (selection) {
+                const idx = parseInt(selection) - 1;
+                if (idx >= 0 && idx < availablePerfumes.length) {
+                    const selectedPerfume = availablePerfumes[idx];
+                    currentPriceTagItems.push({
+                        perfume_id: selectedPerfume.id,
+                        prices: {} // { intensity_id: price }
+                    });
+                    renderPriceTagItems();
+                } else {
+                    alert('Geçersiz seçim.');
+                }
+            }
+        }
+
+        function removePerfumeFromPriceTag(index) {
+            currentPriceTagItems.splice(index, 1);
+            renderPriceTagItems();
+        }
+
+        function updatePriceTagItem(itemIndex, intensityId, value) {
+            const price = parseFloat(value);
+            if (!isNaN(price) && price > 0) {
+                currentPriceTagItems[itemIndex].prices[intensityId] = price;
+            } else {
+                delete currentPriceTagItems[itemIndex].prices[intensityId];
+            }
+        }
+
+        async function savePriceTag() {
+            const name = document.getElementById('pt-name').value.trim();
+            if (!name) return alert('Lütfen bir liste adı girin.');
+            if (currentPriceTagItems.length === 0) return alert('Lütfen en az bir parfüm ekleyin.');
+
+            const editId = document.getElementById('priceTagFormModal').getAttribute('data-edit-id');
+            let newList = { id: editId || 'list_' + Date.now(), name: name, items: currentPriceTagItems };
+
+            const btn = document.getElementById('pt-save-btn');
+            const oldText = btn.innerText;
+            btn.innerText = 'Kaydediliyor...';
+            btn.disabled = true;
+
+            try {
+                let updatedLists = [...siteSettings.pricing_lists];
+                if (editId) {
+                    const idx = updatedLists.findIndex(l => l.id === editId);
+                    if (idx !== -1) updatedLists[idx] = newList;
+                } else {
+                    updatedLists.push(newList);
+                }
+
+                const { error } = await _supabase.from('site_settings').update({ pricing_lists: updatedLists }).eq('id', 1);
+                if (error) throw error;
+
+                siteSettings.pricing_lists = updatedLists;
+                closeModalAndPopHistory('priceTagFormModal');
+                showToast('Liste kaydedildi.');
+                renderPriceTagsTab();
+            } catch (err) {
+                alert('Hata: ' + err.message);
+            } finally {
+                btn.innerText = oldText;
+                btn.disabled = false;
+            }
+        }
+
+        async function deletePriceTag(id) {
+            if (!confirm('Bu fiyat listesini silmek istediğinize emin misiniz?')) return;
+
+            try {
+                const updatedLists = siteSettings.pricing_lists.filter(l => l.id !== id);
+                const { error } = await _supabase.from('site_settings').update({ pricing_lists: updatedLists }).eq('id', 1);
+                if (error) throw error;
+
+                siteSettings.pricing_lists = updatedLists;
+                showToast('Liste silindi.');
+                renderPriceTagsTab();
+            } catch (err) {
+                alert('Hata: ' + err.message);
+            }
+        }
+
+        async function applyPriceTag(id) {
+            const list = siteSettings.pricing_lists.find(l => l.id === id);
+            if (!list) return;
+
+            if (!confirm(`"${list.name}" listesindeki fiyatları tüm ürünlere uygulamak istediğinize emin misiniz?`)) return;
+
+            try {
+                // Toplu güncelleme işlemi (Basitçe döngüyle tek tek güncelliyoruz)
+                for (const item of list.items) {
+                    for (const intensityId in item.prices) {
+                        const priceVal = item.prices[intensityId];
+                        const existing = prices.find(pr => pr.perfume_id === item.perfume_id && pr.intensity_id == intensityId && pr.size_id === 2);
+                        
+                        if (existing) {
+                            await _supabase.from('perfume_prices').update({ price: priceVal }).eq('id', existing.id);
+                        } else {
+                            await _supabase.from('perfume_prices').insert([{ perfume_id: item.perfume_id, intensity_id: intensityId, size_id: 2, price: priceVal }]);
+                        }
+                    }
+                }
+                
+                await loadAllData(); // Fiyatları yenile
+                applyLocalFilter();
+                showToast('Fiyatlar başarıyla uygulandı!');
+            } catch (err) {
+                alert('Hata oluştu: ' + err.message);
+            }
+        }
+        // --- TOPLU FİYATLANDIRMA SONU ---
+
         function switchAdminTab(tab, btn) {
             document.querySelectorAll('.admin-tab').forEach(b => b.classList.remove('active'));
             if (btn) btn.classList.add('active');
             const c = document.getElementById('adminContent');
 
-            if (tab === 'groups') {
+            if (tab === 'price_tags') {
+                renderPriceTagsTab();
+            } else if (tab === 'groups') {
                 let unifiedCats = getAllCategoriesUnified();
                 const customOrder = siteSettings.custom_categories_order || [];
 
@@ -1634,7 +1876,6 @@
             
             const genderOptions = perfumeGroups.map(g => `<option value="${g.id}" ${p.gender_id == g.id ? 'selected' : ''}>${g.label}</option>`).join('');
 
-            // Fiyat alanlarını oluştur
             let priceFieldsHtml = '';
             if (intensities.length > 0) {
                 priceFieldsHtml = `<div class="form-group" style="background:#faf8f3; padding:15px; border-radius:10px; margin-top:15px; border:1px solid #e0dcd0;">
