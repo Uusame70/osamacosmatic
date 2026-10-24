@@ -71,11 +71,11 @@
         .hero-subtitle { font-size: 0.95rem; color: var(--sky-light); font-weight: 500; position: relative; z-index: 1; }
 
         .slider-container { max-width: 1200px; margin: 15px auto 20px; padding: 0 15px; position: relative; z-index: 10; }
+        /* Banner 16:9 Oranında Sabitlendi ve Kırpılma Engellendi */
         .slider { position: relative; border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-lg); aspect-ratio: 16/9; background: var(--navy); }
         .slider-track { display: flex; height: 100%; transition: transform 0.5s ease; }
         .slider-slide { min-width: 100%; height: 100%; position: relative; }
-        /* Banner boşluklarını kapatmak için cover kullanıldı */
-        .slider-slide img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .slider-slide img { width: 100%; height: 100%; object-fit: contain; display: block; background: var(--navy); }
         
         .slider-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(26,41,66,0.6); color: var(--gold); border: 2px solid var(--gold); width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 3; transition: all 0.2s; backdrop-filter: blur(4px); }
         .slider-nav:hover { background: var(--gold); color: var(--navy); transform: translateY(-50%) scale(1.1); }
@@ -105,7 +105,9 @@
 
         .categories-bar { display: flex; gap: 10px; overflow-x: auto; padding: 14px 15px; background: var(--white); border-bottom: 1px solid #e8ecf0; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(26,41,66,0.06); position: relative; scrollbar-width: none; }
         .categories-bar::-webkit-scrollbar { display: none; }
-        .cat-btn { background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%); color: var(--gold); border: 2px solid var(--gold); padding: 9px 20px; border-radius: 25px; white-space: nowrap; font-size: 0.88rem; font-weight: 800; cursor: pointer; transition: all 0.25s; font-family: inherit; box-shadow: 0 2px 6px rgba(26,41,66,0.15); display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; }
+        .cat-btn { background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%); color: var(--gold); border: 2px solid var(--gold); padding: 9px 20px; border-radius: 25px; white-space: nowrap; font-size: 0.88rem; font-weight: 800; cursor: pointer; transition: all 0.25s; font-family: inherit; box-shadow: 0 2px 6px rgba(26,41,66,0.15); display: inline-flex; align-items: center; justify-content: center; gap: 8px; flex-shrink: 0; }
+        /* Kategori İkon Hizalaması Düzeltildi */
+        .cat-btn svg { width: 18px; height: 18px; flex-shrink: 0; }
         .cat-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(212,175,55,0.3); }
         .cat-btn.active { background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%); color: var(--navy); border-color: var(--gold-light); box-shadow: 0 4px 14px rgba(212,175,55,0.5); }
 
@@ -321,7 +323,8 @@
             .hero-subtitle { font-size: 1.2rem; }
 
             .slider-container { max-width: 1000px; margin: 20px auto 30px; }
-            .slider { aspect-ratio: 21/9; }
+            /* Masaüstünde de 16:9 oranı zorunlu kılındı */
+            .slider { aspect-ratio: 16/9; }
 
             .categories-bar {
                 flex-wrap: wrap;
@@ -540,7 +543,6 @@
             <div class="admin-tab-bar">
                 <button class="admin-tab active" onclick="switchAdminTab('products', this)">إدارة المنتجات</button>
                 <button class="admin-tab" onclick="switchAdminTab('perfumes', this)">العطور</button>
-                <!-- Fiyatlar sekmesi kaldırıldı -->
                 <button class="admin-tab" onclick="switchAdminTab('groups', this)">الترتيب والأقسام</button>
                 <button class="admin-tab" onclick="switchAdminTab('bottles', this)">الزجاجات</button>
                 <button class="admin-tab" onclick="switchAdminTab('settings', this)">الإعدادات</button>
@@ -1013,12 +1015,6 @@
             const bar = document.getElementById('categoriesBar');
             bar.innerHTML = '';
 
-            const allBtn = document.createElement('button');
-            allBtn.className = 'cat-btn' + (selectedCategory === 'ALL' ? ' active' : '');
-            allBtn.innerHTML = 'الكل';
-            allBtn.onclick = () => { selectedCategory = 'ALL'; renderCategories(); applyLocalFilter(); };
-            bar.appendChild(allBtn);
-
             let unifiedCats = getAllCategoriesUnified();
             const customOrder = siteSettings.custom_categories_order || [];
 
@@ -1047,12 +1043,20 @@
                 };
                 bar.appendChild(btn);
             });
+
+            const allBtn = document.createElement('button');
+            allBtn.className = 'cat-btn' + (selectedCategory === 'ALL' ? ' active' : '');
+            allBtn.innerHTML = 'الكل';
+            allBtn.onclick = () => { selectedCategory = 'ALL'; renderCategories(); applyLocalFilter(); };
+            bar.appendChild(allBtn);
         }
 
+        // İSTEK 1: Arama ve Kategori Mantığı Güncellendi
         function applyLocalFilter() {
             const grid = document.getElementById('productsGrid');
             const list = document.getElementById('perfumesList');
             
+            // Eğer özel bir parfüm grubu seçiliyse sadece o parfümleri göster
             if (typeof selectedCategory === 'string' && selectedCategory.startsWith('perfume_group_')) {
                 grid.style.display = 'none';
                 list.style.display = 'flex';
@@ -1079,50 +1083,55 @@
                         </div>`;
                 } else {
                     filteredPerfumes.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ar'));
-                    list.innerHTML = filteredPerfumes.map(p => {
-                        return `
-                            <div class="perfume-row">
-                                <div class="info" onclick="openPerfumeDetail('${p.id}')">
-                                    <div class="name">${p.name}</div>
-                                </div>
-                                <div class="arrow-icon" onclick="openPerfumeDetail('${p.id}')">
-                                    <svg class="icon" viewBox="0 0 24 24" style="width:18px;height:18px;"><polyline points="15 18 9 12 15 6"/></svg>
-                                </div>
-                            </div>`;
-                    }).join('');
+                    list.innerHTML = filteredPerfumes.map(p => `
+                        <div class="perfume-row">
+                            <div class="info" onclick="openPerfumeDetail('${p.id}')">
+                                <div class="name">${p.name}</div>
+                            </div>
+                            <div class="arrow-icon" onclick="openPerfumeDetail('${p.id}')">
+                                <svg class="icon" viewBox="0 0 24 24" style="width:18px;height:18px;"><polyline points="15 18 9 12 15 6"/></svg>
+                            </div>
+                        </div>`).join('');
                 }
                 return;
             }
 
             grid.style.display = 'grid';
-            list.style.display = 'none';
-
-            let filtered = currentProducts;
+            
+            let filteredCosmetics = currentProducts;
+            // Seçili kategori varsa kozmetikleri filtrele
             if (selectedCategory !== 'ALL') {
-                filtered = filtered.filter(p => {
+                filteredCosmetics = filteredCosmetics.filter(p => {
                     if (!p.category) return false;
                     const cats = p.category.split(/[,;\/|]+/).map(c => c.trim());
                     return cats.includes(selectedCategory);
                 });
             }
             
-            if (searchQuery) {
-                const q = searchQuery.toLowerCase();
-                filtered = filtered.filter(p => (p.name_ar || '').toLowerCase().includes(q));
+            let filteredPerfumes = [];
+            // Arama varsa veya "Tümü" seçiliyse parfümleri de dahil et
+            if (searchQuery || selectedCategory === 'ALL') {
+                filteredPerfumes = currentPerfumes;
+                if (searchQuery) {
+                    const q = searchQuery.toLowerCase();
+                    filteredPerfumes = filteredPerfumes.filter(p => (p.name || '').toLowerCase().includes(q));
+                    filteredCosmetics = filteredCosmetics.filter(p => (p.name_ar || '').toLowerCase().includes(q));
+                }
             }
 
-            if (filtered.length === 0) {
+            // Kozmetik Ürünleri Render Et
+            if (filteredCosmetics.length === 0 && filteredPerfumes.length === 0) {
                 grid.innerHTML = `
                     <div class="empty-state" style="grid-column: 1/-1;">
                         <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                             <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
                         </svg>
-                        <p style="font-size: 1.15rem; font-weight: 800; color: var(--navy); margin-bottom: 4px;">لا توجد منتجات</p>
+                        <p style="font-size: 1.15rem; font-weight: 800; color: var(--navy); margin-bottom: 4px;">لا توجد نتائج</p>
                         <p style="font-size: 0.9rem;">جرب البحث بكلمة أخرى أو تصفح قسماً مختلفاً</p>
                     </div>`;
             } else {
-                filtered.sort((a, b) => (a.name_ar || '').localeCompare(b.name_ar || '', 'ar'));
-                grid.innerHTML = filtered.map(p => {
+                filteredCosmetics.sort((a, b) => (a.name_ar || '').localeCompare(b.name_ar || '', 'ar'));
+                grid.innerHTML = filteredCosmetics.map(p => {
                     const imgSrc = imageUrl(p.img);
                     let actionsHtml = '';
 
@@ -1171,6 +1180,31 @@
                         </div>
                     </div>
                 `}).join('');
+            }
+
+            // Parfümleri En Alta Render Et
+            if (filteredPerfumes.length > 0) {
+                list.style.display = 'flex';
+                list.style.flexDirection = 'column';
+                list.style.gap = '12px';
+                list.style.marginTop = '30px'; // Araya boşluk
+                
+                filteredPerfumes.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ar'));
+                list.innerHTML = `
+                    <h3 style="text-align:center; color:var(--navy); margin-bottom: 10px; font-weight: 900; font-size: 1.5rem;">قسم العطور</h3>
+                    ${filteredPerfumes.map(p => `
+                        <div class="perfume-row">
+                            <div class="info" onclick="openPerfumeDetail('${p.id}')">
+                                <div class="name">${p.name}</div>
+                            </div>
+                            <div class="arrow-icon" onclick="openPerfumeDetail('${p.id}')">
+                                <svg class="icon" viewBox="0 0 24 24" style="width:18px;height:18px;"><polyline points="15 18 9 12 15 6"/></svg>
+                            </div>
+                        </div>
+                    `).join('')}
+                `;
+            } else {
+                list.style.display = 'none';
             }
         }
 
