@@ -628,12 +628,21 @@
                 <input type="text" id="pt-name" placeholder="مثال: عروض الصيف، أسعار الجملة...">
             </div>
 
-            <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
-                <span>المنتجات المدرجة في القائمة</span>
+            <!-- YENİ: TOPLU FİYAT ALANI -->
+            <div class="form-group" style="background:#faf8f3; padding:15px; border-radius:10px; border:1px solid #e0dcd0;">
+                <label style="margin-bottom:10px; display:block; color:var(--navy); font-weight:800;">الأسعار الجماعية (Toplu Fiyatlar)</label>
+                <p style="font-size:0.8rem; color:#888; margin-bottom:10px;">سيتم تطبيق هذه الأسعار على جميع العطور المختارة أدناه.</p>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(100px, 1fr)); gap:10px;" id="pt-bulk-prices-container">
+                    <!-- JS ile doldurulacak -->
+                </div>
+            </div>
+
+            <div class="section-title" style="display:flex; justify-content:space-between; align-items:center; margin-top:20px;">
+                <span>العطور المدرجة في القائمة</span>
                 <button class="btn-gold" style="padding: 6px 12px; font-size: 0.8rem;" onclick="openPriceTagSelectModal()">+ إضافة عطر للقائمة</button>
             </div>
             
-            <div id="pt-items-list" style="background: #faf8f3; padding: 15px; border-radius: 10px; max-height: 400px; overflow-y: auto;">
+            <div id="pt-items-list" style="background: #faf8f3; padding: 15px; border-radius: 10px; max-height: 300px; overflow-y: auto;">
                 <!-- Dinamik olarak doldurulacak -->
             </div>
 
@@ -644,7 +653,7 @@
         </div>
     </div>
 
-    <!-- Parfüm Seçim Modal (YENİ) -->
+    <!-- Parfüm Seçim Modal -->
     <div id="priceTagSelectModal" class="modal" onclick="closeModalOnBackdrop(event, 'priceTagSelectModal')">
         <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 600px;">
             <div class="modal-header-row">
@@ -707,7 +716,8 @@
         let settingSliderFiles = []; 
 
         // Yeni: Fiyat listesi formu geçici verisi
-        let currentPriceTagItems = []; 
+        let currentPriceTagPerfumes = []; 
+        let currentPriceTagBulkPrices = {};
 
         let deviceId = localStorage.getItem('mayar_device_id');
         if (!deviceId) {
@@ -1558,7 +1568,7 @@
                     <div class="admin-item" style="padding:15px; align-items:flex-start; flex-direction:column; gap:10px;">
                         <div style="display:flex; justify-content:space-between; width:100%; align-items:center;">
                             <strong style="font-size:1.1rem; color:var(--navy);">${list.name}</strong>
-                            <span style="font-size:0.8rem; color:#888;">${list.items.length} عطر</span>
+                            <span style="font-size:0.8rem; color:#888;">${(list.perfume_ids || []).length} عطر</span>
                         </div>
                         <div style="display:flex; gap:8px; width:100%; justify-content:flex-end; margin-top:5px;">
                             <button class="btn-success" onclick="applyPriceTag('${list.id}')" style="flex:1; font-size:0.9rem;">
@@ -1576,59 +1586,88 @@
             `;
         }
 
+        function renderPriceTagBulkPrices() {
+            const container = document.getElementById('pt-bulk-prices-container');
+            if (intensities.length === 0) {
+                container.innerHTML = '<p style="color:#888;">لا توجد تركيزات مضافة.</p>';
+                return;
+            }
+            
+            container.innerHTML = intensities.map(inten => {
+                const val = currentPriceTagBulkPrices[inten.id] || '';
+                return `
+                    <div style="display:flex; flex-direction:column;">
+                        <label style="font-size:0.8rem; color:#555; margin-bottom:4px; font-weight:bold;">${inten.name}</label>
+                        <input type="number" value="${val}" placeholder="₺" onchange="updateBulkPrice(${inten.id}, this.value)" style="padding:8px; text-align:center; border:1px solid #ccc; border-radius:6px;">
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateBulkPrice(intensityId, value) {
+            const price = parseFloat(value);
+            if (!isNaN(price) && price > 0) {
+                currentPriceTagBulkPrices[intensityId] = price;
+            } else {
+                delete currentPriceTagBulkPrices[intensityId];
+            }
+        }
+
         function openPriceTagForm(id = null) {
             document.getElementById('priceTagFormTitle').innerText = id ? 'تعديل قائمة الأسعار' : 'إنشاء قائمة أسعار جديدة';
             document.getElementById('pt-name').value = '';
-            currentPriceTagItems = [];
+            currentPriceTagPerfumes = [];
+            currentPriceTagBulkPrices = {};
 
             if (id) {
                 const list = siteSettings.pricing_lists.find(l => l.id === id);
                 if (list) {
                     document.getElementById('pt-name').value = list.name;
-                    currentPriceTagItems = JSON.parse(JSON.stringify(list.items));
+                    // Eski formattan yeniye geçiş (uyumluluk)
+                    if (list.items && !list.perfume_ids) {
+                        currentPriceTagPerfumes = list.items.map(i => i.perfume_id);
+                        if (list.items.length > 0 && list.items[0].prices) {
+                            currentPriceTagBulkPrices = { ...list.items[0].prices };
+                        }
+                    } else {
+                        currentPriceTagPerfumes = list.perfume_ids || [];
+                        currentPriceTagBulkPrices = list.bulk_prices || {};
+                    }
                 }
                 document.getElementById('priceTagFormModal').setAttribute('data-edit-id', id);
             } else {
                 document.getElementById('priceTagFormModal').removeAttribute('data-edit-id');
             }
 
+            renderPriceTagBulkPrices();
             renderPriceTagItems();
             openModal('priceTagFormModal');
         }
 
         function renderPriceTagItems() {
             const listEl = document.getElementById('pt-items-list');
-            if (currentPriceTagItems.length === 0) {
+            if (currentPriceTagPerfumes.length === 0) {
                 listEl.innerHTML = '<p style="text-align:center; color:#888; font-size:0.9rem;">لم يتم إضافة أي عطر بعد.</p>';
                 return;
             }
 
-            listEl.innerHTML = currentPriceTagItems.map((item, index) => {
-                const perfume = currentPerfumes.find(p => p.id === item.perfume_id);
+            listEl.innerHTML = currentPriceTagPerfumes.map((perfumeId, index) => {
+                const perfume = currentPerfumes.find(p => p.id === perfumeId);
                 if (!perfume) return '';
                 return `
-                    <div style="background:#fff; padding:10px; border-radius:8px; border:1px solid #ddd; margin-bottom:10px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                            <strong style="color:var(--navy); font-size:0.95rem;">${perfume.name}</strong>
-                            <button onclick="removePerfumeFromPriceTag(${index})" class="btn-danger" style="padding:2px 8px; min-height:unset; font-size:0.8rem;">✕</button>
-                        </div>
-                        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(80px, 1fr)); gap:8px;">
-                            ${intensities.map(inten => {
-                                const priceVal = item.prices[inten.id] || '';
-                                return `
-                                    <div style="display:flex; flex-direction:column;">
-                                        <label style="font-size:0.75rem; color:#666; margin-bottom:2px;">${inten.name}</label>
-                                        <input type="number" value="${priceVal}" placeholder="₺" onchange="updatePriceTagItem(${index}, ${inten.id}, this.value)" style="padding:6px; text-align:center; border:1px solid #ccc; border-radius:6px;">
-                                    </div>
-                                `;
-                            }).join('')}
-                        </div>
+                    <div style="background:#fff; padding:10px; border-radius:8px; border:1px solid #ddd; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+                        <strong style="color:var(--navy); font-size:0.95rem;">${perfume.name}</strong>
+                        <button onclick="removePerfumeFromPriceTag(${index})" class="btn-danger" style="padding:4px 10px; min-height:unset; font-size:0.8rem;">✕</button>
                     </div>
                 `;
             }).join('');
         }
 
-        // YENİ: Parfüm Seçim Modalını Aç
+        function removePerfumeFromPriceTag(index) {
+            currentPriceTagPerfumes.splice(index, 1);
+            renderPriceTagItems();
+        }
+
         function openPriceTagSelectModal() {
             const selectEl = document.getElementById('pt-gender-select');
             selectEl.innerHTML = perfumeGroups.map(g => `<option value="${g.id}">${g.label}</option>`).join('');
@@ -1637,7 +1676,6 @@
             openModal('priceTagSelectModal');
         }
 
-        // YENİ: Seçilen Cinsiyete Göre Checkboxları Çiz
         function renderPriceTagPerfumeCheckboxes() {
             const genderId = document.getElementById('pt-gender-select').value;
             const container = document.getElementById('pt-perfume-checkboxes');
@@ -1647,9 +1685,7 @@
                 return;
             }
 
-            // Zaten eklenmiş olanları filtrele
-            const existingIds = currentPriceTagItems.map(item => item.perfume_id);
-            const filteredPerfumes = currentPerfumes.filter(p => p.gender_id == genderId && !existingIds.includes(p.id));
+            const filteredPerfumes = currentPerfumes.filter(p => p.gender_id == genderId && !currentPriceTagPerfumes.includes(p.id));
 
             if (filteredPerfumes.length === 0) {
                 container.innerHTML = '<p style="text-align:center; color:#888;">لا توجد عطور متاحة في هذه المجموعة (أو تمت إضافتها بالفعل).</p>';
@@ -1664,7 +1700,6 @@
             `).join('');
         }
 
-        // YENİ: Seçilenleri Onayla ve Ana Listeye Ekle
         function confirmAddPerfumesToPriceTag() {
             const checkboxes = document.querySelectorAll('.pt-perfume-checkbox:checked');
             if (checkboxes.length === 0) {
@@ -1673,10 +1708,9 @@
             }
 
             checkboxes.forEach(cb => {
-                currentPriceTagItems.push({
-                    perfume_id: cb.value,
-                    prices: {} // Başlangıçta fiyatlar boş
-                });
+                if (!currentPriceTagPerfumes.includes(cb.value)) {
+                    currentPriceTagPerfumes.push(cb.value);
+                }
             });
 
             closeModalAndPopHistory('priceTagSelectModal');
@@ -1684,27 +1718,19 @@
             showToast('تمت إضافة العطور للقائمة');
         }
 
-        function removePerfumeFromPriceTag(index) {
-            currentPriceTagItems.splice(index, 1);
-            renderPriceTagItems();
-        }
-
-        function updatePriceTagItem(itemIndex, intensityId, value) {
-            const price = parseFloat(value);
-            if (!isNaN(price) && price > 0) {
-                currentPriceTagItems[itemIndex].prices[intensityId] = price;
-            } else {
-                delete currentPriceTagItems[itemIndex].prices[intensityId];
-            }
-        }
-
         async function savePriceTag() {
             const name = document.getElementById('pt-name').value.trim();
             if (!name) return alert('Lütfen bir liste adı girin.');
-            if (currentPriceTagItems.length === 0) return alert('Lütfen en az bir parfüm ekleyin.');
+            if (currentPriceTagPerfumes.length === 0) return alert('Lütfen en az bir parfüm ekleyin.');
+            if (Object.keys(currentPriceTagBulkPrices).length === 0) return alert('Lütfen en az bir toplu fiyat girin.');
 
             const editId = document.getElementById('priceTagFormModal').getAttribute('data-edit-id');
-            let newList = { id: editId || 'list_' + Date.now(), name: name, items: currentPriceTagItems };
+            let newList = { 
+                id: editId || 'list_' + Date.now(), 
+                name: name, 
+                perfume_ids: [...currentPriceTagPerfumes], 
+                bulk_prices: { ...currentPriceTagBulkPrices } 
+            };
 
             const btn = document.getElementById('pt-save-btn');
             const oldText = btn.innerText;
@@ -1758,15 +1784,18 @@
             if (!confirm(`"${list.name}" listesindeki fiyatları tüm ürünlere uygulamak istediğinize emin misiniz?`)) return;
 
             try {
-                for (const item of list.items) {
-                    for (const intensityId in item.prices) {
-                        const priceVal = item.prices[intensityId];
-                        const existing = prices.find(pr => pr.perfume_id === item.perfume_id && pr.intensity_id == intensityId && pr.size_id === 2);
+                const perfumeIds = list.perfume_ids || (list.items ? list.items.map(i => i.perfume_id) : []);
+                const bulkPrices = list.bulk_prices || (list.items && list.items.length > 0 ? list.items[0].prices : {});
+
+                for (const perfumeId of perfumeIds) {
+                    for (const intensityId in bulkPrices) {
+                        const priceVal = bulkPrices[intensityId];
+                        const existing = prices.find(pr => pr.perfume_id === perfumeId && pr.intensity_id == intensityId && pr.size_id === 2);
                         
                         if (existing) {
                             await _supabase.from('perfume_prices').update({ price: priceVal }).eq('id', existing.id);
                         } else {
-                            await _supabase.from('perfume_prices').insert([{ perfume_id: item.perfume_id, intensity_id: intensityId, size_id: 2, price: priceVal }]);
+                            await _supabase.from('perfume_prices').insert([{ perfume_id: perfumeId, intensity_id: intensityId, size_id: 2, price: priceVal }]);
                         }
                     }
                 }
