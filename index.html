@@ -295,9 +295,8 @@
 
         /* BİLGİSAYAR (DESKTOP) EKRAN DÜZENLEMELERİ */
         @media (min-width: 768px) {
-            body { padding-bottom: 140px; } /* Alt bardan dolayı boşluk */
+            body { padding-bottom: 140px; }
             
-            /* 1. Header (Üst Kısım) Düzeni */
             header { 
                 display: flex; 
                 align-items: center; 
@@ -312,7 +311,6 @@
             .search-box { max-width: 500px; flex: 1; }
             .cart-btn { padding: 12px 24px; font-size: 1rem; }
 
-            /* 2. Banner (Hero) Düzeni */
             .hero { 
                 max-width: 1200px; 
                 margin: 20px auto; 
@@ -322,11 +320,9 @@
             .hero-title { font-size: 2.5rem; }
             .hero-subtitle { font-size: 1.2rem; }
 
-            /* 3. Slider Düzeni */
             .slider-container { max-width: 1000px; margin: 20px auto 30px; }
             .slider { aspect-ratio: 21/9; }
 
-            /* 4. Kategori Çubuğu */
             .categories-bar {
                 flex-wrap: wrap;
                 justify-content: center;
@@ -338,11 +334,9 @@
             }
             .cat-btn { padding: 10px 24px; font-size: 0.95rem; }
 
-            /* 5. Ürünler (4 Sütun) */
             .products-grid { grid-template-columns: repeat(4, 1fr); gap: 24px; }
             .product-card img { height: 280px; }
 
-            /* 6. Sepet Çubuğu (Yüzen Şık Buton) */
             #mainCartBar {
                 position: fixed;
                 bottom: 25px;
@@ -350,7 +344,7 @@
                 right: auto;
                 transform: translateX(-50%);
                 width: 100%;
-                max-width: 650px; /* Daha kompakt */
+                max-width: 650px;
                 border-radius: 50px;
                 box-shadow: 0 10px 40px rgba(26,41,66,0.4);
                 padding: 10px 25px;
@@ -359,15 +353,12 @@
             #mainCartBar button { padding: 12px 30px; font-size: 1.05rem; border-radius: 30px; }
             #mainCartBar .total-price { font-size: 1.4rem; }
 
-            /* 7. Yüzen Butonlar (WhatsApp vs) */
             #whatsappFloat { bottom: 25px; right: 30px; width: 60px; height: 60px; z-index: 90; }
             #scrollTopBtn { bottom: 100px; right: 37px; }
 
-            /* 8. Modallar */
             .modal { align-items: center; }
             .modal-content { margin: 0 auto; border-radius: var(--radius-lg); max-height: 85vh; }
             
-            /* 9. Toast */
             .toast { bottom: 100px; }
         }
 
@@ -549,7 +540,7 @@
             <div class="admin-tab-bar">
                 <button class="admin-tab active" onclick="switchAdminTab('products', this)">إدارة المنتجات</button>
                 <button class="admin-tab" onclick="switchAdminTab('perfumes', this)">العطور</button>
-                <button class="admin-tab" onclick="switchAdminTab('prices', this)">الأسعار (Fiyatlar)</button>
+                <!-- Fiyatlar sekmesi kaldırıldı -->
                 <button class="admin-tab" onclick="switchAdminTab('groups', this)">الترتيب والأقسام</button>
                 <button class="admin-tab" onclick="switchAdminTab('bottles', this)">الزجاجات</button>
                 <button class="admin-tab" onclick="switchAdminTab('settings', this)">الإعدادات</button>
@@ -1462,41 +1453,7 @@
             if (btn) btn.classList.add('active');
             const c = document.getElementById('adminContent');
 
-            if (tab === 'prices') {
-                const sortedPrices = [...prices].sort((a, b) => {
-                    const pA = currentPerfumes.find(x => x.id === a.perfume_id);
-                    const pB = currentPerfumes.find(x => x.id === b.perfume_id);
-                    if(!pA || !pB) return 0;
-                    return pA.name.localeCompare(pB.name, 'ar');
-                });
-
-                c.innerHTML = `
-                    <p style="color:#888; text-align:center; margin-bottom:15px;">يمكنك تعديل سعر كل عطر حسب التركيز والزجاجة هنا.</p>
-                    <div style="max-height: 500px; overflow-y: auto; padding-right: 5px;">
-                    ${sortedPrices.map(pr => {
-                        const perf = currentPerfumes.find(p => p.id === pr.perfume_id);
-                        const inten = intensities.find(i => i.id === pr.intensity_id);
-                        const bott = bottles.find(b => b.id === pr.size_id);
-                        
-                        if (!perf) return '';
-
-                        return `
-                        <div class="admin-item" style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; padding:12px; border-bottom:1px solid #eee;">
-                            <div style="flex:1; min-width:150px;">
-                                <strong style="color:var(--navy); font-size:1.05rem;">${perf.name}</strong><br>
-                                <small style="color:#666;">${inten ? inten.name : '-'} | ${bott ? bott.name : 'زجاجة'}</small>
-                            </div>
-                            <div style="display:flex; gap:8px; align-items:center; margin-top:5px;">
-                                <input type="number" id="price-input-${pr.id}" value="${pr.price}" style="width:90px; padding:8px; border:1px solid #ccc; border-radius:6px; text-align:center;" step="1">
-                                <span style="font-weight:bold; color:var(--gold-dark);">₺</span>
-                                <button class="btn-success" onclick="saveSinglePrice('${pr.id}')" style="padding:8px 12px; font-weight:bold;">حفظ</button>
-                            </div>
-                        </div>
-                        `;
-                    }).join('')}
-                    </div>
-                `;
-            } else if (tab === 'groups') {
+            if (tab === 'groups') {
                 let unifiedCats = getAllCategoriesUnified();
                 const customOrder = siteSettings.custom_categories_order || [];
 
@@ -1606,25 +1563,6 @@
                 c.innerHTML = renderSettingsTab();
             } else if (tab === 'analytics') {
                 loadAnalyticsTab();
-            }
-        }
-
-        async function saveSinglePrice(priceId) {
-            const inputVal = document.getElementById(`price-input-${priceId}`).value;
-            const newPrice = parseFloat(inputVal);
-            
-            if (isNaN(newPrice)) return alert('يرجى إدخال سعر صحيح');
-
-            try {
-                const { error } = await _supabase.from('perfume_prices').update({ price: newPrice }).eq('id', priceId);
-                if (error) throw error;
-                
-                const priceObj = prices.find(p => p.id === priceId);
-                if (priceObj) priceObj.price = newPrice;
-                
-                showToast('تم تحديث السعر');
-            } catch (err) {
-                alert('Hata: ' + err.message);
             }
         }
 
