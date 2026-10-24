@@ -1126,35 +1126,43 @@
             bar.appendChild(allBtn);
         }
 
+        // İSTEK 1: Arama ve Kategori Mantığı Güncellendi
         function applyLocalFilter() {
             const grid = document.getElementById('productsGrid');
             const list = document.getElementById('perfumesList');
             
-            if (typeof selectedCategory === 'string' && selectedCategory.startsWith('perfume_group_')) {
-                grid.style.display = 'none';
-                list.style.display = 'flex';
+            let filteredCosmetics = [];
+            let filteredPerfumes = [];
+            let showPerfumeHeader = false;
+
+            if (searchQuery) {
+                // ARAMA MODU: Kategori ne olursa olsun her yerde ara
+                const q = searchQuery.toLowerCase();
+                filteredCosmetics = currentProducts.filter(p => (p.name_ar || '').toLowerCase().includes(q));
+                filteredPerfumes = currentPerfumes.filter(p => (p.name || '').toLowerCase().includes(q));
+                showPerfumeHeader = true;
+
+                // Parfüm grubunda olsak bile arama yaparken kozmetikleri göster
+                grid.style.display = 'grid';
+                list.style.display = filteredPerfumes.length > 0 ? 'flex' : 'none';
                 list.style.flexDirection = 'column';
                 list.style.gap = '12px';
+                list.style.marginTop = '30px';
 
-                const groupId = parseInt(selectedCategory.replace('perfume_group_', ''));
-                let filteredPerfumes = currentPerfumes.filter(p => p.gender_id === groupId);
+            } else {
+                // NORMAL GÖZATMA MODU
+                if (typeof selectedCategory === 'string' && selectedCategory.startsWith('perfume_group_')) {
+                    // Sadece seçili parfüm grubunu göster
+                    grid.style.display = 'none';
+                    list.style.display = 'flex';
+                    list.style.flexDirection = 'column';
+                    list.style.gap = '12px';
+                    list.style.marginTop = '0';
 
-                if (searchQuery) {
-                    const q = searchQuery.toLowerCase();
-                    filteredPerfumes = filteredPerfumes.filter(p => (p.name || '').toLowerCase().includes(q));
-                }
-
-                if (filteredPerfumes.length === 0) {
-                    list.innerHTML = `
-                        <div class="empty-state">
-                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                                <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/>
-                                <circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/>
-                            </svg>
-                            <p style="font-size: 1.15rem; font-weight: 800; color: var(--navy); margin-bottom: 4px;">لا توجد عطور في هذه المجموعة</p>
-                            <p style="font-size: 0.9rem;">جرب قسماً آخر أو ابحث بكلمة مختلفة</p>
-                        </div>`;
-                } else {
+                    const groupId = parseInt(selectedCategory.replace('perfume_group_', ''));
+                    filteredPerfumes = currentPerfumes.filter(p => p.gender_id === groupId);
+                    
+                    // Render only perfumes and return
                     filteredPerfumes.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ar'));
                     list.innerHTML = filteredPerfumes.map(p => `
                         <div class="perfume-row">
@@ -1164,32 +1172,37 @@
                             <div class="arrow-icon" onclick="openPerfumeDetail('${p.id}')">
                                 <svg class="icon" viewBox="0 0 24 24" style="width:18px;height:18px;"><polyline points="15 18 9 12 15 6"/></svg>
                             </div>
-                        </div>`).join('');
+                        </div>
+                    `).join('');
+                    return;
                 }
-                return;
+
+                // Kozmetikler ve (Tümü seçiliyse) Parfümler
+                grid.style.display = 'grid';
+                list.style.display = 'none';
+
+                filteredCosmetics = currentProducts;
+                if (selectedCategory !== 'ALL') {
+                    filteredCosmetics = filteredCosmetics.filter(p => {
+                        if (!p.category) return false;
+                        const cats = p.category.split(/[,;\/|]+/).map(c => c.trim());
+                        return cats.includes(selectedCategory);
+                    });
+                }
+
+                if (selectedCategory === 'ALL') {
+                    filteredPerfumes = currentPerfumes;
+                    if (filteredPerfumes.length > 0) {
+                        list.style.display = 'flex';
+                        list.style.flexDirection = 'column';
+                        list.style.gap = '12px';
+                        list.style.marginTop = '30px';
+                        showPerfumeHeader = true;
+                    }
+                }
             }
 
-            grid.style.display = 'grid';
-            
-            let filteredCosmetics = currentProducts;
-            if (selectedCategory !== 'ALL') {
-                filteredCosmetics = filteredCosmetics.filter(p => {
-                    if (!p.category) return false;
-                    const cats = p.category.split(/[,;\/|]+/).map(c => c.trim());
-                    return cats.includes(selectedCategory);
-                });
-            }
-            
-            let filteredPerfumes = [];
-            if (searchQuery || selectedCategory === 'ALL') {
-                filteredPerfumes = currentPerfumes;
-                if (searchQuery) {
-                    const q = searchQuery.toLowerCase();
-                    filteredPerfumes = filteredPerfumes.filter(p => (p.name || '').toLowerCase().includes(q));
-                    filteredCosmetics = filteredCosmetics.filter(p => (p.name_ar || '').toLowerCase().includes(q));
-                }
-            }
-
+            // RENDER COSMETICS
             if (filteredCosmetics.length === 0 && filteredPerfumes.length === 0) {
                 grid.innerHTML = `
                     <div class="empty-state" style="grid-column: 1/-1;">
@@ -1252,26 +1265,23 @@
                 `}).join('');
             }
 
+            // RENDER PERFUMES
             if (filteredPerfumes.length > 0) {
                 list.style.display = 'flex';
-                list.style.flexDirection = 'column';
-                list.style.gap = '12px';
-                list.style.marginTop = '30px';
-                
                 filteredPerfumes.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ar'));
-                list.innerHTML = `
-                    <h3 style="text-align:center; color:var(--navy); margin-bottom: 10px; font-weight: 900; font-size: 1.5rem;">قسم العطور</h3>
-                    ${filteredPerfumes.map(p => `
-                        <div class="perfume-row">
-                            <div class="info" onclick="openPerfumeDetail('${p.id}')">
-                                <div class="name">${p.name}</div>
-                            </div>
-                            <div class="arrow-icon" onclick="openPerfumeDetail('${p.id}')">
-                                <svg class="icon" viewBox="0 0 24 24" style="width:18px;height:18px;"><polyline points="15 18 9 12 15 6"/></svg>
-                            </div>
+                
+                let headerHtml = showPerfumeHeader ? `<h3 style="text-align:center; color:var(--navy); margin-bottom: 10px; font-weight: 900; font-size: 1.5rem;">قسم العطور</h3>` : '';
+
+                list.innerHTML = headerHtml + filteredPerfumes.map(p => `
+                    <div class="perfume-row">
+                        <div class="info" onclick="openPerfumeDetail('${p.id}')">
+                            <div class="name">${p.name}</div>
                         </div>
-                    `).join('')}
-                `;
+                        <div class="arrow-icon" onclick="openPerfumeDetail('${p.id}')">
+                            <svg class="icon" viewBox="0 0 24 24" style="width:18px;height:18px;"><polyline points="15 18 9 12 15 6"/></svg>
+                        </div>
+                    </div>
+                `).join('');
             } else {
                 list.style.display = 'none';
             }
@@ -2060,9 +2070,8 @@
                     imgUrl = await uploadToB2(fileInput.files[0]);
                 }
 
-                // ID hatasını çözmek için eklendi
                 const payload = { 
-                    id: id || 'perf_' + Date.now(), 
+                    id: id || 'perf_' + Date.now(),
                     name: name, 
                     gender_id: gender_id, 
                     image_url: imgUrl, 
