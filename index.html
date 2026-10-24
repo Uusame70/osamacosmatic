@@ -817,6 +817,7 @@
             return Array.from(cats);
         }
 
+        // !!! SIRALAMA BURADA DEĞİŞTİ !!!
         function renderCategories() {
             const bar = document.getElementById('categoriesBar');
             bar.innerHTML = '';
@@ -827,6 +828,18 @@
             allBtn.onclick = () => { selectedCategory = 'ALL'; renderCategories(); applyLocalFilter(); };
             bar.appendChild(allBtn);
 
+            // 1. ÖNCE PARFÜM GRUPLARI
+            const sortedGroups = [...perfumeGroups].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+            sortedGroups.forEach(g => {
+                const catId = 'perfume_group_' + g.id;
+                const btn = document.createElement('button');
+                btn.className = 'cat-btn' + (selectedCategory === catId ? ' active' : '');
+                btn.innerHTML = `🌸 ${g.label}`;
+                btn.onclick = () => { selectedCategory = catId; renderCategories(); applyLocalFilter(); };
+                bar.appendChild(btn);
+            });
+
+            // 2. SONRA KOZMETİK KATEGORİLERİ
             const kozmetikCats = getUniqueCosmeticCats();
             let sortedCats = [...kozmetikCats].sort();
             
@@ -846,16 +859,6 @@
                 btn.className = 'cat-btn' + (selectedCategory === cat ? ' active' : '');
                 btn.innerText = cat;
                 btn.onclick = () => { selectedCategory = cat; renderCategories(); applyLocalFilter(); };
-                bar.appendChild(btn);
-            });
-
-            const sortedGroups = [...perfumeGroups].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
-            sortedGroups.forEach(g => {
-                const catId = 'perfume_group_' + g.id;
-                const btn = document.createElement('button');
-                btn.className = 'cat-btn' + (selectedCategory === catId ? ' active' : '');
-                btn.innerHTML = `🌸 ${g.label}`;
-                btn.onclick = () => { selectedCategory = catId; renderCategories(); applyLocalFilter(); };
                 bar.appendChild(btn);
             });
         }
@@ -1216,7 +1219,6 @@
             const c = document.getElementById('adminContent');
 
             if (tab === 'prices') {
-                // YENİ FİYAT YÖNETİMİ SEKMESİ
                 const sortedPrices = [...prices].sort((a, b) => {
                     const pA = currentPerfumes.find(x => x.id === a.perfume_id);
                     const pB = currentPerfumes.find(x => x.id === b.perfume_id);
@@ -1266,7 +1268,7 @@
                 }
 
                 c.innerHTML = `
-                    <h3 style="margin-bottom:10px; color:var(--navy);">مجموعات العطور</h3>
+                    <h3 style="margin-bottom:10px; color:var(--navy);">مجموعات العطور (تظهر أولاً في الموقع)</h3>
                     <button class="btn-gold" style="margin-bottom:15px; width:100%; padding:12px;" onclick="openGroupForm()">+ إضافة مجموعة عطور</button>
                     ${sortedGroups.map((g, index) => `
                         <div class="admin-item">
@@ -1282,7 +1284,7 @@
 
                     <hr style="margin: 20px 0; border-color:#ddd;">
 
-                    <h3 style="margin-bottom:10px; color:var(--navy);">أقسام الكوزمتيك</h3>
+                    <h3 style="margin-bottom:10px; color:var(--navy);">أقسام الكوزمتيك (تظهر بعد العطور)</h3>
                     <p style="color:#888; font-size:0.85rem; margin-bottom:15px;">* يتم إنشاء هذه الأقسام تلقائياً من المنتجات المضافة. استخدم الأسهم لتغيير الترتيب.</p>
                     ${sortedCosmeticCats.map((cat, index) => `
                         <div class="admin-item">
@@ -1362,7 +1364,6 @@
             }
         }
 
-        // --- FİYAT KAYDETME FONKSİYONU ---
         async function saveSinglePrice(priceId) {
             const inputVal = document.getElementById(`price-input-${priceId}`).value;
             const newPrice = parseFloat(inputVal);
@@ -1373,7 +1374,6 @@
                 const { error } = await _supabase.from('perfume_prices').update({ price: newPrice }).eq('id', priceId);
                 if (error) throw error;
                 
-                // Güncel veriyi yerel diziye de yansıt
                 const priceObj = prices.find(p => p.id === priceId);
                 if (priceObj) priceObj.price = newPrice;
                 
@@ -1383,7 +1383,6 @@
             }
         }
 
-        // --- SIRALAMA FONKSİYONLARI ---
         async function moveGroup(id, direction) {
             const sortedGroups = [...perfumeGroups].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
             const index = sortedGroups.findIndex(g => g.id === id);
