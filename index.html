@@ -1372,8 +1372,15 @@
             try {
                 const { error } = await _supabase.from('perfumes').update({ active: newState }).eq('id', id);
                 if (error) throw error;
-                await loadAllData();
+                
+                if (!newState) {
+                    currentPerfumes = currentPerfumes.filter(p => String(p.id) !== String(id));
+                } else {
+                    perfume.active = newState;
+                }
+                
                 applyLocalFilter();
+                showToast('تم تحديث حالة العطر');
             } catch (err) { alert('Hata: ' + err.message); }
         }
 
@@ -2656,11 +2663,14 @@
                 
                 if (error) throw error;
                 
-                await loadAllData();
-                applyLocalFilter();
-                if (document.getElementById('adminModal').classList.contains('open')) {
-                    switchAdminTab('products');
+                if (!newState) {
+                    currentProducts = currentProducts.filter(p => String(p.id) !== String(id));
+                } else {
+                    product.active = newState;
                 }
+                
+                applyLocalFilter();
+                showToast('تم تحديث حالة المنتج');
             } catch (err) {
                 alert('Hata: ' + err.message);
             }
