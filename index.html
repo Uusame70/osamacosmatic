@@ -113,8 +113,6 @@
         .perfume-row:hover { border-color: var(--gold); transform: translateX(-4px); box-shadow: var(--shadow-md); }
         .perfume-row .info { cursor: pointer; flex-grow: 1; }
         .perfume-row .info .name { font-weight: 800; font-size: 1.1rem; color: var(--navy); }
-        .perfume-row .arrow-icon { width: 32px; height: 32px; border-radius: 50%; background: var(--cream); color: var(--gold-dark); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; }
-        .perfume-row:hover .arrow-icon { background: var(--gold); color: var(--white); }
 
         .products-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
         .product-card { background: var(--white); border-radius: var(--radius-md); overflow: hidden; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; position: relative; border: 1px solid rgba(212,175,55,0.1); transition: all 0.3s; animation: card-fade 0.3s ease both; }
@@ -851,6 +849,16 @@
             applyLocalFilter();
             updateCartUI();
             hideLoadingScreen();
+
+            // URL'den ürün linki kontrolü (?product=...)
+            const urlParams = new URLSearchParams(window.location.search);
+            const productIdParam = urlParams.get('product');
+            if (productIdParam) {
+                const isCosmetic = currentProducts.find(p => String(p.id) === String(productIdParam));
+                const isPerfume = currentPerfumes.find(p => String(p.id) === String(productIdParam));
+                if (isCosmetic) openProductDetail(productIdParam);
+                else if (isPerfume) openPerfumeDetail(productIdParam);
+            }
         }
 
         window.addEventListener('scroll', function() {
@@ -1126,7 +1134,6 @@
             bar.appendChild(allBtn);
         }
 
-        // İSTEK 1: Arama ve Kategori Mantığı Güncellendi
         function applyLocalFilter() {
             const grid = document.getElementById('productsGrid');
             const list = document.getElementById('perfumesList');
@@ -1136,23 +1143,18 @@
             let showPerfumeHeader = false;
 
             if (searchQuery) {
-                // ARAMA MODU: Kategori ne olursa olsun her yerde ara
                 const q = searchQuery.toLowerCase();
                 filteredCosmetics = currentProducts.filter(p => (p.name_ar || '').toLowerCase().includes(q));
                 filteredPerfumes = currentPerfumes.filter(p => (p.name || '').toLowerCase().includes(q));
                 showPerfumeHeader = true;
 
-                // Parfüm grubunda olsak bile arama yaparken kozmetikleri göster
                 grid.style.display = 'grid';
                 list.style.display = filteredPerfumes.length > 0 ? 'flex' : 'none';
                 list.style.flexDirection = 'column';
                 list.style.gap = '12px';
                 list.style.marginTop = '30px';
-
             } else {
-                // NORMAL GÖZATMA MODU
                 if (typeof selectedCategory === 'string' && selectedCategory.startsWith('perfume_group_')) {
-                    // Sadece seçili parfüm grubunu göster
                     grid.style.display = 'none';
                     list.style.display = 'flex';
                     list.style.flexDirection = 'column';
@@ -1162,22 +1164,28 @@
                     const groupId = parseInt(selectedCategory.replace('perfume_group_', ''));
                     filteredPerfumes = currentPerfumes.filter(p => p.gender_id === groupId);
                     
-                    // Render only perfumes and return
                     filteredPerfumes.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ar'));
                     list.innerHTML = filteredPerfumes.map(p => `
-                        <div class="perfume-row">
-                            <div class="info" onclick="openPerfumeDetail('${p.id}')">
+                        <div class="perfume-row" style="display:flex; justify-content:space-between; align-items:center;">
+                            <div class="info" onclick="openPerfumeDetail('${p.id}')" style="flex:1; cursor:pointer;">
                                 <div class="name">${p.name}</div>
                             </div>
-                            <div class="arrow-icon" onclick="openPerfumeDetail('${p.id}')">
-                                <svg class="icon" viewBox="0 0 24 24" style="width:18px;height:18px;"><polyline points="15 18 9 12 15 6"/></svg>
+                            <div style="display:flex; gap:6px; align-items:center;">
+                                <button onclick="copyProductLink('${p.id}')" title="نسخ الرابط" style="background:#f39c12; color:#fff; padding:8px; border-radius:8px; min-height:38px; min-width:38px;">
+                                    <svg class="icon" viewBox="0 0 24 24" style="margin:0;"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                                </button>
+                                <button onclick="sendProductMessage('${p.id}')" title="مراسلة البائع" style="background:#25d366; color:#fff; padding:8px; border-radius:8px; min-height:38px; min-width:38px;">
+                                    <svg class="icon" viewBox="0 0 24 24" style="margin:0;"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                                </button>
+                                <button onclick="openPerfumeDetail('${p.id}')" style="background:var(--navy); color:var(--gold); padding:8px 16px; border-radius:8px; font-weight:800; min-height:38px;">
+                                    عرض
+                                </button>
                             </div>
                         </div>
                     `).join('');
                     return;
                 }
 
-                // Kozmetikler ve (Tümü seçiliyse) Parfümler
                 grid.style.display = 'grid';
                 list.style.display = 'none';
 
@@ -1202,7 +1210,6 @@
                 }
             }
 
-            // RENDER COSMETICS
             if (filteredCosmetics.length === 0 && filteredPerfumes.length === 0) {
                 grid.innerHTML = `
                     <div class="empty-state" style="grid-column: 1/-1;">
@@ -1238,8 +1245,17 @@
                         `;
                     } else {
                         actionsHtml = `
-                            <div class="admin-actions" style="margin-top:10px;">
-                                <button class="btn-add-cart" style="width:100%;" onclick="addToCart('${p.id}')">إضافة</button>
+                            <div class="admin-actions" style="margin-top:10px; display:flex; gap:6px;">
+                                <button onclick="copyProductLink('${p.id}')" title="نسخ الرابط" style="background:#f39c12; color:#fff; flex:0 0 42px; padding:8px; border-radius:8px; min-height:38px;">
+                                    <svg class="icon" viewBox="0 0 24 24" style="margin:0;"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                                </button>
+                                <button onclick="sendProductMessage('${p.id}')" title="مراسلة البائع" style="background:#25d366; color:#fff; flex:0 0 42px; padding:8px; border-radius:8px; min-height:38px;">
+                                    <svg class="icon" viewBox="0 0 24 24" style="margin:0;"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                                </button>
+                                <button onclick="addToCart('${p.id}')" style="background:#25d366; color:#fff; flex:1; font-weight:800; display:flex; align-items:center; justify-content:center; gap:6px; border-radius:8px; min-height:38px;">
+                                    <svg class="icon" viewBox="0 0 24 24" style="margin:0;"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+                                    إضافة
+                                </button>
                             </div>
                         `;
                     }
@@ -1265,26 +1281,54 @@
                 `}).join('');
             }
 
-            // RENDER PERFUMES
-            if (filteredPerfumes.length > 0) {
+            if (filteredPerfumes.length > 0 && !selectedCategory.startsWith('perfume_group_')) {
                 list.style.display = 'flex';
                 filteredPerfumes.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ar'));
                 
                 let headerHtml = showPerfumeHeader ? `<h3 style="text-align:center; color:var(--navy); margin-bottom: 10px; font-weight: 900; font-size: 1.5rem;">قسم العطور</h3>` : '';
 
                 list.innerHTML = headerHtml + filteredPerfumes.map(p => `
-                    <div class="perfume-row">
-                        <div class="info" onclick="openPerfumeDetail('${p.id}')">
+                    <div class="perfume-row" style="display:flex; justify-content:space-between; align-items:center;">
+                        <div class="info" onclick="openPerfumeDetail('${p.id}')" style="flex:1; cursor:pointer;">
                             <div class="name">${p.name}</div>
                         </div>
-                        <div class="arrow-icon" onclick="openPerfumeDetail('${p.id}')">
-                            <svg class="icon" viewBox="0 0 24 24" style="width:18px;height:18px;"><polyline points="15 18 9 12 15 6"/></svg>
+                        <div style="display:flex; gap:6px; align-items:center;">
+                            <button onclick="copyProductLink('${p.id}')" title="نسخ الرابط" style="background:#f39c12; color:#fff; padding:8px; border-radius:8px; min-height:38px; min-width:38px;">
+                                <svg class="icon" viewBox="0 0 24 24" style="margin:0;"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                            </button>
+                            <button onclick="sendProductMessage('${p.id}')" title="مراسلة البائع" style="background:#25d366; color:#fff; padding:8px; border-radius:8px; min-height:38px; min-width:38px;">
+                                <svg class="icon" viewBox="0 0 24 24" style="margin:0;"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                            </button>
+                            <button onclick="openPerfumeDetail('${p.id}')" style="background:var(--navy); color:var(--gold); padding:8px 16px; border-radius:8px; font-weight:800; min-height:38px;">
+                                عرض
+                            </button>
                         </div>
                     </div>
                 `).join('');
             } else {
-                list.style.display = 'none';
+                if (!selectedCategory.startsWith('perfume_group_')) list.style.display = 'none';
             }
+        }
+
+        function copyProductLink(id) {
+            let url = window.location.origin + '/?product=' + id;
+            navigator.clipboard.writeText(url).then(() => {
+                showToast('✓ تم نسخ رابط المنتج');
+            }).catch(err => {
+                alert('فشل نسخ الرابط: ' + err);
+            });
+        }
+
+        function sendProductMessage(id) {
+            let item = currentProducts.find(x => String(x.id) === String(id));
+            if (!item) item = currentPerfumes.find(x => String(x.id) === String(id));
+            if (!item) return;
+            
+            let name = item.name_ar || item.name;
+            let url = window.location.origin + '/?product=' + id;
+            let msg = `مرحباً، أريد الاستفسار عن هذا المنتج:\n*${name}*\nالرابط: ${url}`;
+            
+            window.open('https://wa.me/' + siteSettings.whatsapp_number.replace(/[^0-9]/g, '') + '?text=' + encodeURIComponent(msg), '_blank');
         }
 
         function openPerfumeDetail(perfumeId) {
