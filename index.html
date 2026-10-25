@@ -140,11 +140,6 @@
         
         .admin-actions { display: flex; gap: 6px; margin-top: 10px; }
         .admin-actions button { flex: 1; padding: 8px 0; border-radius: 8px; font-size: 1rem; display: flex; align-items: center; justify-content: center; }
-        .btn-hide { background: #f39c12; color: #fff; }
-        .btn-edit { background: #f1c40f; color: #fff; }
-        .btn-del { background: #e74c3c; color: #fff; }
-        .btn-wa { background: #25d366; color: #fff; }
-        .btn-add-cart { background: #25d366; color: #fff; font-weight: 800; flex: 2; }
 
         button { cursor: pointer; padding: 10px 14px; border: none; border-radius: var(--radius-sm); background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%); color: var(--white); font-weight: 700; font-size: 0.85rem; touch-action: manipulation; font-family: inherit; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px; }
         button:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(26,41,66,0.2); }
@@ -1165,7 +1160,22 @@
                     filteredPerfumes = currentPerfumes.filter(p => p.gender_id === groupId);
                     
                     filteredPerfumes.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ar'));
-                    list.innerHTML = filteredPerfumes.map(p => `
+                    list.innerHTML = filteredPerfumes.map(p => {
+                        let adminActions = '';
+                        if (isAdmin) {
+                            adminActions = `
+                                <button onclick="togglePerfumeActive('${p.id}')" title="إخفاء/إظهار" style="background:#f39c12; color:#fff; padding:8px; border-radius:8px; min-height:38px; min-width:38px;">
+                                    <svg class="icon" viewBox="0 0 24 24" style="margin:0;"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                                </button>
+                                <button onclick="openPerfumeForm('${p.id}')" title="تعديل" style="background:#f1c40f; color:#fff; padding:8px; border-radius:8px; min-height:38px; min-width:38px;">
+                                    <svg class="icon" viewBox="0 0 24 24" style="margin:0;"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+                                </button>
+                                <button onclick="deletePerfume('${p.id}')" title="حذف" style="background:#e74c3c; color:#fff; padding:8px; border-radius:8px; min-height:38px; min-width:38px;">
+                                    <svg class="icon" viewBox="0 0 24 24" style="margin:0;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                </button>
+                            `;
+                        }
+                        return `
                         <div class="perfume-row" style="display:flex; justify-content:space-between; align-items:center;">
                             <div class="info" onclick="openPerfumeDetail('${p.id}')" style="flex:1; cursor:pointer;">
                                 <div class="name">${p.name}</div>
@@ -1177,12 +1187,13 @@
                                 <button onclick="sendProductMessage('${p.id}')" title="مراسلة البائع" style="background:#25d366; color:#fff; padding:8px; border-radius:8px; min-height:38px; min-width:38px;">
                                     <svg class="icon" viewBox="0 0 24 24" style="margin:0;"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
                                 </button>
+                                ${adminActions}
                                 <button onclick="openPerfumeDetail('${p.id}')" style="background:var(--navy); color:var(--gold); padding:8px 16px; border-radius:8px; font-weight:800; min-height:38px;">
                                     عرض
                                 </button>
                             </div>
                         </div>
-                    `).join('');
+                    `}).join('');
                     return;
                 }
 
@@ -1227,20 +1238,26 @@
 
                     if (isAdmin) {
                         actionsHtml = `
-                            <div class="admin-actions">
-                                <button class="btn-hide" onclick="toggleProductActive('${p.id}', event)" title="إخفاء/إظهار">
+                            <div class="admin-actions" style="margin-top:10px; display:flex; gap:6px; flex-wrap:wrap;">
+                                <button onclick="copyProductLink('${p.id}')" title="نسخ الرابط" style="background:#f39c12; color:#fff; flex:1; padding:8px; border-radius:8px; min-height:38px;">
+                                    <svg class="icon" viewBox="0 0 24 24" style="margin:0;"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                                </button>
+                                <button onclick="sendProductMessage('${p.id}')" title="مراسلة" style="background:#25d366; color:#fff; flex:1; padding:8px; border-radius:8px; min-height:38px;">
+                                    <svg class="icon" viewBox="0 0 24 24" style="margin:0;"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                                </button>
+                                <button onclick="toggleProductActive('${p.id}', event)" title="إخفاء/إظهار" style="background:#f39c12; color:#fff; flex:1; padding:8px; border-radius:8px; min-height:38px;">
                                     <svg class="icon" viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
                                 </button>
-                                <button class="btn-edit" onclick="openProductForm('${p.id}')" title="تعديل">
+                                <button onclick="openProductForm('${p.id}')" title="تعديل" style="background:#f1c40f; color:#fff; flex:1; padding:8px; border-radius:8px; min-height:38px;">
                                     <svg class="icon" viewBox="0 0 24 24"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
                                 </button>
-                                <button class="btn-wa" onclick="shareToWhatsApp('${p.id}')" title="مشاركة">
-                                    <svg class="icon" viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
-                                </button>
-                                <button class="btn-del" onclick="deleteProduct('${p.id}')" title="حذف">
+                                <button onclick="deleteProduct('${p.id}')" title="حذف" style="background:#e74c3c; color:#fff; flex:1; padding:8px; border-radius:8px; min-height:38px;">
                                     <svg class="icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                                 </button>
-                                <button class="btn-add-cart" onclick="addToCart('${p.id}')">إضافة</button>
+                                <button onclick="addToCart('${p.id}')" style="background:#25d366; color:#fff; flex:2; font-weight:800; display:flex; align-items:center; justify-content:center; gap:6px; border-radius:8px; min-height:38px; min-width:100%;">
+                                    <svg class="icon" viewBox="0 0 24 24" style="margin:0;"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+                                    إضافة
+                                </button>
                             </div>
                         `;
                     } else {
@@ -1287,7 +1304,22 @@
                 
                 let headerHtml = showPerfumeHeader ? `<h3 style="text-align:center; color:var(--navy); margin-bottom: 10px; font-weight: 900; font-size: 1.5rem;">قسم العطور</h3>` : '';
 
-                list.innerHTML = headerHtml + filteredPerfumes.map(p => `
+                list.innerHTML = headerHtml + filteredPerfumes.map(p => {
+                    let adminActions = '';
+                    if (isAdmin) {
+                        adminActions = `
+                            <button onclick="togglePerfumeActive('${p.id}')" title="إخفاء/إظهار" style="background:#f39c12; color:#fff; padding:8px; border-radius:8px; min-height:38px; min-width:38px;">
+                                <svg class="icon" viewBox="0 0 24 24" style="margin:0;"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                            </button>
+                            <button onclick="openPerfumeForm('${p.id}')" title="تعديل" style="background:#f1c40f; color:#fff; padding:8px; border-radius:8px; min-height:38px; min-width:38px;">
+                                <svg class="icon" viewBox="0 0 24 24" style="margin:0;"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+                            </button>
+                            <button onclick="deletePerfume('${p.id}')" title="حذف" style="background:#e74c3c; color:#fff; padding:8px; border-radius:8px; min-height:38px; min-width:38px;">
+                                <svg class="icon" viewBox="0 0 24 24" style="margin:0;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                            </button>
+                        `;
+                    }
+                    return `
                     <div class="perfume-row" style="display:flex; justify-content:space-between; align-items:center;">
                         <div class="info" onclick="openPerfumeDetail('${p.id}')" style="flex:1; cursor:pointer;">
                             <div class="name">${p.name}</div>
@@ -1299,12 +1331,13 @@
                             <button onclick="sendProductMessage('${p.id}')" title="مراسلة البائع" style="background:#25d366; color:#fff; padding:8px; border-radius:8px; min-height:38px; min-width:38px;">
                                 <svg class="icon" viewBox="0 0 24 24" style="margin:0;"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
                             </button>
+                            ${adminActions}
                             <button onclick="openPerfumeDetail('${p.id}')" style="background:var(--navy); color:var(--gold); padding:8px 16px; border-radius:8px; font-weight:800; min-height:38px;">
                                 عرض
                             </button>
                         </div>
                     </div>
-                `).join('');
+                `}).join('');
             } else {
                 if (!selectedCategory.startsWith('perfume_group_')) list.style.display = 'none';
             }
@@ -1329,6 +1362,19 @@
             let msg = `مرحباً، أريد الاستفسار عن هذا المنتج:\n*${name}*\nالرابط: ${url}`;
             
             window.open('https://wa.me/' + siteSettings.whatsapp_number.replace(/[^0-9]/g, '') + '?text=' + encodeURIComponent(msg), '_blank');
+        }
+
+        async function togglePerfumeActive(id) {
+            if (!confirm('تغيير حالة ظهور العطر؟')) return;
+            const perfume = currentPerfumes.find(p => String(p.id) === String(id));
+            if (!perfume) return;
+            const newState = perfume.active !== false ? false : true;
+            try {
+                const { error } = await _supabase.from('perfumes').update({ active: newState }).eq('id', id);
+                if (error) throw error;
+                await loadAllData();
+                applyLocalFilter();
+            } catch (err) { alert('Hata: ' + err.message); }
         }
 
         function openPerfumeDetail(perfumeId) {
