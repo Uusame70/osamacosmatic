@@ -1137,10 +1137,14 @@
             let filteredPerfumes = [];
             let showPerfumeHeader = false;
 
+            // SADECE AKTİF (GİZLİ OLMAYAN) ÜRÜNLERİ FİLTRELE
+            const activeCosmetics = currentProducts.filter(p => p.active !== false);
+            const activePerfumes = currentPerfumes.filter(p => p.active !== false);
+
             if (searchQuery) {
                 const q = searchQuery.toLowerCase();
-                filteredCosmetics = currentProducts.filter(p => (p.name_ar || '').toLowerCase().includes(q));
-                filteredPerfumes = currentPerfumes.filter(p => (p.name || '').toLowerCase().includes(q));
+                filteredCosmetics = activeCosmetics.filter(p => (p.name_ar || '').toLowerCase().includes(q));
+                filteredPerfumes = activePerfumes.filter(p => (p.name || '').toLowerCase().includes(q));
                 showPerfumeHeader = true;
 
                 grid.style.display = 'grid';
@@ -1157,28 +1161,13 @@
                     list.style.marginTop = '0';
 
                     const groupId = parseInt(selectedCategory.replace('perfume_group_', ''));
-                    filteredPerfumes = currentPerfumes.filter(p => p.gender_id === groupId);
+                    filteredPerfumes = activePerfumes.filter(p => p.gender_id === groupId);
                     
                     filteredPerfumes.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ar'));
-                    list.innerHTML = filteredPerfumes.map(p => {
-                        let adminActions = '';
-                        if (isAdmin) {
-                            adminActions = `
-                                <button onclick="togglePerfumeActive('${p.id}')" title="إخفاء/إظهار" style="background:${p.active !== false ? '#f39c12' : '#27ae60'}; color:#fff; padding:8px; border-radius:8px; min-height:38px; min-width:38px;">
-                                    <svg class="icon" viewBox="0 0 24 24" style="margin:0;"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
-                                </button>
-                                <button onclick="openPerfumeForm('${p.id}')" title="تعديل" style="background:#f1c40f; color:#fff; padding:8px; border-radius:8px; min-height:38px; min-width:38px;">
-                                    <svg class="icon" viewBox="0 0 24 24" style="margin:0;"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
-                                </button>
-                                <button onclick="deletePerfume('${p.id}')" title="حذف" style="background:#e74c3c; color:#fff; padding:8px; border-radius:8px; min-height:38px; min-width:38px;">
-                                    <svg class="icon" viewBox="0 0 24 24" style="margin:0;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                                </button>
-                            `;
-                        }
-                        return `
-                        <div class="perfume-row" style="display:flex; justify-content:space-between; align-items:center; ${p.active === false ? 'opacity:0.6; border-color:#ccc;' : ''}">
+                    list.innerHTML = filteredPerfumes.map(p => `
+                        <div class="perfume-row" style="display:flex; justify-content:space-between; align-items:center;">
                             <div class="info" onclick="openPerfumeDetail('${p.id}')" style="flex:1; cursor:pointer;">
-                                <div class="name">${p.name} ${p.active === false ? '(مخفي)' : ''}</div>
+                                <div class="name">${p.name}</div>
                             </div>
                             <div style="display:flex; gap:6px; align-items:center;">
                                 <button onclick="copyProductLink('${p.id}')" title="نسخ الرابط" style="background:#f39c12; color:#fff; padding:8px; border-radius:8px; min-height:38px; min-width:38px;">
@@ -1187,20 +1176,19 @@
                                 <button onclick="sendProductMessage('${p.id}')" title="مراسلة البائع" style="background:#25d366; color:#fff; padding:8px; border-radius:8px; min-height:38px; min-width:38px;">
                                     <svg class="icon" viewBox="0 0 24 24" style="margin:0;"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
                                 </button>
-                                ${adminActions}
                                 <button onclick="openPerfumeDetail('${p.id}')" style="background:var(--navy); color:var(--gold); padding:8px 16px; border-radius:8px; font-weight:800; min-height:38px;">
                                     عرض
                                 </button>
                             </div>
                         </div>
-                    `}).join('');
+                    `).join('');
                     return;
                 }
 
                 grid.style.display = 'grid';
                 list.style.display = 'none';
 
-                filteredCosmetics = currentProducts;
+                filteredCosmetics = activeCosmetics;
                 if (selectedCategory !== 'ALL') {
                     filteredCosmetics = filteredCosmetics.filter(p => {
                         if (!p.category) return false;
@@ -1210,7 +1198,7 @@
                 }
 
                 if (selectedCategory === 'ALL') {
-                    filteredPerfumes = currentPerfumes;
+                    filteredPerfumes = activePerfumes;
                     if (filteredPerfumes.length > 0) {
                         list.style.display = 'flex';
                         list.style.flexDirection = 'column';
@@ -1281,9 +1269,8 @@
                     const discountPercent = hasDiscount ? Math.round(((p.original_price - p.price) / p.original_price) * 100) : 0;
 
                     return `
-                    <div class="product-card" style="${p.active === false ? 'opacity:0.6; border-color:#ccc;' : ''}">
+                    <div class="product-card">
                         ${hasDiscount ? `<div class="discount-badge">-%${discountPercent}</div>` : ''}
-                        ${p.active === false ? `<div style="position:absolute; top:10px; right:10px; background:#e74c3c; color:#fff; padding:4px 8px; border-radius:8px; font-size:0.7rem; font-weight:bold; z-index:3;">مخفي</div>` : ''}
                         <img src="${imgSrc}" onclick="openProductDetail('${p.id}')" loading="lazy" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22200%22><rect width=%22300%22 height=%22200%22 fill=%22%23f8fafc%22/><text x=%2250%25%22 y=%2250%25%22 fill=%22%23D4AF37%22 font-family=%22sans-serif%22 font-size=%2216%22 font-weight=%22bold%22 text-anchor=%22middle%22 dy=%22.3em%22>لا صورة</text></svg>'">
                         <div class="product-info">
                             <div>
@@ -1321,9 +1308,9 @@
                         `;
                     }
                     return `
-                    <div class="perfume-row" style="display:flex; justify-content:space-between; align-items:center; ${p.active === false ? 'opacity:0.6; border-color:#ccc;' : ''}">
+                    <div class="perfume-row" style="display:flex; justify-content:space-between; align-items:center;">
                         <div class="info" onclick="openPerfumeDetail('${p.id}')" style="flex:1; cursor:pointer;">
-                            <div class="name">${p.name} ${p.active === false ? '(مخفي)' : ''}</div>
+                            <div class="name">${p.name}</div>
                         </div>
                         <div style="display:flex; gap:6px; align-items:center;">
                             <button onclick="copyProductLink('${p.id}')" title="نسخ الرابط" style="background:#f39c12; color:#fff; padding:8px; border-radius:8px; min-height:38px; min-width:38px;">
@@ -1374,11 +1361,11 @@
                 const { error } = await _supabase.from('perfumes').update({ active: newState }).eq('id', id);
                 if (error) throw error;
                 
-                perfume.active = newState; // Sadece durumu güncelle, diziden silme!
+                perfume.active = newState;
                 
-                applyLocalFilter(); // Mağaza vitrinini güncelle
+                applyLocalFilter();
                 if (document.getElementById('adminModal').classList.contains('open')) {
-                    switchAdminTab('perfumes'); // Admin panelini güncelle
+                    switchAdminTab('perfumes');
                 }
                 showToast('تم تحديث حالة العطر');
             } catch (err) { alert('Hata: ' + err.message); }
@@ -2666,9 +2653,9 @@
                 
                 if (error) throw error;
                 
-                product.active = newState; // Sadece durumu güncelle, diziden silme!
+                product.active = newState; // Sadece durumu güncelle
                 
-                applyLocalFilter(); // Mağaza vitrinini güncelle
+                applyLocalFilter(); // Ana sayfayı güncelle
                 if (document.getElementById('adminModal').classList.contains('open')) {
                     switchAdminTab('products'); // Admin panelini güncelle
                 }
