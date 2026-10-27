@@ -51,10 +51,14 @@
 
         /* --- ŞIK YÜKLENİYOR EKRANI --- */
         #loadingScreen { position: fixed; inset: 0; background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; transition: opacity 0.5s ease; }
-        .loader-container { display: flex; flex-direction: column; align-items: center; gap: 24px; }
+        .loader-container { display: flex; flex-direction: column; align-items: center; gap: 20px; }
         .double-ring { width: 70px; height: 70px; border-radius: 50%; border: 3px solid transparent; border-top-color: var(--gold); border-bottom-color: var(--gold-light); animation: spin 1.5s linear infinite; position: relative; }
         .double-ring::after { content: ''; position: absolute; inset: 6px; border-radius: 50%; border: 3px solid transparent; border-left-color: var(--sky); border-right-color: var(--sky-light); animation: spin-reverse 1s linear infinite; }
-        .loading-text { font-size: 1.3rem; color: var(--gold); font-weight: 800; letter-spacing: 1.5px; animation: pulse-text 1.5s ease-in-out infinite; text-shadow: 0 2px 10px rgba(212,175,55,0.2); }
+        
+        .loading-text { font-size: 1.4rem; color: var(--gold); font-weight: 800; letter-spacing: 1.5px; animation: pulse-text 1.5s ease-in-out infinite; text-shadow: 0 2px 10px rgba(212,175,55,0.2); }
+        /* YENİ EKLENEN ALT YAZI */
+        .loading-subtext { font-size: 0.95rem; color: var(--sky-light); font-weight: 500; animation: pulse-text 2s ease-in-out infinite; text-align: center; margin-top: 5px; }
+
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes spin-reverse { to { transform: rotate(-360deg); } }
         @keyframes pulse-text { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.7; transform: scale(0.96); } }
@@ -371,6 +375,7 @@
         <div class="loader-container">
             <div class="double-ring"></div>
             <div class="loading-text">جاري تحميل الكتالوج</div>
+            <div class="loading-subtext">هذا قد يستغرق بعض الوقت، يرجى الانتظار...</div>
         </div>
     </div>
 
@@ -2322,17 +2327,20 @@
             if (!confirm('هل أنت متأكد من تصفير جميع الإحصائيات؟ لا يمكن التراجع عن هذا الإجراء.')) return;
 
             try {
-                const { error } = await _supabase
-                    .from('site_analytics')
-                    .delete()
-                    .neq('event_type', 'xyz'); 
+                // Hızlı ve log şişirmeyen TRUNCATE fonksiyonunu çağırıyoruz
+                const { error } = await _supabase.rpc('truncate_analytics');
+                
+                if (error) {
+                    // Eğer RPC yoksa (kullanıcı SQL'i çalıştırmadıysa) eski yönteme dön
+                    console.warn("RPC bulunamadı, eski yöntemle siliniyor. Lütfen SQL kodunu çalıştırın.", error);
+                    const { error: deleteError } = await _supabase.from('site_analytics').delete().neq('event_type', 'xyz');
+                    if (deleteError) throw deleteError;
+                }
 
-                if (error) throw error;
-
-                showToast('تم تصفير جميع الإحصائيات');
+                showToast('تم تصفير جميع الإحصائيات بنجاح');
                 loadAnalyticsTab(); 
             } catch (err) {
-                alert('Hata: ' + err.message);
+                alert('Hata: ' + err.message + '\n\nLütfen Supabase SQL Editöründe gerekli fonksiyonu oluşturduğunuzdan emin olun.');
             }
         }
 
@@ -2703,11 +2711,22 @@
         }
 
         async function deleteGroup(id) {
-            if (!confirm('تأكيد الحذف؟')) return;
-            await _supabase.from('categories').delete().eq('id', id);
-            await loadAllData();
-            renderCategories();
-            switchAdminTab('groups');
+            if (!confirm('تأكيد حذف المجموعة؟')) return;
+            
+            // Grupta parfüm var mı kontrol et
+            const perfumesInGroup = currentPerfumes.filter(p => String(p.gender_id) === String(id));
+            if (perfumesInGroup.length > 0) {
+                alert(`لا يمكن حذف هذه المجموعة لأنها تحتوي على ${perfumesInGroup.length} عطر.\n\nيرجى حذف العطور أو نقلها إلى مجموعة أخرى أولاً.`);
+                return;
+            }
+
+            try {
+                await _supabase.from('categories').delete().eq('id', id);
+                await loadAllData();
+                renderCategories();
+                switchAdminTab('groups');
+                showToast('تم حذف المجموعة بنجاح');
+            } catch (err) { alert('Hata: ' + err.message); }
         }
 
         async function openProductForm(id = null) {
@@ -2877,6 +2896,3 @@
     </script>
 </body>
 </html>
-
-
-
