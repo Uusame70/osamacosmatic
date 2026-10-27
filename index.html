@@ -56,7 +56,6 @@
         .double-ring::after { content: ''; position: absolute; inset: 6px; border-radius: 50%; border: 3px solid transparent; border-left-color: var(--sky); border-right-color: var(--sky-light); animation: spin-reverse 1s linear infinite; }
         
         .loading-text { font-size: 1.4rem; color: var(--gold); font-weight: 800; letter-spacing: 1.5px; animation: pulse-text 1.5s ease-in-out infinite; text-shadow: 0 2px 10px rgba(212,175,55,0.2); }
-        /* YENİ EKLENEN ALT YAZI */
         .loading-subtext { font-size: 0.95rem; color: var(--sky-light); font-weight: 500; animation: pulse-text 2s ease-in-out infinite; text-align: center; margin-top: 5px; }
 
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -539,10 +538,8 @@
                 <button class="admin-tab active" onclick="switchAdminTab('products', this)">إدارة المنتجات</button>
                 <button class="admin-tab" onclick="switchAdminTab('perfumes', this)">العطور</button>
                 <button class="admin-tab" onclick="switchAdminTab('price_tags', this)">شارة السعر (Toplu Fiyat)</button>
-                <button class="admin-tab" onclick="switchAdminTab('groups', this)">الترتيب والأقسام</button>
                 <button class="admin-tab" onclick="switchAdminTab('bottles', this)">الزجاجات</button>
                 <button class="admin-tab" onclick="switchAdminTab('settings', this)">الإعدادات</button>
-                <button class="admin-tab" onclick="switchAdminTab('analytics', this)">التحليلات (Analytics)</button>
             </div>
             <div id="adminContent"></div>
         </div>
@@ -697,7 +694,6 @@
             logo_url: '', slider_images: [], hero_title: 'متجر ميار للتسوق', 
             hero_subtitle: 'جمالك يبدأ من هنا', free_shipping_text: 'احصل على شحن مجاني عند طلبك بقيمة 800 وأكثر', 
             free_shipping_min: 800, whatsapp_number: '905388444275',
-            custom_categories_order: [],
             pricing_lists: []
         };
         
@@ -837,12 +833,6 @@
                 if (isAdmin) document.getElementById('adminBar').style.display = 'flex';
             }
 
-            let deviceType = 'Desktop';
-            if (/Mobi|Android/i.test(navigator.userAgent)) deviceType = 'Mobile';
-            else if (/Tablet|iPad/i.test(navigator.userAgent)) deviceType = 'Tablet';
-            
-            trackEvent('visit', null, deviceType);
-
             await loadSiteSettings(); 
             await loadAllData();
             renderCategories();
@@ -873,18 +863,6 @@
         document.getElementById('scrollTopBtn')?.addEventListener('click', function() {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
-
-        async function trackEvent(type, productId = null, deviceType = null) {
-            if (!_supabase) return;
-            try {
-                await _supabase.from('site_analytics').insert([{
-                    event_type: type,
-                    product_id: productId,
-                    device_type: deviceType,
-                    device_id: deviceId
-                }]);
-            } catch(e) { console.warn('Analiz kaydı başarısız', e); }
-        }
 
         function togglePasswordVisibility() {
             const inp = document.getElementById('login-password');
@@ -949,7 +927,6 @@
                     siteSettings.free_shipping_min = parseFloat(data.free_shipping_min) || 800;
                     siteSettings.whatsapp_number = data.whatsapp_number || '905388444275';
                     siteSettings.slider_images = Array.isArray(data.slider_images) ? data.slider_images : [];
-                    siteSettings.custom_categories_order = Array.isArray(data.custom_categories_order) ? data.custom_categories_order : [];
                     
                     if (data.pricing_lists && Array.isArray(data.pricing_lists)) {
                         siteSettings.pricing_lists = data.pricing_lists;
@@ -1055,7 +1032,7 @@
             if (_supabase) {
                 const [pGroups, pItems, pIntensities, pBottles, pPrices] = await Promise.all([
                     _supabase.from('categories').select('*').eq('type', 'gender').eq('active', true).order('sort_order'),
-                    _supabase.from('perfumes').select('*'), // Tümünü çek
+                    _supabase.from('perfumes').select('*'),
                     _supabase.from('perfume_intensities').select('*').eq('active', true).order('sort_order'),
                     _supabase.from('perfume_bottles').select('*').eq('active', true).order('sort_order'),
                     _supabase.from('perfume_prices').select('*')
@@ -1099,16 +1076,8 @@
             bar.innerHTML = '';
 
             let unifiedCats = getAllCategoriesUnified();
-            const customOrder = siteSettings.custom_categories_order || [];
 
-            unifiedCats.sort((a, b) => {
-                let idxA = customOrder.indexOf(a.id);
-                let idxB = customOrder.indexOf(b.id);
-                if (idxA === -1) idxA = 99999;
-                if (idxB === -1) idxB = 99999;
-                return idxA - idxB;
-            });
-
+            // Özel sıralama kaldırıldı, doğrudan listeleniyor
             unifiedCats.forEach(item => {
                 const btn = document.createElement('button');
                 const isSelected = (item.type === 'perfume_group' && selectedCategory === 'perfume_group_' + item.originalId) ||
@@ -1142,7 +1111,6 @@
             let filteredPerfumes = [];
             let showPerfumeHeader = false;
 
-            // SADECE AKTİF (GİZLİ OLMAYAN) ÜRÜNLERİ FİLTRELE
             const activeCosmetics = currentProducts.filter(p => p.active !== false);
             const activePerfumes = currentPerfumes.filter(p => p.active !== false);
 
@@ -1380,8 +1348,6 @@
             const p = currentPerfumes.find(x => String(x.id) === String(perfumeId));
             if (!p) return;
 
-            trackEvent('product_view', p.id);
-
             currentPerfumeSelection = { intensityId: null, bottleId: null, perfumeId: p.id };
 
             document.getElementById('pd-name').innerText = p.name;
@@ -1475,8 +1441,6 @@
             const p = currentProducts.find(x => String(x.id) === String(id));
             if (!p) return;
             
-            trackEvent('product_view', p.id);
-
             document.getElementById('detail-img').src = imageUrl(p.img);
             document.getElementById('detail-img').onerror = function() { this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22200%22><rect width=%22300%22 height=%22200%22 fill=%22%23f8fafc%22/></svg>'; };
             document.getElementById('detail-title').innerText = p.name_ar;
@@ -1919,40 +1883,25 @@
 
             if (tab === 'price_tags') {
                 renderPriceTagsTab();
-            } else if (tab === 'groups') {
-                let unifiedCats = getAllCategoriesUnified();
-                const customOrder = siteSettings.custom_categories_order || [];
-
-                unifiedCats.sort((a, b) => {
-                    let idxA = customOrder.indexOf(a.id);
-                    let idxB = customOrder.indexOf(b.id);
-                    if (idxA === -1) idxA = 99999;
-                    if (idxB === -1) idxB = 99999;
-                    return idxA - idxB;
-                });
-
-                c.innerHTML = `
-                    <h3 style="margin-bottom:10px; color:var(--navy);">ترتيب الأقسام (جميع الأقسام)</h3>
-                    <p style="color:#888; font-size:0.85rem; margin-bottom:15px;">يمكنك خلط وترتيب جميع الأقسام (عطور وأخرى) كما تشاء.</p>
-                    ${unifiedCats.map((item, index) => `
-                        <div class="admin-item">
-                            <strong>${item.type === 'perfume_group' ? `<svg class="icon" viewBox="0 0 24 24" style="color:#e91e63;"><path d="M12 2a3 3 0 0 0-3 3c0 1.3.8 2.4 2 2.8V10h2V7.8c1.2-.4 2-1.5 2-2.8a3 3 0 0 0-3-3z"/><path d="M12 22a3 3 0 0 0 3-3c0-1.3-.8-2.4-2-2.8V14h-2v2.2c-1.2.4-2 1.5-2 2.8a3 3 0 0 0 3 3z"/><path d="M5.5 5.5a3 3 0 0 0-3 3c0 1.3.8 2.4 2 2.8V13h2v-1.7c1.2-.4 2-1.5 2-2.8a3 3 0 0 0-3-3z"/><path d="M18.5 18.5a3 3 0 0 0 3-3c0-1.3-.8-2.4-2-2.8V11h-2v1.7c-1.2.4-2 1.5-2 2.8a3 3 0 0 0 3 3z"/><circle cx="12" cy="12" r="2.5"/></svg>` : ''} ${item.label}</strong>
-                            <div style="display:flex; gap:5px; align-items:center;">
-                                ${index > 0 ? `<button class="btn-gold" onclick="moveCategory('${item.id}', -1)" style="padding:6px 10px; font-weight:bold;"><svg class="icon" viewBox="0 0 24 24"><path d="m18 15-6-6-6 6"/></svg></button>` : ''}
-                                ${index < unifiedCats.length - 1 ? `<button class="btn-gold" onclick="moveCategory('${item.id}', 1)" style="padding:6px 10px; font-weight:bold;"><svg class="icon" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button>` : ''}
-                                ${item.type === 'perfume_group' ? `
-                                    <button class="btn-gold" onclick="openGroupForm('${item.originalId}')" style="padding:6px 10px; margin-right:10px;"><svg class="icon" viewBox="0 0 24 24"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg></button>
-                                    <button class="btn-danger" onclick="deleteGroup('${item.originalId}')" style="padding:6px 10px;"><svg class="icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
-                                ` : ''}
-                            </div>
-                        </div>
-                    `).join('')}
-                    <hr style="margin: 20px 0; border-color:#ddd;">
-                    <button class="btn-gold" style="margin-bottom:15px; width:100%; padding:12px;" onclick="openGroupForm()">+ إضافة مجموعة عطور جديدة</button>
-                `;
             } else if (tab === 'perfumes') {
                 const sortedPerfumes = [...currentPerfumes].sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ar'));
+                const sortedGroups = [...perfumeGroups].sort((a, b) => (a.label || '').localeCompare(b.label || '', 'ar'));
+                
                 c.innerHTML = `
+                    <!-- GRUP YÖNETİMİ BURAYA TAŞINDI -->
+                    <div style="background:#faf8f3; padding:15px; border-radius:10px; margin-bottom:20px; border:1px solid #e0dcd0;">
+                        <h3 style="margin-bottom:10px; color:var(--navy);">إدارة المجموعات (رجالي، نسائي...)</h3>
+                        <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
+                            ${sortedGroups.map(g => `
+                                <div style="background:#fff; padding:6px 12px; border-radius:20px; border:1px solid #ddd; display:flex; align-items:center; gap:8px; box-shadow:var(--shadow-sm);">
+                                    <span style="font-weight:700; font-size:0.9rem;">${g.label}</span>
+                                    <button onclick="deleteGroup('${g.id}')" class="btn-danger" style="padding:0; min-height:24px; width:24px; font-size:0.8rem; border-radius:50%;">✕</button>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <button class="btn-gold" style="padding:6px 12px; font-size:0.8rem;" onclick="openGroupForm()">+ إضافة مجموعة جديدة</button>
+                    </div>
+
                     <button class="btn-gold" style="margin-bottom:15px; width:100%; padding:12px;" onclick="openPerfumeForm()">+ إضافة عطر جديد</button>
                     <p style="color:#888; text-align:center; margin-bottom:15px;">قائمة العطور الحالية (مرتبة أبجدياً)</p>
                     ${sortedPerfumes.map(p => `
@@ -2030,37 +1979,7 @@
                 `;
             } else if (tab === 'settings') {
                 c.innerHTML = renderSettingsTab();
-            } else if (tab === 'analytics') {
-                loadAnalyticsTab();
             }
-        }
-
-        async function moveCategory(id, direction) {
-            let currentOrder = siteSettings.custom_categories_order || [];
-            const allCats = getAllCategoriesUnified().map(item => item.id);
-
-            if (currentOrder.length === 0) {
-                currentOrder = [...allCats];
-            }
-            allCats.forEach(cId => {
-                if (!currentOrder.includes(cId)) currentOrder.push(cId);
-            });
-
-            const index = currentOrder.indexOf(id);
-            if (index === -1) return;
-
-            const targetIndex = index + direction;
-            if (targetIndex < 0 || targetIndex >= currentOrder.length) return;
-
-            [currentOrder[index], currentOrder[targetIndex]] = [currentOrder[targetIndex], currentOrder[index]];
-
-            try {
-                const { error } = await _supabase.from('site_settings').update({ custom_categories_order: currentOrder }).eq('id', 1);
-                if (error) throw error;
-                siteSettings.custom_categories_order = currentOrder;
-                switchAdminTab('groups');
-                renderCategories();
-            } catch(err) { alert('Hata: ' + err.message); }
         }
 
         function openPerfumeForm(id = null) {
@@ -2323,175 +2242,6 @@
             } catch (err) { alert('Hata: ' + err.message); }
         }
 
-        async function resetAnalytics() {
-            if (!confirm('هل أنت متأكد من تصفير جميع الإحصائيات؟ لا يمكن التراجع عن هذا الإجراء.')) return;
-
-            try {
-                // Hızlı ve log şişirmeyen TRUNCATE fonksiyonunu çağırıyoruz
-                const { error } = await _supabase.rpc('truncate_analytics');
-                
-                if (error) {
-                    // Eğer RPC yoksa (kullanıcı SQL'i çalıştırmadıysa) eski yönteme dön
-                    console.warn("RPC bulunamadı, eski yöntemle siliniyor. Lütfen SQL kodunu çalıştırın.", error);
-                    const { error: deleteError } = await _supabase.from('site_analytics').delete().neq('event_type', 'xyz');
-                    if (deleteError) throw deleteError;
-                }
-
-                showToast('تم تصفير جميع الإحصائيات بنجاح');
-                loadAnalyticsTab(); 
-            } catch (err) {
-                alert('Hata: ' + err.message + '\n\nLütfen Supabase SQL Editöründe gerekli fonksiyonu oluşturduğunuzdan emin olun.');
-            }
-        }
-
-        async function loadAnalyticsTab() {
-            const c = document.getElementById('adminContent');
-            c.innerHTML = '<div style="text-align:center; padding:30px; color:#888;">جاري التحميل...</div>';
-            
-            try {
-                const { data: analytics, error } = await _supabase
-                    .from('site_analytics')
-                    .select('*')
-                    .order('created_at', { ascending: false })
-                    .limit(5000); 
-
-                if (error) throw error;
-
-                const now = new Date();
-                const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-                const dayOfWeek = now.getDay();
-                const diffToMonday = (dayOfWeek === 0 ? 7 : dayOfWeek) - 1;
-                const weekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - diffToMonday).getTime();
-                const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
-
-                let totalVisits = 0;
-                let dailyDevices = new Set();
-                let weeklyDevices = new Set();
-                let monthlyDevices = new Set();
-                let totalUniqueDevices = new Set();
-                let productViews = {};
-                let totalProductViews = 0;
-                let deviceStats = { Mobile: 0, Desktop: 0, Tablet: 0 };
-
-                analytics.forEach(item => {
-                    if (item.event_type === 'visit') {
-                        totalVisits++;
-                        const itemTime = new Date(item.created_at).getTime();
-                        if (item.device_id) {
-                            totalUniqueDevices.add(item.device_id);
-                            if (itemTime >= todayStart) dailyDevices.add(item.device_id);
-                            if (itemTime >= weekStart) weeklyDevices.add(item.device_id);
-                            if (itemTime >= monthStart) monthlyDevices.add(item.device_id);
-                        }
-                        if (item.device_type && deviceStats[item.device_type] !== undefined) {
-                            deviceStats[item.device_type]++;
-                        }
-                    }
-                    else if (item.event_type === 'product_view') {
-                        totalProductViews++;
-                        productViews[item.product_id] = (productViews[item.product_id] || 0) + 1;
-                    }
-                });
-
-                const topProducts = Object.entries(productViews)
-                    .sort((a, b) => b[1] - a[1])
-                    .slice(0, 5);
-
-                const getProductName = (id) => {
-                    const k = currentProducts.find(p => String(p.id) === String(id));
-                    if (k) return k.name_ar;
-                    const p = currentPerfumes.find(x => String(x.id) === String(id));
-                    if (p) return p.name;
-                    return 'منتج محذوف';
-                };
-
-                let html = `
-                    <button class="btn-danger" style="margin-bottom: 20px; width: 100%; padding: 12px; font-size: 1rem;" onclick="resetAnalytics()">
-                        <svg class="icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> تصفير جميع الإحصائيات
-                    </button>
-                    
-                    <div class="stats-grid">
-                        <div class="stat-box">
-                            <h3>إجمالي الزيارات</h3>
-                            <div class="number">${totalVisits}</div>
-                        </div>
-                        <div class="stat-box" style="background: linear-gradient(135deg, var(--gold-dark), var(--gold));">
-                            <h3>مشاهدات المنتجات</h3>
-                            <div class="number">${totalProductViews}</div>
-                        </div>
-                    </div>
-
-                    <h3 style="color:var(--navy); font-weight:800; margin-bottom:15px; margin-top:30px; display:flex; align-items:center; gap:8px;">
-                        <svg class="icon" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg> الأجهزة الفريدة
-                    </h3>
-                    <div style="background:#faf8f3; padding:15px; border-radius:10px; margin-bottom:20px; display:grid; grid-template-columns:1fr 1fr; gap:15px; text-align:center;">
-                        <div style="background:#fff; padding:10px; border-radius:8px; border:1px solid #ddd;">
-                            <span style="font-size:0.8rem; color:#888;">اليوم</span><br>
-                            <strong style="font-size:1.3rem; color:var(--navy);">${dailyDevices.size}</strong>
-                        </div>
-                        <div style="background:#fff; padding:10px; border-radius:8px; border:1px solid #ddd;">
-                            <span style="font-size:0.8rem; color:#888;">هذا الأسبوع</span><br>
-                            <strong style="font-size:1.3rem; color:var(--navy);">${weeklyDevices.size}</strong>
-                        </div>
-                        <div style="background:#fff; padding:10px; border-radius:8px; border:1px solid #ddd;">
-                            <span style="font-size:0.8rem; color:#888;">هذا الشهر</span><br>
-                            <strong style="font-size:1.3rem; color:var(--navy);">${monthlyDevices.size}</strong>
-                        </div>
-                        <div style="background:#fff; padding:10px; border-radius:8px; border:1px solid #ddd;">
-                            <span style="font-size:0.8rem; color:#888;">الإجمالي</span><br>
-                            <strong style="font-size:1.3rem; color:var(--gold-dark);">${totalUniqueDevices.size}</strong>
-                        </div>
-                    </div>
-
-                    <h3 style="color:var(--navy); font-weight:800; margin-bottom:15px; margin-top:20px; display:flex; align-items:center; gap:8px;">
-                        <svg class="icon" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg> الأجهزة المستخدمة
-                    </h3>
-                    <div style="display:flex; justify-content:space-between; background:#faf8f3; padding:15px; border-radius:10px; margin-bottom:20px;">
-                        <div style="text-align:center;">
-                            <svg class="icon" viewBox="0 0 24 24" style="width:2rem;height:2rem;color:var(--navy);margin-bottom:5px;"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg><br>
-                            <strong>هاتف</strong><br>${deviceStats.Mobile}
-                        </div>
-                        <div style="text-align:center;">
-                            <svg class="icon" viewBox="0 0 24 24" style="width:2rem;height:2rem;color:var(--navy);margin-bottom:5px;"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg><br>
-                            <strong>كمبيوتر</strong><br>${deviceStats.Desktop}
-                        </div>
-                        <div style="text-align:center;">
-                            <svg class="icon" viewBox="0 0 24 24" style="width:2rem;height:2rem;color:var(--navy);margin-bottom:5px;"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/></svg><br>
-                            <strong>تابلت</strong><br>${deviceStats.Tablet}
-                        </div>
-                    </div>
-
-                    <h3 style="color:var(--navy); font-weight:800; margin-bottom:15px; margin-top:30px; display:flex; align-items:center; gap:8px;">
-                        <svg class="icon" viewBox="0 0 24 24" style="color:var(--danger);"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg> الأكثر مشاهدة
-                    </h3>
-                `;
-
-                if (topProducts.length === 0) {
-                    html += `<p style="text-align:center; color:#888;">لا توجد بيانات كافية بعد.</p>`;
-                } else {
-                    topProducts.forEach(([pid, count], index) => {
-                        const name = getProductName(pid);
-                        let rankColor = index === 0 ? 'var(--gold)' : index === 1 ? '#bdc3c7' : index === 2 ? '#cd7f32' : '#eee';
-                        html += `
-                            <div class="admin-item" style="border-right: 5px solid ${rankColor};">
-                                <div style="display:flex; align-items:center; gap:10px;">
-                                    <span style="font-weight:900; color:${rankColor}; font-size:1.2rem;">#${index+1}</span>
-                                    <strong>${name}</strong>
-                                </div>
-                                <div style="font-weight:900; color:var(--navy);">${count} <span style="font-size:0.8rem; font-weight:normal;">مشاهدة</span></div>
-                            </div>
-                        `;
-                    });
-                }
-
-                html += `<p style="text-align:center; color:#aaa; font-size:0.8rem; margin-top:20px;">* يتم عرض آخر 5000 إحصائية بناءً عليها.</p>`;
-                c.innerHTML = html;
-
-            } catch (err) {
-                c.innerHTML = `<p style="text-align:center; color:red;">خطأ في تحميل الإحصائيات: ${err.message}</p>`;
-            }
-        }
-
         function renderSettingsTab() {
             return `
                 <div class="form-group">
@@ -2661,11 +2411,11 @@
                 
                 if (error) throw error;
                 
-                product.active = newState; // Sadece durumu güncelle
+                product.active = newState;
                 
-                applyLocalFilter(); // Ana sayfayı güncelle
+                applyLocalFilter();
                 if (document.getElementById('adminModal').classList.contains('open')) {
-                    switchAdminTab('products'); // Admin panelini güncelle
+                    switchAdminTab('products');
                 }
                 showToast('تم تحديث حالة المنتج');
             } catch (err) {
@@ -2706,14 +2456,13 @@
                 closeModalAndPopHistory('groupFormModal');
                 await loadAllData();
                 renderCategories();
-                switchAdminTab('groups');
+                switchAdminTab('perfumes');
             } catch (err) { alert('Hata: ' + err.message); }
         }
 
         async function deleteGroup(id) {
             if (!confirm('تأكيد حذف المجموعة؟')) return;
             
-            // Grupta parfüm var mı kontrol et
             const perfumesInGroup = currentPerfumes.filter(p => String(p.gender_id) === String(id));
             if (perfumesInGroup.length > 0) {
                 alert(`لا يمكن حذف هذه المجموعة لأنها تحتوي على ${perfumesInGroup.length} عطر.\n\nيرجى حذف العطور أو نقلها إلى مجموعة أخرى أولاً.`);
@@ -2724,7 +2473,7 @@
                 await _supabase.from('categories').delete().eq('id', id);
                 await loadAllData();
                 renderCategories();
-                switchAdminTab('groups');
+                switchAdminTab('perfumes');
                 showToast('تم حذف المجموعة بنجاح');
             } catch (err) { alert('Hata: ' + err.message); }
         }
