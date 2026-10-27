@@ -737,6 +737,20 @@
             toast._t = setTimeout(() => toast.classList.remove('show'), 2200);
         }
 
+        // --- ARAPÇA ARAMA NORMALİZASYONU ---
+        function normalizeArabic(str) {
+            if (!str) return '';
+            return String(str).toLowerCase()
+                .replace(/[\u064B-\u065F\u0670]/g, '')
+                .replace(/[أإآٱ]/g, 'ا')
+                .replace(/ى/g, 'ي')
+                .replace(/ة/g, 'ه')
+                .replace(/ؤ/g, 'و')
+                .replace(/ئ/g, 'ي')
+                .replace(/\s+/g, ' ')
+                .trim();
+        }
+
         // --- YAPIŞTIRMA (PASTE) FONKSİYONU ---
         async function pasteImage(inputId, previewFuncName) {
             try {
@@ -866,6 +880,19 @@
         document.getElementById('scrollTopBtn')?.addEventListener('click', function() {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
+
+        // --- EKSİK OLAN TRACKEVENT GERİ EKLENDİ ---
+        async function trackEvent(type, productId = null, deviceType = null) {
+            if (!_supabase) return;
+            try {
+                await _supabase.from('site_analytics').insert([{
+                    event_type: type,
+                    product_id: productId,
+                    device_type: deviceType,
+                    device_id: deviceId
+                }]);
+            } catch(e) { console.warn('Analiz kaydı başarısız', e); }
+        }
 
         function togglePasswordVisibility() {
             const inp = document.getElementById('login-password');
@@ -1127,18 +1154,23 @@
             const activePerfumes = currentPerfumes.filter(p => p.active !== false);
 
             if (searchQuery) {
-                const q = searchQuery.toLowerCase();
-                filteredCosmetics = activeCosmetics.filter(p => (p.name_ar || '').toLowerCase().includes(q));
-                filteredPerfumes = activePerfumes.filter(p => (p.name || '').toLowerCase().includes(q));
+                // Arama modu: tüm kozmetik ve tüm parfümlerde ara (kategori fark etmeksizin)
+                const q = normalizeArabic(searchQuery);
+                filteredCosmetics = activeCosmetics.filter(p => normalizeArabic(p.name_ar || '').includes(q));
+                filteredPerfumes = activePerfumes.filter(p => normalizeArabic(p.name || '').includes(q));
                 showPerfumeHeader = true;
 
-                grid.style.display = 'grid';
+                const bothEmpty = filteredCosmetics.length === 0 && filteredPerfumes.length === 0;
+
+                // Kozmetik varsa grid göster; yoksa ama sonuç tamamen boşsa grid boş durumu göstermek için açık kalır
+                grid.style.display = (filteredCosmetics.length > 0 || bothEmpty) ? 'grid' : 'none';
                 list.style.display = filteredPerfumes.length > 0 ? 'flex' : 'none';
                 list.style.flexDirection = 'column';
                 list.style.gap = '12px';
-                list.style.marginTop = '30px';
+                list.style.marginTop = filteredCosmetics.length > 0 ? '30px' : '0';
             } else {
                 if (typeof selectedCategory === 'string' && selectedCategory.startsWith('perfume_group_')) {
+                    // Sadece parfüm grubu seçili
                     grid.style.display = 'none';
                     list.style.display = 'flex';
                     list.style.flexDirection = 'column';
@@ -1195,6 +1227,7 @@
             }
 
             if (filteredCosmetics.length === 0 && filteredPerfumes.length === 0) {
+                grid.style.display = 'grid';
                 grid.innerHTML = `
                     <div class="empty-state" style="grid-column: 1/-1;">
                         <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -1271,7 +1304,7 @@
                 `}).join('');
             }
 
-            if (filteredPerfumes.length > 0 && !selectedCategory.startsWith('perfume_group_')) {
+            if (filteredPerfumes.length > 0 && (searchQuery || !selectedCategory.startsWith('perfume_group_'))) {
                 list.style.display = 'flex';
                 filteredPerfumes.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ar'));
                 
@@ -1312,7 +1345,7 @@
                     </div>
                 `}).join('');
             } else {
-                if (!selectedCategory.startsWith('perfume_group_')) list.style.display = 'none';
+                if (searchQuery || !selectedCategory.startsWith('perfume_group_')) list.style.display = 'none';
             }
         }
 
@@ -1624,6 +1657,174 @@
             document.getElementById('adminBar').style.display = 'flex';
             openModal('adminModal');
             switchAdminTab('products');
+        }
+
+        // --- ANALİTİK FONKSİYONLARI GERİ EKLENDİ ---
+        async function resetAnalytics() {
+            if (!confirm('هل أنت متأكد من تصفير جميع الإحصائيات؟ لا يمكن التراجع عن هذا الإجراء.')) return;
+
+            try {
+                const { error } = await _supabase.rpc('truncate_analytics');
+                
+                if (error) {
+                    console.warn("RPC bulunamadı, eski yöntemle siliniyor.", error);
+                    const { error: deleteError } = await _supabase.from('site_analytics').delete().neq('event_type', 'xyz');
+                    if (deleteError) throw deleteError;
+                }
+
+                showToast('تم تصفير جميع الإحصائيات بنجاح');
+                loadAnalyticsTab(); 
+            } catch (err) {
+                alert('Hata: ' + err.message + '\n\nLütfen Supabase SQL Editöründe gerekli fonksiyonu oluşturduğunuzdan emin olun.');
+            }
+        }
+
+        async function loadAnalyticsTab() {
+            const c = document.getElementById('adminContent');
+            c.innerHTML = '<div style="text-align:center; padding:30px; color:#888;">جاري التحميل...</div>';
+            
+            try {
+                const { data: analytics, error } = await _supabase
+                    .from('site_analytics')
+                    .select('*')
+                    .order('created_at', { ascending: false })
+                    .limit(5000); 
+
+                if (error) throw error;
+
+                const now = new Date();
+                const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+                const dayOfWeek = now.getDay();
+                const diffToMonday = (dayOfWeek === 0 ? 7 : dayOfWeek) - 1;
+                const weekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - diffToMonday).getTime();
+                const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+
+                let totalVisits = 0;
+                let dailyDevices = new Set();
+                let weeklyDevices = new Set();
+                let monthlyDevices = new Set();
+                let totalUniqueDevices = new Set();
+                let productViews = {};
+                let totalProductViews = 0;
+                let deviceStats = { Mobile: 0, Desktop: 0, Tablet: 0 };
+
+                analytics.forEach(item => {
+                    if (item.event_type === 'visit') {
+                        totalVisits++;
+                        const itemTime = new Date(item.created_at).getTime();
+                        if (item.device_id) {
+                            totalUniqueDevices.add(item.device_id);
+                            if (itemTime >= todayStart) dailyDevices.add(item.device_id);
+                            if (itemTime >= weekStart) weeklyDevices.add(item.device_id);
+                            if (itemTime >= monthStart) monthlyDevices.add(item.device_id);
+                        }
+                        if (item.device_type && deviceStats[item.device_type] !== undefined) {
+                            deviceStats[item.device_type]++;
+                        }
+                    }
+                    else if (item.event_type === 'product_view') {
+                        totalProductViews++;
+                        productViews[item.product_id] = (productViews[item.product_id] || 0) + 1;
+                    }
+                });
+
+                const topProducts = Object.entries(productViews)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 5);
+
+                const getProductName = (id) => {
+                    const k = currentProducts.find(p => String(p.id) === String(id));
+                    if (k) return k.name_ar;
+                    const p = currentPerfumes.find(x => String(x.id) === String(id));
+                    if (p) return p.name;
+                    return 'منتج محذوف';
+                };
+
+                let html = `
+                    <button class="btn-danger" style="margin-bottom: 20px; width: 100%; padding: 12px; font-size: 1rem;" onclick="resetAnalytics()">
+                        <svg class="icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> تصفير جميع الإحصائيات
+                    </button>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-box">
+                            <h3>إجمالي الزيارات</h3>
+                            <div class="number">${totalVisits}</div>
+                        </div>
+                        <div class="stat-box" style="background: linear-gradient(135deg, var(--gold-dark), var(--gold));">
+                            <h3>مشاهدات المنتجات</h3>
+                            <div class="number">${totalProductViews}</div>
+                        </div>
+                    </div>
+
+                    <h3 style="color:var(--navy); font-weight:800; margin-bottom:15px; margin-top:30px; display:flex; align-items:center; gap:8px;">
+                        <svg class="icon" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg> الأجهزة الفريدة
+                    </h3>
+                    <div style="background:#faf8f3; padding:15px; border-radius:10px; margin-bottom:20px; display:grid; grid-template-columns:1fr 1fr; gap:15px; text-align:center;">
+                        <div style="background:#fff; padding:10px; border-radius:8px; border:1px solid #ddd;">
+                            <span style="font-size:0.8rem; color:#888;">اليوم</span><br>
+                            <strong style="font-size:1.3rem; color:var(--navy);">${dailyDevices.size}</strong>
+                        </div>
+                        <div style="background:#fff; padding:10px; border-radius:8px; border:1px solid #ddd;">
+                            <span style="font-size:0.8rem; color:#888;">هذا الأسبوع</span><br>
+                            <strong style="font-size:1.3rem; color:var(--navy);">${weeklyDevices.size}</strong>
+                        </div>
+                        <div style="background:#fff; padding:10px; border-radius:8px; border:1px solid #ddd;">
+                            <span style="font-size:0.8rem; color:#888;">هذا الشهر</span><br>
+                            <strong style="font-size:1.3rem; color:var(--navy);">${monthlyDevices.size}</strong>
+                        </div>
+                        <div style="background:#fff; padding:10px; border-radius:8px; border:1px solid #ddd;">
+                            <span style="font-size:0.8rem; color:#888;">الإجمالي</span><br>
+                            <strong style="font-size:1.3rem; color:var(--gold-dark);">${totalUniqueDevices.size}</strong>
+                        </div>
+                    </div>
+
+                    <h3 style="color:var(--navy); font-weight:800; margin-bottom:15px; margin-top:20px; display:flex; align-items:center; gap:8px;">
+                        <svg class="icon" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg> الأجهزة المستخدمة
+                    </h3>
+                    <div style="display:flex; justify-content:space-between; background:#faf8f3; padding:15px; border-radius:10px; margin-bottom:20px;">
+                        <div style="text-align:center;">
+                            <svg class="icon" viewBox="0 0 24 24" style="width:2rem;height:2rem;color:var(--navy);margin-bottom:5px;"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg><br>
+                            <strong>هاتف</strong><br>${deviceStats.Mobile}
+                        </div>
+                        <div style="text-align:center;">
+                            <svg class="icon" viewBox="0 0 24 24" style="width:2rem;height:2rem;color:var(--navy);margin-bottom:5px;"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg><br>
+                            <strong>كمبيوتر</strong><br>${deviceStats.Desktop}
+                        </div>
+                        <div style="text-align:center;">
+                            <svg class="icon" viewBox="0 0 24 24" style="width:2rem;height:2rem;color:var(--navy);margin-bottom:5px;"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/></svg><br>
+                            <strong>تابلت</strong><br>${deviceStats.Tablet}
+                        </div>
+                    </div>
+
+                    <h3 style="color:var(--navy); font-weight:800; margin-bottom:15px; margin-top:30px; display:flex; align-items:center; gap:8px;">
+                        <svg class="icon" viewBox="0 0 24 24" style="color:var(--danger);"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg> الأكثر مشاهدة
+                    </h3>
+                `;
+
+                if (topProducts.length === 0) {
+                    html += `<p style="text-align:center; color:#888;">لا توجد بيانات كافية بعد.</p>`;
+                } else {
+                    topProducts.forEach(([pid, count], index) => {
+                        const name = getProductName(pid);
+                        let rankColor = index === 0 ? 'var(--gold)' : index === 1 ? '#bdc3c7' : index === 2 ? '#cd7f32' : '#eee';
+                        html += `
+                            <div class="admin-item" style="border-right: 5px solid ${rankColor};">
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <span style="font-weight:900; color:${rankColor}; font-size:1.2rem;">#${index+1}</span>
+                                    <strong>${name}</strong>
+                                </div>
+                                <div style="font-weight:900; color:var(--navy);">${count} <span style="font-size:0.8rem; font-weight:normal;">مشاهدة</span></div>
+                            </div>
+                        `;
+                    });
+                }
+
+                html += `<p style="text-align:center; color:#aaa; font-size:0.8rem; margin-top:20px;">* يتم عرض آخر 5000 إحصائية بناءً عليها.</p>`;
+                c.innerHTML = html;
+
+            } catch (err) {
+                c.innerHTML = `<p style="text-align:center; color:red;">خطأ في تحميل الإحصائيات: ${err.message}</p>`;
+            }
         }
 
         // --- TOPLU FİYATLANDIRMA (FİYAT LİSTELERİ) FONKSİYONLARI ---
