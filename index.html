@@ -186,6 +186,7 @@
 
         .admin-bar { background: linear-gradient(135deg, var(--navy), var(--navy-light)); color: var(--gold); padding: 14px 20px; border-radius: var(--radius-md); margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; box-shadow: var(--shadow-md); }
         .admin-bar strong { display: flex; align-items: center; gap: 6px; font-size: 1.1rem; }
+        
         .admin-tab-bar { display: flex; gap: 8px; overflow-x: auto; margin-bottom: 20px; background: var(--white); padding: 10px; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); scrollbar-width: none; }
         .admin-tab-bar::-webkit-scrollbar { display: none; }
         .admin-tab { background: transparent; border: 1px solid #ddd; padding: 8px 16px; border-radius: 8px; cursor: pointer; white-space: nowrap; font-family: inherit; font-weight: 700; color: var(--text); flex-shrink: 0; }
@@ -356,6 +357,21 @@
             .modal-content { margin: 0 auto; border-radius: var(--radius-lg); max-height: 85vh; }
             
             .toast { bottom: 100px; }
+
+            /* --- YENİ: BİLGİSAYARDA ADMIN SEKMELERİNİ DÜZELTME --- */
+            .admin-tab-bar {
+                flex-wrap: wrap;
+                overflow-x: visible;
+                justify-content: center;
+            }
+            .admin-tab {
+                flex-shrink: 1;
+                padding: 10px 20px;
+                font-size: 0.95rem;
+            }
+            .admin-item {
+                padding: 15px 20px;
+            }
         }
 
         /* Dokunmatik cihazlarda hover takılmasın */
@@ -527,7 +543,7 @@
 
     <!-- Admin Modal -->
     <div id="adminModal" class="modal" onclick="closeModalOnBackdrop(event, 'adminModal')">
-        <div class="modal-content" style="max-width: 800px;" onclick="event.stopPropagation()">
+        <div class="modal-content" style="max-width: 950px;" onclick="event.stopPropagation()">
             <div class="modal-header-row">
                 <h2>لوحة التحكم</h2>
                 <button class="btn-danger" onclick="closeModalAndPopHistory('adminModal')" style="border-radius:50%; width:36px; height:36px; padding:0; min-height: unset;">
