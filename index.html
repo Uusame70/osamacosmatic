@@ -261,9 +261,6 @@
     </style>
 </head>
 <body>
-    <!-- KODUN GÜNCELLENİP GÜNCELLENMEDİĞİNİ ANLAMAK İÇİN TEST UYARISI -->
-    <script>alert("KANKA KOD DEĞİŞTİ VE SİTEYE YÜKLENDİ!");</script>
-
     <div id="loadingScreen">
         <div class="loader-container">
             <div class="double-ring"></div>
@@ -370,7 +367,7 @@
             <h2 id="detail-title" style="margin-bottom:12px; justify-content: center;"></h2>
             <div id="detail-price-row" style="margin-bottom:16px; font-size:1.4rem; font-weight:900; color:var(--gold-dark);"></div>
             
-            <!-- ÜRÜN AÇIKLAMASI BURADA -->
+            <!-- MÜŞTERİNİN GÖRECEĞİ AÇIKLAMA KUTUSU -->
             <div id="detail-desc" style="margin-bottom:20px; font-size:1rem; color:#555; line-height:1.6; padding:0 10px; display:none;"></div>
             
             <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center;">
@@ -1255,7 +1252,6 @@
             if (hasDiscount) priceRow.innerHTML = `<span style="color:var(--danger); font-size:1.4rem;">${p.price} ₺</span> <span style="font-size:1rem; color:#888; text-decoration:line-through; margin-inline-start:10px;">${p.original_price} ₺</span>`;
             else priceRow.innerHTML = `${p.price} ₺`;
             
-            // AÇIKLAMAYI MODALDA GÖSTER
             const descEl = document.getElementById('detail-desc');
             if (p.description && p.description.trim() !== '') {
                 descEl.innerText = p.description;
@@ -2098,7 +2094,6 @@
                 let imgUrl = currentProductImageUrl;
                 if (fileInput.files[0]) imgUrl = await uploadToB2(fileInput.files[0]);
                 
-                // Database şemasına uygun olarak 'name' ve 'description' alanlarını kaydediyoruz
                 const payload = { 
                     id: id || 'admin_' + Date.now(), 
                     name: name, 
