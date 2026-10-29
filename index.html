@@ -7,6 +7,8 @@
     <meta name="description" content="متجر ميار كوزمتيك - تسوقي أفضل مستحضرات التجميل والعطور">
     <title>متجر ميار للتسوق</title>
     <link rel="icon" type="image/png" href="/android-chrome-192x192.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
     <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <style>
@@ -48,7 +50,7 @@
         @keyframes card-fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes badge-pop { 0%, 100% { transform: scale(1); } 40% { transform: scale(1.35); } }
 
-        #loadingScreen { position: fixed; inset: 0; background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; transition: opacity 0.5s ease; }
+        #loadingScreen { position: fixed; inset: 0; background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; transition: opacity 0.3s ease; }
         .loader-container { display: flex; flex-direction: column; align-items: center; gap: 20px; }
         .double-ring { width: 70px; height: 70px; border-radius: 50%; border: 3px solid transparent; border-top-color: var(--gold); border-bottom-color: var(--gold-light); animation: spin 1.5s linear infinite; position: relative; }
         .double-ring::after { content: ''; position: absolute; inset: 6px; border-radius: 50%; border: 3px solid transparent; border-left-color: var(--sky); border-right-color: var(--sky-light); animation: spin-reverse 1s linear infinite; }
@@ -489,7 +491,6 @@
                 <input type="text" id="pf-category" placeholder="مثال: صابون, عناية">
             </div>
             
-            <!-- ADMIN PANELİNDE AÇIKLAMA EKLEME KUTUSU -->
             <div class="form-group">
                 <label>وصف المنتج (Açıklama)</label>
                 <textarea id="pf-description" placeholder="اكتب وصف المنتج هنا..." rows="3"></textarea>
@@ -557,6 +558,7 @@
         let isAdmin = false;
         let sessionToken = null;
         
+        // CACHE SİSTEMİ İÇİN DEĞİŞKENLER
         let currentProducts = []; 
         let currentPerfumes = []; 
         let perfumeGroups = []; 
@@ -695,8 +697,25 @@
             }
         }
 
+        // --- HIZLANDIRILMIŞ INIT FONKSİYONU ---
         async function init() {
-            showLoadingScreen();
+            // 1. Önce önbellekten yükle (anında açılması için)
+            const cachedProducts = localStorage.getItem('cached_products');
+            const cachedSettings = localStorage.getItem('cached_settings');
+            
+            if (cachedProducts && cachedSettings) {
+                try {
+                    currentProducts = JSON.parse(cachedProducts);
+                    siteSettings = JSON.parse(cachedSettings);
+                    applySiteSettingsToUI();
+                    renderCategories();
+                    applyLocalFilter();
+                    hideLoadingScreen(); // Önbellek varsa yükleme ekranını hemen kapat
+                } catch(e) { console.warn("Önbellek okunamadı", e); }
+            } else {
+                showLoadingScreen(); // Önbellek yoksa yükleme ekranını göster
+            }
+
             initSupabase();
             
             if (_supabase) {
@@ -706,12 +725,15 @@
                 if (isAdmin) document.getElementById('adminBar').style.display = 'flex';
             }
 
-            await loadSiteSettings(); 
-            await loadAllData();
+            // 2. Arka planda güncel verileri çek (Önbellek olsa bile günceli getir)
+            // Hız için Ayarları ve Ürünleri paralel çekiyoruz
+            await Promise.all([loadSiteSettings(), loadAllData()]);
+
+            // 3. Ekranı güncelle
             renderCategories();
             applyLocalFilter();
             updateCartUI();
-            hideLoadingScreen();
+            hideLoadingScreen(); // Veri çekildikten sonra (veya önbellek varsa zaten kapalıydı) kapat
 
             const urlParams = new URLSearchParams(window.location.search);
             const productIdParam = urlParams.get('product');
@@ -797,6 +819,9 @@
                     siteSettings.slider_images = Array.isArray(data.slider_images) ? data.slider_images : [];
                     siteSettings.custom_categories_order = Array.isArray(data.custom_categories_order) ? data.custom_categories_order : [];
                     siteSettings.pricing_lists = Array.isArray(data.pricing_lists) ? data.pricing_lists : [];
+                    
+                    // Önbelleğe kaydet
+                    localStorage.setItem('cached_settings', JSON.stringify(siteSettings));
                 }
                 applySiteSettingsToUI();
             } catch(e) { console.error('Settings yüklenemedi', e); }
@@ -830,7 +855,7 @@
             images.forEach((url, i) => {
                 const slide = document.createElement('div');
                 slide.className = 'slider-slide';
-                slide.innerHTML = '<img src="' + imageUrl(url) + '" alt="Banner ' + (i+1) + '" onerror="this.parentElement.style.display=\'none\'; document.getElementById(\'sliderContainer\').style.display=\'none\';">';
+                slide.innerHTML = '<img src="' + imageUrl(url) + '" alt="Banner ' + (i+1) + '" loading="lazy" onerror="this.parentElement.style.display=\'none\'; document.getElementById(\'sliderContainer\').style.display=\'none\';">';
                 track.appendChild(slide);
 
                 const dot = document.createElement('div');
@@ -874,35 +899,28 @@
             }, 5000);
         }
 
+        // --- HIZLANDIRILMIŞ VERİ ÇEKME ---
         async function loadAllData() {
-            try {
-                const res = await fetch('/api/products?t=' + Date.now());
-                if (!res.ok) throw new Error('API ' + res.status);
-                const data = await res.json();
-                currentProducts = data.products || [];
-            } catch(e) {
-                console.warn('Kozmetik API başarısız, Supabase fallback deneniyor', e);
-                if (_supabase) {
-                    try {
-                        const { data } = await _supabase.from('whatsapp_products').select('*');
-                        currentProducts = data || [];
-                    } catch(fb) { currentProducts = []; }
-                }
-            }
-
             if (_supabase) {
-                const [pGroups, pItems, pIntensities, pBottles, pPrices] = await Promise.all([
+                // Vercel API'sini atlayıp direkt Supabase'e bağlanıyoruz (Daha hızlı)
+                const [pProducts, pGroups, pItems, pIntensities, pBottles, pPrices] = await Promise.all([
+                    _supabase.from('whatsapp_products').select('*'), // /api/products yerine direkt DB
                     _supabase.from('categories').select('*').eq('type', 'gender').eq('active', true).order('sort_order'),
                     _supabase.from('perfumes').select('*'),
                     _supabase.from('perfume_intensities').select('*').eq('active', true).order('sort_order'),
                     _supabase.from('perfume_bottles').select('*').eq('active', true).order('sort_order'),
                     _supabase.from('perfume_prices').select('*')
                 ]);
+                
+                currentProducts = pProducts.data || [];
                 perfumeGroups = pGroups.data || [];
                 currentPerfumes = pItems.data || [];
                 intensities = pIntensities.data || [];
                 bottles = pBottles.data || [];
                 prices = pPrices.data || [];
+
+                // Önbelleğe kaydet (Bir daha ki girişte anında açılması için)
+                localStorage.setItem('cached_products', JSON.stringify(currentProducts));
             }
         }
 
