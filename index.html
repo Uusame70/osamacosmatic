@@ -261,6 +261,9 @@
     </style>
 </head>
 <body>
+    <!-- KODUN GÜNCELLENİP GÜNCELLENMEDİĞİNİ ANLAMAK İÇİN TEST UYARISI -->
+    <script>alert("KANKA KOD DEĞİŞTİ VE SİTEYE YÜKLENDİ!");</script>
+
     <div id="loadingScreen">
         <div class="loader-container">
             <div class="double-ring"></div>
@@ -984,7 +987,7 @@
 
             if (searchQuery) {
                 const q = normalizeArabic(searchQuery);
-                filteredCosmetics = activeCosmetics.filter(p => normalizeArabic(p.name_ar || '').includes(q));
+                filteredCosmetics = activeCosmetics.filter(p => normalizeArabic(p.name_ar || p.name || '').includes(q));
                 filteredPerfumes = activePerfumes.filter(p => normalizeArabic(p.name || '').includes(q));
                 showPerfumeHeader = true;
                 const bothEmpty = filteredCosmetics.length === 0 && filteredPerfumes.length === 0;
@@ -1050,10 +1053,12 @@
                         <p style="font-size: 0.9rem;">جرب البحث بكلمة أخرى أو تصفح قسماً مختلفاً</p>
                     </div>`;
             } else {
-                filteredCosmetics.sort((a, b) => (a.name_ar || '').localeCompare(b.name_ar || '', 'ar'));
+                filteredCosmetics.sort((a, b) => (a.name_ar || a.name || '').localeCompare(b.name_ar || b.name || '', 'ar'));
                 grid.innerHTML = filteredCosmetics.map(p => {
                     const imgSrc = imageUrl(p.img);
                     let actionsHtml = '';
+                    const productName = p.name_ar || p.name || 'بدون اسم';
+                    
                     if (isAdmin) {
                         actionsHtml = `
                             <div class="admin-actions" style="margin-top:10px; display:flex; gap:6px; flex-wrap:wrap;">
@@ -1100,7 +1105,7 @@
                         <img src="${imgSrc}" onclick="openProductDetail('${p.id}')" loading="lazy" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22200%22><rect width=%22300%22 height=%22200%22 fill=%22%23f8fafc%22/><text x=%2250%25%22 y=%2250%25%22 fill=%22%23D4AF37%22 font-family=%22sans-serif%22 font-size=%2216%22 font-weight=%22bold%22 text-anchor=%22middle%22 dy=%22.3em%22>لا صورة</text></svg>'">
                         <div class="product-info">
                             <div>
-                                <div class="product-title" onclick="openProductDetail('${p.id}')">${p.name_ar}</div>
+                                <div class="product-title" onclick="openProductDetail('${p.id}')">${productName}</div>
                                 <div class="product-price-row">
                                     <span class="product-price">${p.price} ₺</span>
                                     ${hasDiscount ? `<span class="product-price-old">${p.original_price} ₺</span>` : ''}
@@ -1244,7 +1249,7 @@
             if (!p) return;
             document.getElementById('detail-img').src = imageUrl(p.img);
             document.getElementById('detail-img').onerror = function() { this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22200%22><rect width=%22300%22 height=%22200%22 fill=%22%23f8fafc%22/></svg>'; };
-            document.getElementById('detail-title').innerText = p.name_ar;
+            document.getElementById('detail-title').innerText = p.name_ar || p.name || 'بدون اسم';
             const hasDiscount = p.original_price && p.original_price > p.price;
             const priceRow = document.getElementById('detail-price-row');
             if (hasDiscount) priceRow.innerHTML = `<span style="color:var(--danger); font-size:1.4rem;">${p.price} ₺</span> <span style="font-size:1rem; color:#888; text-decoration:line-through; margin-inline-start:10px;">${p.original_price} ₺</span>`;
@@ -1268,7 +1273,7 @@
             if (!p) return;
             const existing = cart.find(c => c.type === 'kozmetik' && c.id === p.id);
             if (existing) existing.qty++;
-            else cart.push({ type: 'kozmetik', id: p.id, name: p.name_ar, price: p.price, qty: 1 });
+            else cart.push({ type: 'kozmetik', id: p.id, name: p.name_ar || p.name || 'منتج', price: p.price, qty: 1 });
             saveCart(); updateCartUI(); showToast('تمت الإضافة للسلة'); triggerCartBadgePop();
         }
 
@@ -1634,14 +1639,14 @@
                     `).join('')}
                 `;
             } else if (tab === 'products') {
-                const sortedProducts = [...currentProducts].sort((a, b) => (a.name_ar || '').localeCompare(b.name_ar || '', 'ar'));
+                const sortedProducts = [...currentProducts].sort((a, b) => (a.name_ar || a.name || '').localeCompare(b.name_ar || b.name || '', 'ar'));
                 c.innerHTML = `
                     <button class="btn-gold" style="margin-bottom:15px; width:100%; padding:12px;" onclick="openProductForm()">+ إضافة منتج جديد (كوزمتيك)</button>
                     ${sortedProducts.map(p => `
                         <div class="admin-item" style="${p.active === false ? 'opacity:0.6;' : ''}">
                             <div style="display:flex; align-items:center; gap:10px; flex-grow:1;">
                                 <img src="${imageUrl(p.img)}" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2250%22 height=%2250%22><rect width=%2250%22 height=%2250%22 fill=%22%23eee%22/></svg>'">
-                                <div><strong>${p.name_ar} ${p.active === false ? '(مخفي)' : ''}</strong><br><small style="color:var(--gold-dark); font-weight:bold;">${p.price} ₺</small></div>
+                                <div><strong>${p.name_ar || p.name || 'بدون اسم'} ${p.active === false ? '(مخفي)' : ''}</strong><br><small style="color:var(--gold-dark); font-weight:bold;">${p.price} ₺</small></div>
                             </div>
                             <div style="display:flex; gap:5px;">
                                 <button onclick="toggleProductActive('${p.id}', event)" style="background:${p.active !== false ? '#f39c12' : '#27ae60'}; padding:6px 10px;" title="${p.active !== false ? 'إخفاء' : 'إظهار'}"><svg class="icon" viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg></button>
@@ -2058,19 +2063,18 @@
             if (id) {
                 const p = currentProducts.find(x => String(x.id) === String(id));
                 if (p) {
-                    document.getElementById('pf-name').value = p.name_ar; document.getElementById('pf-price').value = p.price;
-                    document.getElementById('pf-old-price').value = p.original_price || ''; document.getElementById('pf-category').value = p.category;
-                    
-                    // AÇIKLAMAYI FORMA DOLDUR
+                    document.getElementById('pf-name').value = p.name_ar || p.name || ''; 
+                    document.getElementById('pf-price').value = p.price;
+                    document.getElementById('pf-old-price').value = p.original_price || ''; 
+                    document.getElementById('pf-category').value = p.category;
                     document.getElementById('pf-description').value = p.description || '';
-                    
                     currentProductImageUrl = p.img;
                     if (p.img) { preview.src = imageUrl(p.img); preview.style.display = 'block'; }
                 }
             } else {
                 document.getElementById('pf-name').value = ''; document.getElementById('pf-price').value = '';
                 document.getElementById('pf-old-price').value = ''; document.getElementById('pf-category').value = '';
-                document.getElementById('pf-description').value = ''; // Yeni ürünse boş bırak
+                document.getElementById('pf-description').value = '';
             }
             openModal('productFormModal');
         }
@@ -2086,20 +2090,22 @@
             const price = parseFloat(document.getElementById('pf-price').value) || 0;
             const oldPrice = parseFloat(document.getElementById('pf-old-price').value) || 0;
             const category = document.getElementById('pf-category').value.trim();
-            const description = document.getElementById('pf-description').value.trim(); // Açıklamayı al
+            const description = document.getElementById('pf-description').value.trim();
             const fileInput = document.getElementById('pf-image-file');
             if (!name) return alert('اسم المنتج مطلوب');
             const btn = document.getElementById('pf-save-btn'); const oldText = btn.innerText; btn.innerText = '... جاري الحفظ'; btn.disabled = true;
             try {
                 let imgUrl = currentProductImageUrl;
                 if (fileInput.files[0]) imgUrl = await uploadToB2(fileInput.files[0]);
+                
+                // Database şemasına uygun olarak 'name' ve 'description' alanlarını kaydediyoruz
                 const payload = { 
                     id: id || 'admin_' + Date.now(), 
                     name: name, 
                     price: price, 
                     original_price: oldPrice, 
                     category: category, 
-                    description: description, // Açıklamayı kaydet
+                    description: description, 
                     img: imgUrl, 
                     active: true, 
                     synced_at: new Date().toISOString() 
