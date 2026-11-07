@@ -1,7 +1,9 @@
 (function() {
     const SUPABASE_URL = 'https://xmrdqepjtfycvtgcbkyy.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_MgJhvhCdIg9oC40t--FZxQ_04A8dWkU';
-    const B2_UPLOAD_URL = 'https://b2-upload.usameismail70.workers.dev';
+    
+    // !!! KENDİ WORKER LİNKLERİN !!!
+    const B2_UPLOAD_URL = 'https://b2-upload.usameismail70.workers.dev'; 
     const B2_IMAGE_PROXY_URL = 'https://b2-image.usameismail70.workers.dev';
 
     let _supabase = null;
@@ -149,12 +151,19 @@
     };
 
     window.imageUrl = function(url) {
-        if (!url) return 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22200%22><rect width=%22300%22 height=%22200%22 fill=%22%23f8fafc%22/><text x=%2250%25%22 y=%2250%25%22 fill=%22%23D4AF37%22 font-family=%22sans-serif%22 font-size=%2216%22 font-weight=%22bold%22 text-anchor=%22middle%22 dy=%22.3em%22>لا صورة</text></svg>';
-        if (url.startsWith('/api/b2-image')) {
-            const key = url.split('key=')[1];
-            return B2_IMAGE_PROXY_URL + '?key=' + key;
+        if (!url || url.trim() === '') {
+            return 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22200%22><rect width=%22300%22 height=%22200%22 fill=%22%23f8fafc%22/><text x=%2250%25%22 y=%2250%25%22 fill=%22%23D4AF37%22 font-family=%22sans-serif%22 font-size=%2216%22 font-weight=%22bold%22 text-anchor=%22middle%22 dy=%22.3em%22>لا صورة</text></svg>';
         }
-        if (url.startsWith('http')) return url;
+        
+        // Eğer url içinde /api/b2-image geçiyorsa (Vercel linki veya kısa link fark etmez)
+        if (url.includes('/api/b2-image')) {
+            const key = url.split('key=')[1];
+            if (key) {
+                return B2_IMAGE_PROXY_URL + '?key=' + key;
+            }
+        }
+        
+        if (url.startsWith('http')) return url; 
         return url;
     };
 
