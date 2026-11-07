@@ -2,6 +2,8 @@
     const SUPABASE_URL = 'https://xmrdqepjtfycvtgcbkyy.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_MgJhvhCdIg9oC40t--FZxQ_04A8dWkU';
     const B2_UPLOAD_URL = 'https://b2-upload.usameismail70.workers.dev'; // KENDİ LİNKİN
+    const B2_IMAGE_PROXY_URL = 'https://b2-image.usameismail70.workers.dev'; 
+
     
     let _supabase = null;
     let isAdmin = false;
