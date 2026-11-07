@@ -302,11 +302,12 @@
             return `<div class="option-btn ${isSelected}" onclick="window.selectIntensity(${i.id})" id="int-btn-${i.id}">${i.name}</div>`;
         }).join('');
 
-        // ŞİŞELER (İlk eleman varsayılan seçili)
+        // ŞİŞELER (Son eleman varsayılan seçili)
         const activeBottles = bottles.filter(b => b.size_id === 2 && b.active !== false);
+        const lastBottleIndex = activeBottles.length - 1; // Son elemanın indexi
         document.getElementById('pd-bottle-options').innerHTML = activeBottles.map((b, index) => {
-            const isSelected = index === 0 ? 'active' : '';
-            if (index === 0) currentPerfumeSelection.bottleId = b.id;
+            const isSelected = index === lastBottleIndex ? 'active' : '';
+            if (index === lastBottleIndex) currentPerfumeSelection.bottleId = b.id; // Sonuncuyu seç
             return `<div class="option-btn ${isSelected}" onclick="window.selectBottle(${b.id})" id="bot-btn-${b.id}">${b.image_url ? `<img src="${window.imageUrl(b.image_url)}" onerror="this.style.display='none'">` : ''}<div>${b.name}</div><div style="font-size:0.7rem; color:#666;">${b.price_diff > 0 ? '+' + b.price_diff + ' ₺' : 'مجاناً'}</div></div>`;
         }).join('');
         
