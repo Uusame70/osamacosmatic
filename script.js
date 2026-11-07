@@ -2,7 +2,7 @@
     const SUPABASE_URL = 'https://xmrdqepjtfycvtgcbkyy.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_MgJhvhCdIg9oC40t--FZxQ_04A8dWkU';
     
-    // !!! KENDİ WORKER LİNKLERİN !!!
+    // WORKER LİNKLERİ
     const B2_UPLOAD_URL = 'https://b2-upload.usameismail70.workers.dev'; 
     const B2_IMAGE_PROXY_URL = 'https://b2-image.usameismail70.workers.dev';
 
@@ -154,15 +154,12 @@
         if (!url || url.trim() === '') {
             return 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22200%22><rect width=%22300%22 height=%22200%22 fill=%22%23f8fafc%22/><text x=%2250%25%22 y=%2250%25%22 fill=%22%23D4AF37%22 font-family=%22sans-serif%22 font-size=%2216%22 font-weight=%22bold%22 text-anchor=%22middle%22 dy=%22.3em%22>لا صورة</text></svg>';
         }
-        
-        // Eğer url içinde /api/b2-image geçiyorsa (Vercel linki veya kısa link fark etmez)
         if (url.includes('/api/b2-image')) {
             const key = url.split('key=')[1];
             if (key) {
                 return B2_IMAGE_PROXY_URL + '?key=' + key;
             }
         }
-        
         if (url.startsWith('http')) return url; 
         return url;
     };
@@ -455,14 +452,62 @@
     };
 
     window.init = async function() {
-        const cachedProducts = localStorage.getItem('cached_products'); const cachedSettings = localStorage.getItem('cached_settings');
-        if (cachedProducts && cachedSettings) { try { currentProducts = JSON.parse(cachedProducts); siteSettings = JSON.parse(cachedSettings); window.applySiteSettingsToUI(); window.setDefaultCategory(); window.renderCategories(); window.applyLocalFilter(); window.hideLoadingScreen(); } catch(e) {} } else { window.showLoadingScreen(); }
-        initSupabase();
-        if (_supabase) { const { data: { session } } = await _supabase.auth.getSession(); isAdmin = !!session; sessionToken = session?.access_token || null; if (isAdmin) document.getElementById('adminBar').style.display = 'flex'; }
-        await Promise.all([window.loadSiteSettings(), window.loadAllData()]);
-        window.setDefaultCategory(); window.renderCategories(); window.applyLocalFilter(); window.updateCartUI(); window.hideLoadingScreen();
-        const urlParams = new URLSearchParams(window.location.search); const productIdParam = urlParams.get('product');
-        if (productIdParam) { const isCosmetic = currentProducts.find(p => String(p.id) === String(productIdParam)); const isPerfume = currentPerfumes.find(p => String(p.id) === String(productIdParam)); if (isCosmetic) window.openProductDetail(productIdParam); else if (isPerfume) window.openPerfumeDetail(productIdParam); }
+        try {
+            const cachedProducts = localStorage.getItem('cached_products'); const cachedSettings = localStorage.getItem('cached_settings');
+            if (cachedProducts && cachedSettings) { 
+                try { currentProducts = JSON.parse(cachedProducts); siteSettings = JSON.parse(cachedSettings); window.applySiteSettingsToUI(); window.setDefaultCategory(); window.renderCategories(); window.applyLocalFilter(); window.hideLoadingScreen(); } catch(e) {} 
+            } else { 
+                window.showLoadingScreen(); 
+            }
+            
+            initSupabase();
+            
+            if (_supabase) { 
+                const { data: { session } } = await _supabase.auth.getSession(); 
+                isAdmin = !!session; 
+                sessionToken = session?.access_token || null; 
+                if (isAdmin) document.getElementById('adminBar').style.display = 'flex'; 
+            }
+            
+            // Veri yüklemede hata olsa bile devam et
+            try {
+                await Promise.all([window.loadSiteSettings(), window.loadAllData()]);
+            } catch (e) {
+                console.warn("Veri yükleme hatası, önbellekle devam ediliyor:", e);
+            }
+            
+            window.setDefaultCategory(); 
+            window.renderCategories(); 
+            window.applyLocalFilter(); 
+            window.updateCartUI(); 
+            window.hideLoadingScreen();
+            
+            const urlParams = new URLSearchParams(window.location.search); 
+            const productIdParam = urlParams.get('product');
+            if (productIdParam) { 
+                const isCosmetic = currentProducts.find(p => String(p.id) === String(productIdParam)); 
+                const isPerfume = currentPerfumes.find(p => String(p.id) === String(productIdParam)); 
+                if (isCosmetic) window.openProductDetail(productIdParam); 
+                else if (isPerfume) window.openPerfumeDetail(productIdParam); 
+            }
+        } catch (globalError) {
+            console.error("Kritik init hatası:", globalError);
+            window.hideLoadingScreen(); // Her durumda yükleme ekranını kapat
+        }
     };
-    window.onload = function() { if (typeof window.init === 'function') window.init(); };
+
+    // Pencere yüklendiğinde init'i güvenli bir şekilde çağır
+    window.addEventListener('load', function() {
+        try {
+            if (typeof window.init === 'function') {
+                window.init();
+            } else {
+                console.error("init fonksiyonu bulunamadı!");
+                window.hideLoadingScreen();
+            }
+        } catch (e) {
+            console.error("Başlatma hatası:", e);
+            window.hideLoadingScreen();
+        }
+    });
 })();
