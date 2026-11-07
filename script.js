@@ -1,22 +1,21 @@
 (function() {
     const SUPABASE_URL = 'https://xmrdqepjtfycvtgcbkyy.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_MgJhvhCdIg9oC40t--FZxQ_04A8dWkU';
-    const B2_UPLOAD_URL = 'https://b2-upload.usameismail70.workers.dev'; // KENDİ LİNKİN
-    const B2_IMAGE_PROXY_URL = 'https://b2-image.usameismail70.workers.dev'; 
+    const B2_UPLOAD_URL = 'https://b2-upload.usameismail70.workers.dev';
+    const B2_IMAGE_PROXY_URL = 'https://b2-image.usameismail70.workers.dev';
 
-    
     let _supabase = null;
     let isAdmin = false;
     let sessionToken = null;
-    let currentProducts = []; 
-    let currentPerfumes = []; 
-    let perfumeGroups = []; 
+    let currentProducts = [];
+    let currentPerfumes = [];
+    let perfumeGroups = [];
     let intensities = [];
     let bottles = [];
     let prices = [];
-    let siteSettings = { 
-        logo_url: '', slider_images: [], hero_title: 'متجر ميار للتسوق', 
-        hero_subtitle: 'جمالك يبدأ من هنا', free_shipping_text: 'احصل على شحن مجاني عند طلبك بقيمة 800 وأكثر', 
+    let siteSettings = {
+        logo_url: '', slider_images: [], hero_title: 'متجر ميار للتسوق',
+        hero_subtitle: 'جمالك يبدأ من هنا', free_shipping_text: 'احصل على شحن مجاني عند طلبك بقيمة 800 وأكثر',
         free_shipping_min: 800, whatsapp_number: '905388444275',
         custom_categories_order: [], pricing_lists: []
     };
@@ -27,13 +26,13 @@
     let cart = JSON.parse(localStorage.getItem('catalog_cart')) || [];
     let modalHistoryStack = [];
     let currentPerfumeSelection = { intensityId: null, bottleId: null, perfumeId: null };
-    let currentProductImageUrl = ''; 
-    let settingLogoFile = null; 
-    let settingSliderFiles = []; 
-    let currentPriceTagPerfumes = []; 
+    let currentProductImageUrl = '';
+    let settingLogoFile = null;
+    let settingSliderFiles = [];
+    let currentPriceTagPerfumes = [];
     let currentPriceTagBulkPrices = {};
     let deviceId = localStorage.getItem('mayar_device_id');
-    
+
     if (!deviceId) {
         deviceId = 'dev_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
         localStorage.setItem('mayar_device_id', deviceId);
@@ -151,8 +150,11 @@
 
     window.imageUrl = function(url) {
         if (!url) return 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22200%22><rect width=%22300%22 height=%22200%22 fill=%22%23f8fafc%22/><text x=%2250%25%22 y=%2250%25%22 fill=%22%23D4AF37%22 font-family=%22sans-serif%22 font-size=%2216%22 font-weight=%22bold%22 text-anchor=%22middle%22 dy=%22.3em%22>لا صورة</text></svg>';
-        if (url.startsWith('/api/b2-image')) return url;
-        if (url.startsWith('http')) return url; 
+        if (url.startsWith('/api/b2-image')) {
+            const key = url.split('key=')[1];
+            return B2_IMAGE_PROXY_URL + '?key=' + key;
+        }
+        if (url.startsWith('http')) return url;
         return url;
     };
 
@@ -277,20 +279,20 @@
 
     window.copyProductLink = function(id) { let url = window.location.origin + '/?product=' + id; navigator.clipboard.writeText(url).then(() => { window.showToast('✓ تم نسخ رابط المنتج'); }).catch(err => { alert('فشل نسخ الرابط: ' + err); }); };
     window.sendProductMessage = function(id) { let item = currentProducts.find(x => String(x.id) === String(id)) || currentPerfumes.find(x => String(x.id) === String(id)); if (!item) return; let name = item.name_ar || item.name; let url = window.location.origin + '/?product=' + id; let msg = `مرحباً، أريد الاستفسار عن هذا المنتج:\n*${name}*\nالرابط: ${url}`; window.open('https://wa.me/' + siteSettings.whatsapp_number.replace(/[^0-9]/g, '') + '?text=' + encodeURIComponent(msg), '_blank'); };
-    
+
     window.togglePerfumeActive = async function(id) { if (!confirm('تغيير حالة ظهور العطر؟')) return; const perfume = currentPerfumes.find(p => String(p.id) === String(id)); if (!perfume) return; const newState = perfume.active !== false ? false : true; try { const { error } = await _supabase.from('perfumes').update({ active: newState }).eq('id', id); if (error) throw error; perfume.active = newState; window.applyLocalFilter(); if (document.getElementById('adminModal').classList.contains('open')) window.switchAdminTab('perfumes'); window.showToast('تم تحديث حالة العطر'); } catch (err) { alert('Hata: ' + err.message); } };
-    
+
     window.openPerfumeDetail = function(perfumeId) {
         const p = currentPerfumes.find(x => String(x.id) === String(perfumeId)); if (!p) return;
         currentPerfumeSelection = { intensityId: null, bottleId: null, perfumeId: p.id };
         document.getElementById('pd-name').innerText = p.name;
         if (p.image_url) { document.getElementById('pd-image-container').style.display = 'block'; document.getElementById('pd-image').src = window.imageUrl(p.image_url); } else document.getElementById('pd-image-container').style.display = 'none';
         document.getElementById('pd-intensity-options').innerHTML = intensities.map(i => `<div class="option-btn" onclick="window.selectIntensity(${i.id})" id="int-btn-${i.id}">${i.name}</div>`).join('');
-        const activeBottles = bottles.filter(b => b.size_id === 2); 
+        const activeBottles = bottles.filter(b => b.size_id === 2);
         document.getElementById('pd-bottle-options').innerHTML = activeBottles.map(b => `<div class="option-btn" onclick="window.selectBottle(${b.id})" id="bot-btn-${b.id}">${b.image_url ? `<img src="${window.imageUrl(b.image_url)}" onerror="this.style.display='none'">` : ''}<div>${b.name}</div><div style="font-size:0.7rem; color:#666;">${b.price_diff > 0 ? '+' + b.price_diff + ' ₺' : 'مجاناً'}</div></div>`).join('');
         window.updatePerfumeTotal(); window.openModal('perfumeDetailModal');
     };
-    
+
     window.selectIntensity = function(id) { currentPerfumeSelection.intensityId = id; document.querySelectorAll('#pd-intensity-options .option-btn').forEach(el => el.classList.remove('active')); document.getElementById(`int-btn-${id}`).classList.add('active'); window.updatePerfumeTotal(); };
     window.selectBottle = function(id) { currentPerfumeSelection.bottleId = id; document.querySelectorAll('#pd-bottle-options .option-btn').forEach(el => el.classList.remove('active')); document.getElementById(`bot-btn-${id}`).classList.add('active'); window.updatePerfumeTotal(); };
     window.updatePerfumeTotal = function() { const btn = document.getElementById('pd-btn-add'); const totalEl = document.getElementById('pd-total'); if (!currentPerfumeSelection.intensityId || !currentPerfumeSelection.bottleId) { totalEl.innerText = '0 ₺'; btn.disabled = true; return; } const basePriceRow = prices.find(p => p.perfume_id === currentPerfumeSelection.perfumeId && p.intensity_id === currentPerfumeSelection.intensityId && p.size_id === 2); const basePrice = basePriceRow ? basePriceRow.price : 0; const bottle = bottles.find(b => b.id === currentPerfumeSelection.bottleId); totalEl.innerText = (basePrice + (bottle ? bottle.price_diff : 0)) + ' ₺'; btn.disabled = false; };
@@ -311,45 +313,44 @@
     window.clearCart = function() { cart = []; window.saveCart(); window.updateCartUI(); };
     window.completeOrder = function() { if (cart.length === 0) { window.showToast('سلتك فارغة، أضف منتجات أولاً'); return; } let msg = 'طلب جديد:\n\n'; let total = 0; cart.forEach(c => { msg += `• ${c.name}${c.details ? ` (${c.details})` : ''}\n  ${c.price} ₺ × ${c.qty} = ${c.price * c.qty} ₺\n`; total += c.price * c.qty; }); msg += `\nالإجمالي: ${total} ₺`; window.open('https://wa.me/' + siteSettings.whatsapp_number.replace(/[^0-9]/g, '') + '?text=' + encodeURIComponent(msg), '_blank'); };
 
-    // ... (Devamı için "devam" yaz)
-     document.addEventListener('keydown', (e) => { if (e.ctrlKey && e.shiftKey && e.key === 'A') { e.preventDefault(); if (isAdmin) window.openAdmin(); else window.openModal('loginModal'); } });
-    
-    window.doLogin = async function() { 
-        const email = document.getElementById('login-email').value.trim(); 
-        const password = document.getElementById('login-password').value; 
-        if (!email || !password) return alert('البريد وكلمة المرور مطلوبان'); 
-        const btn = document.getElementById('login-btn'); 
-        const oldText = btn.innerText; 
-        btn.innerText = '... جاري الدخول'; 
-        btn.disabled = true; 
-        const { data, error } = await _supabase.auth.signInWithPassword({ email, password }); 
-        if (error) { alert('خطأ: ' + error.message); btn.innerText = oldText; btn.disabled = false; return; } 
-        sessionToken = data.session?.access_token || null; 
-        isAdmin = true; 
-        window.closeModalAndPopHistory('loginModal'); 
-        document.getElementById('adminBar').style.display = 'flex'; 
-        window.showToast('تم تسجيل الدخول بنجاح'); 
-        window.openAdmin(); 
-        btn.innerText = oldText; 
-        btn.disabled = false; 
+    document.addEventListener('keydown', (e) => { if (e.ctrlKey && e.shiftKey && e.key === 'A') { e.preventDefault(); if (isAdmin) window.openAdmin(); else window.openModal('loginModal'); } });
+
+    window.doLogin = async function() {
+        const email = document.getElementById('login-email').value.trim();
+        const password = document.getElementById('login-password').value;
+        if (!email || !password) return alert('البريد وكلمة المرور مطلوبان');
+        const btn = document.getElementById('login-btn');
+        const oldText = btn.innerText;
+        btn.innerText = '... جاري الدخول';
+        btn.disabled = true;
+        const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
+        if (error) { alert('خطأ: ' + error.message); btn.innerText = oldText; btn.disabled = false; return; }
+        sessionToken = data.session?.access_token || null;
+        isAdmin = true;
+        window.closeModalAndPopHistory('loginModal');
+        document.getElementById('adminBar').style.display = 'flex';
+        window.showToast('تم تسجيل الدخول بنجاح');
+        window.openAdmin();
+        btn.innerText = oldText;
+        btn.disabled = false;
     };
 
     window.handleSupabaseLogout = async function() { await _supabase.auth.signOut(); isAdmin = false; sessionToken = null; document.getElementById('adminBar').style.display = 'none'; location.reload(); };
-    
+
     window.openAdmin = function() { document.getElementById('adminBar').style.display = 'flex'; window.openModal('adminModal'); window.switchAdminTab('products'); };
-    
-    window.renderSlider = function() { 
-        const container = document.getElementById('sliderContainer'); const track = document.getElementById('sliderTrack'); const dots = document.getElementById('sliderDots'); 
-        const images = siteSettings.slider_images || []; 
-        if (!images || images.length === 0) { container.style.display = 'none'; return; } 
-        container.style.display = 'block'; track.innerHTML = ''; dots.innerHTML = ''; 
-        images.forEach((url, i) => { 
-            const slide = document.createElement('div'); slide.className = 'slider-slide'; 
-            slide.innerHTML = '<img src="' + window.imageUrl(url) + '" alt="Banner ' + (i+1) + '" loading="lazy" onerror="this.parentElement.style.display=\'none\'; document.getElementById(\'sliderContainer\').style.display=\'none\';">'; 
-            track.appendChild(slide); 
-            const dot = document.createElement('div'); dot.className = 'slider-dot' + (i === 0 ? ' active' : ''); dot.onclick = () => window.goToSlide(i); dots.appendChild(dot); 
-        }); 
-        currentSlide = 0; window.updateSlider(); window.startSliderAutoplay(); 
+
+    window.renderSlider = function() {
+        const container = document.getElementById('sliderContainer'); const track = document.getElementById('sliderTrack'); const dots = document.getElementById('sliderDots');
+        const images = siteSettings.slider_images || [];
+        if (!images || images.length === 0) { container.style.display = 'none'; return; }
+        container.style.display = 'block'; track.innerHTML = ''; dots.innerHTML = '';
+        images.forEach((url, i) => {
+            const slide = document.createElement('div'); slide.className = 'slider-slide';
+            slide.innerHTML = '<img src="' + window.imageUrl(url) + '" alt="Banner ' + (i+1) + '" loading="lazy" onerror="this.parentElement.style.display=\'none\'; document.getElementById(\'sliderContainer\').style.display=\'none\';">';
+            track.appendChild(slide);
+            const dot = document.createElement('div'); dot.className = 'slider-dot' + (i === 0 ? ' active' : ''); dot.onclick = () => window.goToSlide(i); dots.appendChild(dot);
+        });
+        currentSlide = 0; window.updateSlider(); window.startSliderAutoplay();
     };
 
     window.updateSlider = function() { const track = document.getElementById('sliderTrack'); if (!track) return; track.style.transform = 'translateX(' + (currentSlide * 100) + '%)'; document.querySelectorAll('.slider-dot').forEach((d, i) => { d.classList.toggle('active', i === currentSlide); }); };
@@ -357,17 +358,17 @@
     window.sliderNext = function() { window.goToSlide(currentSlide + 1); window.startSliderAutoplay(); };
     window.sliderPrev = function() { window.goToSlide(currentSlide - 1); window.startSliderAutoplay(); };
     window.startSliderAutoplay = function() { if (sliderAutoplayTimer) clearInterval(sliderAutoplayTimer); const images = siteSettings.slider_images || []; if (images.length < 2) return; sliderAutoplayTimer = setInterval(() => { currentSlide = (currentSlide + 1) % images.length; window.updateSlider(); }, 5000); };
-    
+
     window.setDefaultCategory = function() { if (selectedCategory !== 'ALL' || searchQuery) return; let unifiedCats = getAllCategoriesUnified(); const customOrder = siteSettings.custom_categories_order || []; unifiedCats.sort((a, b) => { let idxA = customOrder.indexOf(a.id); let idxB = customOrder.indexOf(b.id); if (idxA === -1) idxA = 99999; if (idxB === -1) idxB = 99999; return idxA - idxB; }); if (unifiedCats.length > 0) { const firstCat = unifiedCats[0]; selectedCategory = firstCat.type === 'perfume_group' ? 'perfume_group_' + firstCat.originalId : firstCat.originalId; } };
     window.showLoadingScreen = function() { document.getElementById('loadingScreen').style.display = 'flex'; };
     window.hideLoadingScreen = function() { document.getElementById('loadingScreen').style.opacity = '0'; setTimeout(() => document.getElementById('loadingScreen').style.display = 'none', 400); };
     window.handleSearch = function(val) { if (val.trim() === 'mayar.') { document.getElementById('search-input').value = ''; searchQuery = ''; window.applyLocalFilter(); window.openModal('loginModal'); return; } searchQuery = val.trim(); window.applyLocalFilter(); };
     window.openWhatsAppChat = function() { const num = siteSettings.whatsapp_number.replace(/[^0-9]/g, ''); window.open('https://wa.me/' + num, '_blank'); };
-    
+
     window.openModal = function(id) { document.getElementById(id).style.display = 'flex'; document.getElementById(id).classList.add('open'); modalHistoryStack.push(id); history.pushState({ modal: id }, ''); };
     window.closeModalAndPopHistory = function(id) { document.getElementById(id).classList.remove('open'); document.getElementById(id).style.display = 'none'; const idx = modalHistoryStack.lastIndexOf(id); if (idx !== -1) modalHistoryStack.splice(idx, 1); if (history.state && history.state.modal === id) history.back(); };
     window.closeModalOnBackdrop = function(event, modalId) { if (event.target.id === modalId) window.closeModalAndPopHistory(modalId); };
-    
+
     window.addEventListener('popstate', function() { if (modalHistoryStack.length > 0) { const modalId = modalHistoryStack.pop(); document.getElementById(modalId).classList.remove('open'); } else { history.pushState({ root: true }, ''); } });
     history.replaceState({ root: true }, '');
 
@@ -387,7 +388,7 @@
     window.toggleProductActive = async function(id, event) { if (event) event.stopPropagation(); if (!confirm('تغيير حالة ظهور المنتج؟')) return; const product = currentProducts.find(p => String(p.id) === String(id)); if (!product) return; const newState = product.active !== false ? false : true; try { const { error } = await _supabase.from('whatsapp_products').update({ active: newState }).eq('id', id); if (error) throw error; product.active = newState; window.applyLocalFilter(); if (document.getElementById('adminModal').classList.contains('open')) window.switchAdminTab('products'); window.showToast('تم تحديث حالة المنتج'); } catch (err) { alert('Hata: ' + err.message); } };
     window.deleteProduct = async function(id) { if (!confirm('تأكيد الحذف؟')) return; const { error } = await _supabase.from('whatsapp_products').delete().eq('id', id); if (error) return alert('Hata: ' + error.message); await window.loadAllData(); window.renderCategories(); window.applyLocalFilter(); window.switchAdminTab('products'); };
     window.deletePerfume = async function(id) { if (!confirm('تأكيد حذف العطر؟')) return; try { await _supabase.from('perfumes').delete().eq('id', id); await window.loadAllData(); window.applyLocalFilter(); window.switchAdminTab('perfumes'); } catch (err) { alert('Hata: ' + err.message); } };
-    
+
     window.saveProduct = async function() {
         const id = document.getElementById('pf-id').value;
         const name = document.getElementById('pf-name').value.trim();
