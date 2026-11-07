@@ -293,15 +293,43 @@
         currentPerfumeSelection = { intensityId: null, bottleId: null, perfumeId: p.id };
         document.getElementById('pd-name').innerText = p.name;
         if (p.image_url) { document.getElementById('pd-image-container').style.display = 'block'; document.getElementById('pd-image').src = window.imageUrl(p.image_url); } else document.getElementById('pd-image-container').style.display = 'none';
-        document.getElementById('pd-intensity-options').innerHTML = intensities.map(i => `<div class="option-btn" onclick="window.selectIntensity(${i.id})" id="int-btn-${i.id}">${i.name}</div>`).join('');
-        const activeBottles = bottles.filter(b => b.size_id === 2);
-        document.getElementById('pd-bottle-options').innerHTML = activeBottles.map(b => `<div class="option-btn" onclick="window.selectBottle(${b.id})" id="bot-btn-${b.id}">${b.image_url ? `<img src="${window.imageUrl(b.image_url)}" onerror="this.style.display='none'">` : ''}<div>${b.name}</div><div style="font-size:0.7rem; color:#666;">${b.price_diff > 0 ? '+' + b.price_diff + ' ₺' : 'مجاناً'}</div></div>`).join('');
-        window.updatePerfumeTotal(); window.openModal('perfumeDetailModal');
+        
+        // YOĞUNLUKLAR (İlk eleman varsayılan seçili)
+        const activeIntensities = intensities.filter(i => i.active !== false);
+        document.getElementById('pd-intensity-options').innerHTML = activeIntensities.map((i, index) => {
+            const isSelected = index === 0 ? 'active' : '';
+            if (index === 0) currentPerfumeSelection.intensityId = i.id;
+            return `<div class="option-btn ${isSelected}" onclick="window.selectIntensity(${i.id})" id="int-btn-${i.id}">${i.name}</div>`;
+        }).join('');
+
+        // ŞİŞELER (İlk eleman varsayılan seçili)
+        const activeBottles = bottles.filter(b => b.size_id === 2 && b.active !== false);
+        document.getElementById('pd-bottle-options').innerHTML = activeBottles.map((b, index) => {
+            const isSelected = index === 0 ? 'active' : '';
+            if (index === 0) currentPerfumeSelection.bottleId = b.id;
+            return `<div class="option-btn ${isSelected}" onclick="window.selectBottle(${b.id})" id="bot-btn-${b.id}">${b.image_url ? `<img src="${window.imageUrl(b.image_url)}" onerror="this.style.display='none'">` : ''}<div>${b.name}</div><div style="font-size:0.7rem; color:#666;">${b.price_diff > 0 ? '+' + b.price_diff + ' ₺' : 'مجاناً'}</div></div>`;
+        }).join('');
+        
+        window.updatePerfumeTotal(); 
+        window.openModal('perfumeDetailModal');
     };
 
     window.selectIntensity = function(id) { currentPerfumeSelection.intensityId = id; document.querySelectorAll('#pd-intensity-options .option-btn').forEach(el => el.classList.remove('active')); document.getElementById(`int-btn-${id}`).classList.add('active'); window.updatePerfumeTotal(); };
     window.selectBottle = function(id) { currentPerfumeSelection.bottleId = id; document.querySelectorAll('#pd-bottle-options .option-btn').forEach(el => el.classList.remove('active')); document.getElementById(`bot-btn-${id}`).classList.add('active'); window.updatePerfumeTotal(); };
-    window.updatePerfumeTotal = function() { const btn = document.getElementById('pd-btn-add'); const totalEl = document.getElementById('pd-total'); if (!currentPerfumeSelection.intensityId || !currentPerfumeSelection.bottleId) { totalEl.innerText = '0 ₺'; btn.disabled = true; return; } const basePriceRow = prices.find(p => p.perfume_id === currentPerfumeSelection.perfumeId && p.intensity_id === currentPerfumeSelection.intensityId && p.size_id === 2); const basePrice = basePriceRow ? basePriceRow.price : 0; const bottle = bottles.find(b => b.id === currentPerfumeSelection.bottleId); totalEl.innerText = (basePrice + (bottle ? bottle.price_diff : 0)) + ' ₺'; btn.disabled = false; };
+    window.updatePerfumeTotal = function() { 
+        const btn = document.getElementById('pd-btn-add'); 
+        const totalEl = document.getElementById('pd-total'); 
+        if (!currentPerfumeSelection.intensityId || !currentPerfumeSelection.bottleId) { 
+            totalEl.innerText = '0 ₺'; 
+            btn.disabled = true; 
+            return; 
+        } 
+        const basePriceRow = prices.find(p => p.perfume_id === currentPerfumeSelection.perfumeId && p.intensity_id === currentPerfumeSelection.intensityId && p.size_id === 2); 
+        const basePrice = basePriceRow ? basePriceRow.price : 0; 
+        const bottle = bottles.find(b => b.id === currentPerfumeSelection.bottleId); 
+        totalEl.innerText = (basePrice + (bottle ? bottle.price_diff : 0)) + ' ₺'; 
+        btn.disabled = false; 
+    };
     window.addPerfumeToCart = function() { const p = currentPerfumes.find(x => x.id === currentPerfumeSelection.perfumeId); const intLabel = intensities.find(i => i.id === currentPerfumeSelection.intensityId).name; const bottle = bottles.find(b => b.id === currentPerfumeSelection.bottleId); const group = perfumeGroups.find(g => g.id === p.gender_id); const totalTxt = document.getElementById('pd-total').innerText; cart.push({ type: 'perfume', id: p.id, name: p.name, details: `${intLabel} - ${bottle.name} - ${group ? group.label : ''}`, price: parseFloat(totalTxt.replace(' ₺', '')), qty: 1 }); window.saveCart(); window.updateCartUI(); window.showToast('تمت إضافة العطر للسلة'); window.triggerCartBadgePop(); window.closeModalAndPopHistory('perfumeDetailModal'); };
     window.openProductDetail = function(id) { const p = currentProducts.find(x => String(x.id) === String(id)); if (!p) return; document.getElementById('detail-img').src = window.imageUrl(p.img); document.getElementById('detail-img').onerror = function() { this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22200%22><rect width=%22300%22 height=%22200%22 fill=%22%23f8fafc%22/></svg>'; }; document.getElementById('detail-title').innerText = p.name_ar || p.name || 'بدون اسم'; const hasDiscount = p.original_price && p.original_price > p.price; const priceRow = document.getElementById('detail-price-row'); if (hasDiscount) priceRow.innerHTML = `<span style="color:var(--danger); font-size:1.4rem;">${p.price} ₺</span> <span style="font-size:1rem; color:#888; text-decoration:line-through; margin-inline-start:10px;">${p.original_price} ₺</span>`; else priceRow.innerHTML = `${p.price} ₺`; const descEl = document.getElementById('detail-desc'); if (p.description && p.description.trim() !== '') { descEl.innerText = p.description; descEl.style.display = 'block'; } else { descEl.style.display = 'none'; } document.getElementById('detail-add-btn').onclick = () => { window.addToCart(p.id); window.closeModalAndPopHistory('productDetailModal'); }; window.openModal('productDetailModal'); };
     window.addToCart = function(id) { const p = currentProducts.find(x => String(x.id) === String(id)); if (!p) return; const existing = cart.find(c => c.type === 'kozmetik' && c.id === p.id); if (existing) existing.qty++; else cart.push({ type: 'kozmetik', id: p.id, name: p.name_ar || p.name || 'منتج', price: p.price, qty: 1 }); window.saveCart(); window.updateCartUI(); window.showToast('تمت الإضافة للسلة'); window.triggerCartBadgePop(); };
