@@ -411,7 +411,6 @@
     window.addEventListener('popstate', function() { if (modalHistoryStack.length > 0) { const modalId = modalHistoryStack.pop(); document.getElementById(modalId).classList.remove('open'); } else { history.pushState({ root: true }, ''); } });
     history.replaceState({ root: true }, '');
 
-    // --- EKSİK OLAN TÜM ADMIN SEKMELERİ VE FONKSİYONLARI BURADA ---
     window.switchAdminTab = function(tab, btn) {
         document.querySelectorAll('.admin-tab').forEach(b => b.classList.remove('active')); if (btn) btn.classList.add('active');
         const c = document.getElementById('adminContent');
