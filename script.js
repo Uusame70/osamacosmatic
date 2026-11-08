@@ -361,7 +361,7 @@
         if (!email || !password) return alert('البريد وكلمة المرور مطلوبان');
         const btn = document.getElementById('login-btn');
         const oldText = btn.innerText;
-        btn.innerText = '... جاري الدخول';
+        btn.innerText = 'Giriş Yapılıyor...';
         btn.disabled = true;
         const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
         if (error) { alert('خطأ: ' + error.message); btn.innerText = oldText; btn.disabled = false; return; }
@@ -411,7 +411,7 @@
     window.addEventListener('popstate', function() { if (modalHistoryStack.length > 0) { const modalId = modalHistoryStack.pop(); document.getElementById(modalId).classList.remove('open'); } else { history.pushState({ root: true }, ''); } });
     history.replaceState({ root: true }, '');
 
-    // --- ADMIN İŞLEMLERİ (GİZLİ ÜRÜNLER SEKMESİ EKLENDİ) ---
+    // --- ADMIN İŞLEMLERİ ---
     window.switchAdminTab = function(tab, btn) {
         document.querySelectorAll('.admin-tab').forEach(b => b.classList.remove('active')); if (btn) btn.classList.add('active');
         const c = document.getElementById('adminContent');
@@ -867,7 +867,7 @@
         const price_diff = parseFloat(document.getElementById('bottle-form-price').value) || 0;
         const fileInput = document.getElementById('bottle-form-image');
         if (!name) return alert('اسم الزجاجة مطلوب!');
-        const btn = document.getElementById('bottle-save-btn'); const oldText = btn.innerText; btn.innerText = '... جاري الحفظ'; btn.disabled = true;
+        const btn = document.getElementById('bottle-save-btn'); const oldText = btn.innerText; btn.innerText = 'Kaydediliyor...'; btn.disabled = true;
         try {
             let imgUrl = existingImage;
             if (fileInput.files[0]) imgUrl = await window.uploadToB2(fileInput.files[0]);
@@ -944,7 +944,7 @@
 
     window.saveSettings = async function() {
         if (!_supabase) return alert('Supabase bağlantısı yok');
-        const btn = document.getElementById('setting-save-btn'); const oldText = btn.innerText; btn.innerText = '... جاري الحفظ'; btn.disabled = true;
+        const btn = document.getElementById('setting-save-btn'); const oldText = btn.innerText; btn.innerText = 'Kaydediliyor...'; btn.disabled = true;
         try {
             let finalLogoUrl = siteSettings.logo_url;
             let finalSliderImages = [...siteSettings.slider_images];
@@ -1015,6 +1015,70 @@
     };
     window.previewProductImage = function(input) { const file = input.files[0]; const preview = document.getElementById('pf-image-preview'); if (file) { const reader = new FileReader(); reader.onload = e => { preview.src = e.target.result; preview.style.display = 'block'; }; reader.readAsDataURL(file); } };
 
+    window.saveProduct = async function() {
+        const btn = document.getElementById('pf-save-btn'); 
+        if (!btn) return alert("Kaydet butonu bulunamadı!");
+        
+        const oldText = btn.innerText; 
+        btn.innerText = 'Kaydediliyor...'; 
+        btn.disabled = true;
+
+        try {
+            const id = document.getElementById('pf-id')?.value || '';
+            const name = document.getElementById('pf-name')?.value.trim() || '';
+            const price = parseFloat(document.getElementById('pf-price')?.value) || 0;
+            const oldPrice = parseFloat(document.getElementById('pf-old-price')?.value) || 0;
+            const category = document.getElementById('pf-category')?.value.trim() || '';
+            const description = document.getElementById('pf-description')?.value.trim() || '';
+            const fileInput = document.getElementById('pf-image-file');
+            
+            if (!name) {
+                btn.innerText = oldText; 
+                btn.disabled = false;
+                return alert('Lütfen ürün adını girin!');
+            }
+
+            let imgUrl = currentProductImageUrl || '';
+            if (fileInput && fileInput.files && fileInput.files[0]) {
+                imgUrl = await window.uploadToB2(fileInput.files[0]);
+            }
+
+            const payload = { 
+                id: id || 'admin_' + Date.now(), 
+                name: name, 
+                price: price, 
+                original_price: oldPrice, 
+                category: category, 
+                description: description, 
+                img: imgUrl, 
+                active: true, 
+                synced_at: new Date().toISOString() 
+            };
+            
+            if (id) { 
+                const { error } = await _supabase.from('whatsapp_products').update(payload).eq('id', id); 
+                if (error) throw error; 
+            } else { 
+                const { error } = await _supabase.from('whatsapp_products').insert([payload]); 
+                if (error) throw error; 
+            }
+            
+            window.closeModalAndPopHistory('productFormModal'); 
+            await window.loadAllData(); 
+            window.renderCategories(); 
+            window.applyLocalFilter(); 
+            window.showToast('تم حفظ المنتج'); 
+            window.switchAdminTab('products');
+            
+        } catch (err) { 
+            console.error("KAYIT HATASI:", err);
+            alert('HATA BULUNDU: ' + err.message); 
+        } finally { 
+            btn.innerText = oldText; 
+            btn.disabled = false; 
+        }
+    };
+
     window.openPerfumeForm = function(id = null) {
         const p = id ? currentPerfumes.find(x => String(x.id) === String(id)) : null;
         let html = `<div class="modal open" id="perfumeFormModal" onclick="window.closeModalOnBackdrop(event, 'perfumeFormModal')" style="display:flex; z-index:1001;"><div class="modal-content" onclick="event.stopPropagation()"><h2 style="margin-bottom: 20px;">${id ? 'تعديل عطر' : 'إضافة عطر جديد'}</h2><input type="hidden" id="perfume-form-id" value="${id || ''}"><input type="hidden" id="perfume-form-existing-image" value="${p?.image_url || ''}"><div class="form-group"><label>صورة العطر</label><div style="display:flex; gap:10px; margin-bottom:10px;"><button type="button" class="btn-gold" onclick="document.getElementById('perfume-form-image').click()" style="flex:1;">اختيار صورة</button><button type="button" class="btn-success" onclick="window.pasteImage('perfume-form-image', 'previewPerfumeImage')" style="flex:1;">لصق صورة</button></div><input type="file" id="perfume-form-image" accept="image/*" onchange="window.previewPerfumeImage(this)" style="display:none;"><img id="perfume-form-preview" class="img-preview" src="${p?.image_url ? window.imageUrl(p.image_url) : ''}" style="display:${p?.image_url ? 'block' : 'none'};"></div><div class="form-group"><label>اسم العطر *</label><input type="text" id="perfume-form-name" value="${p?.name || ''}"></div><div class="form-group"><label>المجموعة / الجنس</label><select id="perfume-form-gender">${perfumeGroups.map(g => `<option value="${g.id}" ${p?.gender_id == g.id ? 'selected' : ''}>${g.label}</option>`).join('')}</select></div><div style="display: flex; gap: 10px; margin-top: 20px;"><button class="btn-success" id="perfume-save-btn" style="flex:1; padding:12px;" onclick="window.savePerfume()">حفظ</button><button class="btn-danger" style="flex:1; padding:12px;" onclick="document.getElementById('perfumeFormModal').remove()">إلغاء</button></div></div></div>`;
@@ -1028,7 +1092,7 @@
         const gender_id = document.getElementById('perfume-form-gender').value || null;
         const fileInput = document.getElementById('perfume-form-image');
         if (!name) return alert('اسم العطر مطلوب!');
-        const btn = document.getElementById('perfume-save-btn'); const oldText = btn.innerText; btn.innerText = '... جاري الحفظ'; btn.disabled = true;
+        const btn = document.getElementById('perfume-save-btn'); const oldText = btn.innerText; btn.innerText = 'Kaydediliyor...'; btn.disabled = true;
         try {
             let imgUrl = existingImage; if (fileInput.files[0]) imgUrl = await window.uploadToB2(fileInput.files[0]);
             const payload = { id: id || 'perf_' + Date.now(), name: name, gender_id: gender_id, image_url: imgUrl, active: true };
