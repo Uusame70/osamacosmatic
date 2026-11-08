@@ -93,6 +93,7 @@
     <button id="scrollTopBtn" title="الأعلى"><svg class="icon" viewBox="0 0 24 24"><path d="m18 15-6-6-6 6"/></svg></button>
     <button id="whatsappFloat" onclick="openWhatsAppChat()" title="تواصل معنا"><svg class="icon" viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg></button>
 
+    <!-- PERFUME DETAIL MODAL -->
     <div id="perfumeDetailModal" class="modal" onclick="closeModalOnBackdrop(event, 'perfumeDetailModal')">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header-row">
@@ -104,9 +105,9 @@
             <div id="pd-image-container" style="display:none; margin-bottom: 16px; text-align: center;">
                 <img id="pd-image" src="" style="max-width: 100%; max-height: 350px; border-radius: 10px; object-fit: contain;">
             </div>
-            <div class="section-title">اختر التركيز</div>
+            <div class="section-title">اختر التركيز :</div>
             <div class="options-grid" id="pd-intensity-options"></div>
-            <div class="section-title">اختر الزجاجة</div>
+            <div class="section-title">اختر الزجاجة :</div>
             <div class="options-grid" id="pd-bottle-options"></div>
             <div class="cart-bar">
                 <div class="total-price" id="pd-total">0 ₺</div>
@@ -115,6 +116,7 @@
         </div>
     </div>
 
+    <!-- PRODUCT DETAIL MODAL -->
     <div id="productDetailModal" class="modal" onclick="closeModalOnBackdrop(event, 'productDetailModal')">
         <div class="modal-content" style="text-align:center;" onclick="event.stopPropagation()">
             <img id="detail-img" src="" style="width:100%; max-height:350px; object-fit:contain; margin-bottom:14px;">
@@ -128,6 +130,7 @@
         </div>
     </div>
 
+    <!-- CART MODAL -->
     <div id="cartModal" class="modal" onclick="closeModalOnBackdrop(event, 'cartModal')">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header-row">
@@ -141,6 +144,7 @@
         </div>
     </div>
 
+    <!-- LOGIN MODAL -->
     <div id="loginModal" class="modal" onclick="closeModalOnBackdrop(event, 'loginModal')">
         <div class="modal-content" onclick="event.stopPropagation()">
             <h2 style="margin-bottom:18px; text-align:center;">دخول المسؤول</h2>
@@ -166,6 +170,7 @@
         </div>
     </div>
 
+    <!-- ADMIN MODAL (DÜZELTİLDİ) -->
     <div id="adminModal" class="modal" onclick="closeModalOnBackdrop(event, 'adminModal')">
         <div class="modal-content" style="max-width: 950px;" onclick="event.stopPropagation()">
             <div class="modal-header-row">
@@ -174,6 +179,8 @@
                     <svg class="icon" viewBox="0 0 24 24" style="width:18px;height:18px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
             </div>
+            
+            <!-- SEKMELER (TAB BAR) -->
             <div class="admin-tab-bar">
                 <button class="admin-tab active" onclick="switchAdminTab('products', this)">إدارة المنتجات</button>
                 <button class="admin-tab" onclick="switchAdminTab('perfumes', this)">العطور</button>
@@ -183,10 +190,14 @@
                 <button class="admin-tab" onclick="switchAdminTab('settings', this)">الإعدادات</button>
                 <button class="admin-tab" onclick="switchAdminTab('analytics', this)">التحليلات (Analytics)</button>
             </div>
+
+            <!-- İÇERİK ALANI -->
             <div id="adminContent"></div>
+            
         </div>
     </div>
 
+    <!-- GROUP FORM MODAL -->
     <div id="groupFormModal" class="modal" onclick="closeModalOnBackdrop(event, 'groupFormModal')">
         <div class="modal-content" onclick="event.stopPropagation()">
             <h2 id="groupFormTitle" style="margin-bottom: 20px;">إضافة مجموعة</h2>
@@ -206,6 +217,7 @@
         </div>
     </div>
 
+    <!-- PRODUCT FORM MODAL -->
     <div id="productFormModal" class="modal" onclick="closeModalOnBackdrop(event, 'productFormModal')">
         <div class="modal-content" onclick="event.stopPropagation()">
             <h2 id="pf-title" style="margin-bottom: 20px;">إضافة منتج جديد</h2>
@@ -250,6 +262,7 @@
         </div>
     </div>
 
+    <!-- PRICE TAG FORM MODAL -->
     <div id="priceTagFormModal" class="modal" onclick="closeModalOnBackdrop(event, 'priceTagFormModal')">
         <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 800px;">
             <div class="modal-header-row">
@@ -277,6 +290,7 @@
         </div>
     </div>
 
+    <!-- PRICE TAG SELECT MODAL -->
     <div id="priceTagSelectModal" class="modal" onclick="closeModalOnBackdrop(event, 'priceTagSelectModal')">
         <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 600px;">
             <div class="modal-header-row">
