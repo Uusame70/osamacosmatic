@@ -55,6 +55,18 @@
         return String(str).toLowerCase().replace(/[\u064B-\u065F\u0670]/g, '').replace(/[أإآٱ]/g, 'ا').replace(/ى/g, 'ي').replace(/ة/g, 'ه').replace(/ؤ/g, 'و').replace(/ئ/g, 'ي').replace(/\s+/g, ' ').trim();
     }
 
+    window.togglePasswordVisibility = function() {
+        const inp = document.getElementById('login-password');
+        const icon = document.getElementById('eye-icon');
+        if (inp.type === 'password') {
+            inp.type = 'text';
+            icon.innerHTML = '<path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/>';
+        } else {
+            inp.type = 'password';
+            icon.innerHTML = '<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>';
+        }
+    };
+
     window.pasteImage = async function(inputId, previewFuncName) {
         try {
             if (!navigator.clipboard || !navigator.clipboard.read) return alert('متصفحك لا يدعم خاصية اللصق.');
@@ -294,7 +306,6 @@
         document.getElementById('pd-name').innerText = p.name;
         if (p.image_url) { document.getElementById('pd-image-container').style.display = 'block'; document.getElementById('pd-image').src = window.imageUrl(p.image_url); } else document.getElementById('pd-image-container').style.display = 'none';
         
-        // YOĞUNLUKLAR (İlk eleman varsayılan seçili)
         const activeIntensities = intensities.filter(i => i.active !== false);
         document.getElementById('pd-intensity-options').innerHTML = activeIntensities.map((i, index) => {
             const isSelected = index === 0 ? 'active' : '';
@@ -302,12 +313,11 @@
             return `<div class="option-btn ${isSelected}" onclick="window.selectIntensity(${i.id})" id="int-btn-${i.id}">${i.name}</div>`;
         }).join('');
 
-        // ŞİŞELER (Son eleman varsayılan seçili)
         const activeBottles = bottles.filter(b => b.size_id === 2 && b.active !== false);
-        const lastBottleIndex = activeBottles.length - 1; // Son elemanın indexi
+        const lastBottleIndex = activeBottles.length - 1; 
         document.getElementById('pd-bottle-options').innerHTML = activeBottles.map((b, index) => {
             const isSelected = index === lastBottleIndex ? 'active' : '';
-            if (index === lastBottleIndex) currentPerfumeSelection.bottleId = b.id; // Sonuncuyu seç
+            if (index === lastBottleIndex) currentPerfumeSelection.bottleId = b.id; 
             return `<div class="option-btn ${isSelected}" onclick="window.selectBottle(${b.id})" id="bot-btn-${b.id}">${b.image_url ? `<img src="${window.imageUrl(b.image_url)}" onerror="this.style.display='none'">` : ''}<div>${b.name}</div><div style="font-size:0.7rem; color:#666;">${b.price_diff > 0 ? '+' + b.price_diff + ' ₺' : 'مجاناً'}</div></div>`;
         }).join('');
         
@@ -318,13 +328,8 @@
     window.selectIntensity = function(id) { currentPerfumeSelection.intensityId = id; document.querySelectorAll('#pd-intensity-options .option-btn').forEach(el => el.classList.remove('active')); document.getElementById(`int-btn-${id}`).classList.add('active'); window.updatePerfumeTotal(); };
     window.selectBottle = function(id) { currentPerfumeSelection.bottleId = id; document.querySelectorAll('#pd-bottle-options .option-btn').forEach(el => el.classList.remove('active')); document.getElementById(`bot-btn-${id}`).classList.add('active'); window.updatePerfumeTotal(); };
     window.updatePerfumeTotal = function() { 
-        const btn = document.getElementById('pd-btn-add'); 
-        const totalEl = document.getElementById('pd-total'); 
-        if (!currentPerfumeSelection.intensityId || !currentPerfumeSelection.bottleId) { 
-            totalEl.innerText = '0 ₺'; 
-            btn.disabled = true; 
-            return; 
-        } 
+        const btn = document.getElementById('pd-btn-add'); const totalEl = document.getElementById('pd-total'); 
+        if (!currentPerfumeSelection.intensityId || !currentPerfumeSelection.bottleId) { totalEl.innerText = '0 ₺'; btn.disabled = true; return; } 
         const basePriceRow = prices.find(p => p.perfume_id === currentPerfumeSelection.perfumeId && p.intensity_id === currentPerfumeSelection.intensityId && p.size_id === 2); 
         const basePrice = basePriceRow ? basePriceRow.price : 0; 
         const bottle = bottles.find(b => b.id === currentPerfumeSelection.bottleId); 
@@ -371,7 +376,6 @@
     };
 
     window.handleSupabaseLogout = async function() { await _supabase.auth.signOut(); isAdmin = false; sessionToken = null; document.getElementById('adminBar').style.display = 'none'; location.reload(); };
-
     window.openAdmin = function() { document.getElementById('adminBar').style.display = 'flex'; window.openModal('adminModal'); window.switchAdminTab('products'); };
 
     window.renderSlider = function() {
@@ -407,7 +411,7 @@
     window.addEventListener('popstate', function() { if (modalHistoryStack.length > 0) { const modalId = modalHistoryStack.pop(); document.getElementById(modalId).classList.remove('open'); } else { history.pushState({ root: true }, ''); } });
     history.replaceState({ root: true }, '');
 
-    // --- ADMIN İŞLEMLERİ ---
+    // --- EKSİK OLAN TÜM ADMIN SEKMELERİ VE FONKSİYONLARI BURADA ---
     window.switchAdminTab = function(tab, btn) {
         document.querySelectorAll('.admin-tab').forEach(b => b.classList.remove('active')); if (btn) btn.classList.add('active');
         const c = document.getElementById('adminContent');
@@ -416,32 +420,565 @@
             c.innerHTML = `<button class="btn-gold" style="margin-bottom:15px; width:100%; padding:12px;" onclick="window.openProductForm()">+ إضافة منتج جديد (كوزمتيك)</button>${sortedProducts.map(p => `<div class="admin-item" style="${p.active === false ? 'opacity:0.6;' : ''}"><div style="display:flex; align-items:center; gap:10px; flex-grow:1;"><img src="${window.imageUrl(p.img)}" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2250%22 height=%2250%22><rect width=%2250%22 height=%2250%22 fill=%22%23eee%22/></svg>'"><div><strong>${p.name_ar || p.name || 'بدون اسم'} ${p.active === false ? '(مخفي)' : ''}</strong><br><small style="color:var(--gold-dark); font-weight:bold;">${p.price} ₺</small></div></div><div style="display:flex; gap:5px;"><button onclick="window.toggleProductActive('${p.id}', event)" style="background:${p.active !== false ? '#f39c12' : '#27ae60'}; padding:6px 10px;" title="${p.active !== false ? 'إخفاء' : 'إظهار'}"><svg class="icon" viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg></button><button class="btn-gold" onclick="window.openProductForm('${p.id}')" style="padding:6px 10px;"><svg class="icon" viewBox="0 0 24 24"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg> تعديل</button><button class="btn-danger" onclick="window.deleteProduct('${p.id}')" style="padding:6px 10px;"><svg class="icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> حذف</button></div></div>`).join('')}`;
         } else if (tab === 'perfumes') {
             const sortedPerfumes = [...currentPerfumes].sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ar'));
-            c.innerHTML = `<button class="btn-gold" style="margin-bottom:15px; width:100%; padding:12px;" onclick="window.openPerfumeForm()">+ إضافة عطر جديد</button>${sortedPerfumes.map(p => `<div class="admin-item" style="${p.active === false ? 'opacity:0.6;' : ''}"><div style="display:flex; align-items:center; gap:10px;"><strong>${p.name} ${p.active === false ? '(مخفي)' : ''}</strong></div><div style="display:flex; gap:5px;"><button onclick="window.togglePerfumeActive('${p.id}')" style="background:${p.active !== false ? '#f39c12' : '#27ae60'}; padding:6px 10px;"><svg class="icon" viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg></button><button class="btn-gold" onclick="window.openPerfumeForm('${p.id}')" style="padding:6px 10px;"><svg class="icon" viewBox="0 0 24 24"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg> تعديل</button><button class="btn-danger" onclick="window.deletePerfume('${p.id}')" style="padding:6px 10px;"><svg class="icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> حذف</button></div></div>`).join('')}`;
-        } else { c.innerHTML = '<p style="text-align:center; padding:20px; color:#888;">هذا القسم قيد التطوير حالياً.</p>'; }
+            c.innerHTML = `<button class="btn-info" style="margin-bottom:15px; width:100%; padding:12px; background: #2980b9;" onclick="window.downloadPerfumesAsWord()"><svg class="icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> تحميل قائمة العطور (Excel)</button><button class="btn-gold" style="margin-bottom:15px; width:100%; padding:12px;" onclick="window.openPerfumeForm()">+ إضافة عطر جديد</button>${sortedPerfumes.map(p => `<div class="admin-item" style="${p.active === false ? 'opacity:0.6;' : ''}"><div style="display:flex; align-items:center; gap:10px;"><strong>${p.name} ${p.active === false ? '(مخفي)' : ''}</strong></div><div style="display:flex; gap:5px;"><button onclick="window.togglePerfumeActive('${p.id}')" style="background:${p.active !== false ? '#f39c12' : '#27ae60'}; padding:6px 10px;"><svg class="icon" viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg></button><button class="btn-gold" onclick="window.openPerfumeForm('${p.id}')" style="padding:6px 10px;"><svg class="icon" viewBox="0 0 24 24"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg> تعديل</button><button class="btn-danger" onclick="window.deletePerfume('${p.id}')" style="padding:6px 10px;"><svg class="icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> حذف</button></div></div>`).join('')}`;
+        } else if (tab === 'price_tags') {
+            window.renderPriceTagsTab();
+        } else if (tab === 'groups') {
+            let unifiedCats = getAllCategoriesUnified();
+            const customOrder = siteSettings.custom_categories_order || [];
+            unifiedCats.sort((a, b) => {
+                let idxA = customOrder.indexOf(a.id); let idxB = customOrder.indexOf(b.id);
+                if (idxA === -1) idxA = 99999; if (idxB === -1) idxB = 99999; return idxA - idxB;
+            });
+            c.innerHTML = `
+                <h3 style="margin-bottom:10px; color:var(--navy);">ترتيب الأقسام (جميع الأقسام)</h3>
+                <p style="color:#888; font-size:0.85rem; margin-bottom:15px;">يمكنك خلط وترتيب جميع الأقسام كما تشاء.</p>
+                ${unifiedCats.map((item, index) => `
+                    <div class="admin-item">
+                        <strong>${item.type === 'perfume_group' ? `<svg class="icon" viewBox="0 0 24 24" style="color:#e91e63;"><path d="M12 2a3 3 0 0 0-3 3c0 1.3.8 2.4 2 2.8V10h2V7.8c1.2-.4 2-1.5 2-2.8a3 3 0 0 0-3-3z"/><path d="M12 22a3 3 0 0 0 3-3c0-1.3-.8-2.4-2-2.8V14h-2v2.2c-1.2.4-2 1.5-2 2.8a3 3 0 0 0 3 3z"/><path d="M5.5 5.5a3 3 0 0 0-3 3c0 1.3.8 2.4 2 2.8V13h2v-1.7c1.2-.4 2-1.5 2-2.8a3 3 0 0 0-3-3z"/><path d="M18.5 18.5a3 3 0 0 0 3-3c0-1.3-.8-2.4-2-2.8V11h-2v1.7c-1.2.4-2 1.5-2 2.8a3 3 0 0 0 3 3z"/><circle cx="12" cy="12" r="2.5"/></svg>` : ''} ${item.label}</strong>
+                        <div style="display:flex; gap:5px; align-items:center;">
+                            ${index > 0 ? `<button class="btn-gold" onclick="window.moveCategory('${item.id}', -1)" style="padding:6px 10px; font-weight:bold;"><svg class="icon" viewBox="0 0 24 24"><path d="m18 15-6-6-6 6"/></svg></button>` : ''}
+                            ${index < unifiedCats.length - 1 ? `<button class="btn-gold" onclick="window.moveCategory('${item.id}', 1)" style="padding:6px 10px; font-weight:bold;"><svg class="icon" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button>` : ''}
+                            <button class="btn-info" onclick="window.editCategoryName('${item.originalId}', '${item.type}')" style="padding:6px 10px;" title="تعديل الاسم"><svg class="icon" viewBox="0 0 24 24"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg></button>
+                            <button class="btn-danger" onclick="window.deleteCategoryByName('${item.originalId}', '${item.type}')" style="padding:6px 10px;"><svg class="icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+                        </div>
+                    </div>
+                `).join('')}
+            `;
+        } else if (tab === 'bottles') {
+            const sortedBottles = [...bottles].sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ar'));
+            c.innerHTML = `
+                <button class="btn-gold" style="margin-bottom:15px; width:100%; padding:12px;" onclick="window.openBottleForm()">+ إضافة زجاجة جديدة</button>
+                <p style="color:#888; text-align:center; margin-bottom:15px;">قائمة الزجاجات الحالية</p>
+                ${sortedBottles.map(b => `
+                    <div class="admin-item">
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            ${b.image_url ? `<img src="${window.imageUrl(b.image_url)}" style="width:40px; height:40px; object-fit:cover; border-radius:6px;" onerror="this.style.display='none'">` : '<div style="width:40px; height:40px; background:#eee; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:0.7rem; color:#aaa;">لا صورة</div>'}
+                            <div><strong>${b.name}</strong> <br><small style="color:var(--gold-dark); font-weight:bold;">(+${b.price_diff} ₺)</small></div>
+                        </div>
+                        <div style="display:flex; gap:5px;">
+                            <button class="btn-gold" onclick="window.openBottleForm('${b.id}')" style="padding:6px 10px;"><svg class="icon" viewBox="0 0 24 24"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg> تعديل</button>
+                            <button class="btn-danger" onclick="window.deleteBottle('${b.id}')" style="padding:6px 10px;"><svg class="icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> حذف</button>
+                        </div>
+                    </div>
+                `).join('')}
+            `;
+        } else if (tab === 'settings') { c.innerHTML = window.renderSettingsTab(); }
+        else if (tab === 'analytics') { window.loadAnalyticsTab(); }
+    };
+
+    window.loadAnalyticsTab = async function() {
+        const c = document.getElementById('adminContent');
+        c.innerHTML = '<div style="text-align:center; padding:30px; color:#888;">جاري التحميل...</div>';
+        try {
+            const { data: analytics, error } = await _supabase.from('site_analytics').select('*').order('created_at', { ascending: false }).limit(5000); 
+            if (error) throw error;
+            const now = new Date();
+            const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+            const dayOfWeek = now.getDay(); const diffToMonday = (dayOfWeek === 0 ? 7 : dayOfWeek) - 1;
+            const weekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - diffToMonday).getTime();
+            const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+            let totalVisits = 0, totalProductViews = 0, productViews = {};
+            let dailyDevices = new Set(), weeklyDevices = new Set(), monthlyDevices = new Set(), totalUniqueDevices = new Set();
+            let deviceStats = { Mobile: 0, Desktop: 0, Tablet: 0 };
+
+            analytics.forEach(item => {
+                if (item.event_type === 'visit') {
+                    totalVisits++; const itemTime = new Date(item.created_at).getTime();
+                    if (item.device_id) {
+                        totalUniqueDevices.add(item.device_id);
+                        if (itemTime >= todayStart) dailyDevices.add(item.device_id);
+                        if (itemTime >= weekStart) weeklyDevices.add(item.device_id);
+                        if (itemTime >= monthStart) monthlyDevices.add(item.device_id);
+                    }
+                    if (item.device_type && deviceStats[item.device_type] !== undefined) deviceStats[item.device_type]++;
+                } else if (item.event_type === 'product_view') {
+                    totalProductViews++; productViews[item.product_id] = (productViews[item.product_id] || 0) + 1;
+                }
+            });
+
+            const topProducts = Object.entries(productViews).sort((a, b) => b[1] - a[1]).slice(0, 5);
+            const getProductName = (id) => (currentProducts.find(p => String(p.id) === String(id)) || currentPerfumes.find(x => String(x.id) === String(id)) || {name_ar: 'منتج محذوف', name: 'منتج محذوف'}).name_ar || (currentPerfumes.find(x => String(x.id) === String(id)) || {}).name;
+
+            let html = `
+                <button class="btn-danger" style="margin-bottom: 20px; width: 100%; padding: 12px; font-size: 1rem;" onclick="window.resetAnalytics()"><svg class="icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> تصفير جميع الإحصائيات</button>
+                <div class="stats-grid">
+                    <div class="stat-box"><h3>إجمالي الزيارات</h3><div class="number">${totalVisits}</div></div>
+                    <div class="stat-box" style="background: linear-gradient(135deg, var(--gold-dark), var(--gold));"><h3>مشاهدات المنتجات</h3><div class="number">${totalProductViews}</div></div>
+                </div>
+                <h3 style="color:var(--navy); font-weight:800; margin-bottom:15px; margin-top:30px; display:flex; align-items:center; gap:8px;"><svg class="icon" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg> الأجهزة الفريدة</h3>
+                <div style="background:#faf8f3; padding:15px; border-radius:10px; margin-bottom:20px; display:grid; grid-template-columns:1fr 1fr; gap:15px; text-align:center;">
+                    <div style="background:#fff; padding:10px; border-radius:8px; border:1px solid #ddd;"><span style="font-size:0.8rem; color:#888;">اليوم</span><br><strong style="font-size:1.3rem; color:var(--navy);">${dailyDevices.size}</strong></div>
+                    <div style="background:#fff; padding:10px; border-radius:8px; border:1px solid #ddd;"><span style="font-size:0.8rem; color:#888;">هذا الأسبوع</span><br><strong style="font-size:1.3rem; color:var(--navy);">${weeklyDevices.size}</strong></div>
+                    <div style="background:#fff; padding:10px; border-radius:8px; border:1px solid #ddd;"><span style="font-size:0.8rem; color:#888;">هذا الشهر</span><br><strong style="font-size:1.3rem; color:var(--navy);">${monthlyDevices.size}</strong></div>
+                    <div style="background:#fff; padding:10px; border-radius:8px; border:1px solid #ddd;"><span style="font-size:0.8rem; color:#888;">الإجمالي</span><br><strong style="font-size:1.3rem; color:var(--gold-dark);">${totalUniqueDevices.size}</strong></div>
+                </div>
+                <h3 style="color:var(--navy); font-weight:800; margin-bottom:15px; margin-top:20px; display:flex; align-items:center; gap:8px;"><svg class="icon" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg> الأجهزة المستخدمة</h3>
+                <div style="display:flex; justify-content:space-between; background:#faf8f3; padding:15px; border-radius:10px; margin-bottom:20px;">
+                    <div style="text-align:center;"><svg class="icon" viewBox="0 0 24 24" style="width:2rem;height:2rem;color:var(--navy);margin-bottom:5px;"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg><br><strong>هاتف</strong><br>${deviceStats.Mobile}</div>
+                    <div style="text-align:center;"><svg class="icon" viewBox="0 0 24 24" style="width:2rem;height:2rem;color:var(--navy);margin-bottom:5px;"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg><br><strong>كمبيوتر</strong><br>${deviceStats.Desktop}</div>
+                    <div style="text-align:center;"><svg class="icon" viewBox="0 0 24 24" style="width:2rem;height:2rem;color:var(--navy);margin-bottom:5px;"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/></svg><br><strong>تابلت</strong><br>${deviceStats.Tablet}</div>
+                </div>
+                <h3 style="color:var(--navy); font-weight:800; margin-bottom:15px; margin-top:30px; display:flex; align-items:center; gap:8px;"><svg class="icon" viewBox="0 0 24 24" style="color:var(--danger);"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg> الأكثر مشاهدة</h3>
+            `;
+            if (topProducts.length === 0) html += `<p style="text-align:center; color:#888;">لا توجد بيانات كافية بعد.</p>`;
+            else {
+                topProducts.forEach(([pid, count], index) => {
+                    const name = getProductName(pid);
+                    let rankColor = index === 0 ? 'var(--gold)' : index === 1 ? '#bdc3c7' : index === 2 ? '#cd7f32' : '#eee';
+                    html += `<div class="admin-item" style="border-right: 5px solid ${rankColor};"><div style="display:flex; align-items:center; gap:10px;"><span style="font-weight:900; color:${rankColor}; font-size:1.2rem;">#${index+1}</span><strong>${name}</strong></div><div style="font-weight:900; color:var(--navy);">${count} <span style="font-size:0.8rem; font-weight:normal;">مشاهدة</span></div></div>`;
+                });
+            }
+            html += `<p style="text-align:center; color:#aaa; font-size:0.8rem; margin-top:20px;">* يتم عرض آخر 5000 إحصائية بناءً عليها.</p>`;
+            c.innerHTML = html;
+        } catch (err) { c.innerHTML = `<p style="text-align:center; color:red;">خطأ في تحميل الإحصائيات: ${err.message}</p>`; }
+    };
+
+    window.resetAnalytics = async function() {
+        if (!confirm('هل أنت متأكد من تصفير جميع الإحصائيات؟ لا يمكن التراجع عن هذا الإجراء.')) return;
+        try {
+            const { error } = await _supabase.rpc('truncate_analytics');
+            if (error) {
+                const { error: deleteError } = await _supabase.from('site_analytics').delete().neq('event_type', 'xyz');
+                if (deleteError) throw deleteError;
+            }
+            window.showToast('تم تصفير جميع الإحصائيات بنجاح'); window.loadAnalyticsTab(); 
+        } catch (err) { alert('Hata: ' + err.message); }
+    };
+
+    window.renderPriceTagsTab = function() {
+        const c = document.getElementById('adminContent'); const lists = siteSettings.pricing_lists || [];
+        c.innerHTML = `
+            <h3 style="margin-bottom:10px; color:var(--navy);">قوائم الأسعار (Toplu Fiyatlandırma)</h3>
+            <p style="color:#888; font-size:0.85rem; margin-bottom:15px;">يمكنك إنشاء قوائم لأسعار معينة وتطبيقها على العطور بضغطة زر.</p>
+            <button class="btn-gold" style="margin-bottom:15px; width:100%; padding:12px;" onclick="window.openPriceTagForm()">+ إنشاء قائمة أسعار جديدة</button>
+            ${lists.length === 0 ? '<p style="text-align:center; color:#888; padding:20px;">لا توجد قوائم أسعار بعد.</p>' : ''}
+            ${lists.map(list => `
+                <div class="admin-item" style="padding:15px; align-items:flex-start; flex-direction:column; gap:10px;">
+                    <div style="display:flex; justify-content:space-between; width:100%; align-items:center;">
+                        <strong style="font-size:1.1rem; color:var(--navy);">${list.name}</strong>
+                        <span style="font-size:0.8rem; color:#888;">${(list.perfume_ids || []).length} عطر</span>
+                    </div>
+                    <div style="display:flex; gap:8px; width:100%; justify-content:flex-end; margin-top:5px;">
+                        <button class="btn-success" onclick="window.applyPriceTag('${list.id}')" style="flex:1; font-size:0.9rem;"><svg class="icon" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg> تطبيق الأسعار</button>
+                        <button class="btn-gold" onclick="window.openPriceTagForm('${list.id}')" style="padding:6px 12px;"><svg class="icon" viewBox="0 0 24 24"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg></button>
+                        <button class="btn-danger" onclick="window.deletePriceTag('${list.id}')" style="padding:6px 12px;"><svg class="icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+                    </div>
+                </div>
+            `).join('')}
+        `;
+    };
+
+    window.renderPriceTagBulkPrices = function() {
+        const container = document.getElementById('pt-bulk-prices-container');
+        if (intensities.length === 0) { container.innerHTML = '<p style="color:#888;">لا توجد تركيزات مضافة.</p>'; return; }
+        container.innerHTML = intensities.map(inten => {
+            const val = currentPriceTagBulkPrices[inten.id] || '';
+            return `<div style="display:flex; flex-direction:column;"><label style="font-size:0.8rem; color:#555; margin-bottom:4px; font-weight:bold;">${inten.name}</label><input type="number" value="${val}" placeholder="₺" onchange="window.updateBulkPrice(${inten.id}, this.value)" style="padding:8px; text-align:center; border:1px solid #ccc; border-radius:6px;"></div>`;
+        }).join('');
+    };
+
+    window.updateBulkPrice = function(intensityId, value) {
+        const price = parseFloat(value);
+        if (!isNaN(price) && price > 0) currentPriceTagBulkPrices[intensityId] = price;
+        else delete currentPriceTagBulkPrices[intensityId];
+    };
+
+    window.openPriceTagForm = function(id = null) {
+        document.getElementById('priceTagFormTitle').innerText = id ? 'تعديل قائمة الأسعار' : 'إنشاء قائمة أسعار جديدة';
+        document.getElementById('pt-name').value = ''; currentPriceTagPerfumes = []; currentPriceTagBulkPrices = {};
+        if (id) {
+            const list = siteSettings.pricing_lists.find(l => l.id === id);
+            if (list) {
+                document.getElementById('pt-name').value = list.name;
+                if (list.items && !list.perfume_ids) {
+                    currentPriceTagPerfumes = list.items.map(i => i.perfume_id);
+                    if (list.items.length > 0 && list.items[0].prices) currentPriceTagBulkPrices = { ...list.items[0].prices };
+                } else {
+                    currentPriceTagPerfumes = list.perfume_ids || []; currentPriceTagBulkPrices = list.bulk_prices || {};
+                }
+            }
+            document.getElementById('priceTagFormModal').setAttribute('data-edit-id', id);
+        } else document.getElementById('priceTagFormModal').removeAttribute('data-edit-id');
+        window.renderPriceTagBulkPrices(); window.renderPriceTagItems(); window.openModal('priceTagFormModal');
+    };
+
+    window.renderPriceTagItems = function() {
+        const listEl = document.getElementById('pt-items-list');
+        if (currentPriceTagPerfumes.length === 0) { listEl.innerHTML = '<p style="text-align:center; color:#888; font-size:0.9rem;">لم يتم إضافة أي عطر بعد.</p>'; return; }
+        listEl.innerHTML = currentPriceTagPerfumes.map((perfumeId, index) => {
+            const perfume = currentPerfumes.find(p => p.id === perfumeId);
+            if (!perfume) return '';
+            return `<div style="background:#fff; padding:10px; border-radius:8px; border:1px solid #ddd; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;"><strong style="color:var(--navy); font-size:0.95rem;">${perfume.name}</strong><button onclick="window.removePerfumeFromPriceTag(${index})" class="btn-danger" style="padding:4px 10px; min-height:unset; font-size:0.8rem;">✕</button></div>`;
+        }).join('');
+    };
+
+    window.removePerfumeFromPriceTag = function(index) { currentPriceTagPerfumes.splice(index, 1); window.renderPriceTagItems(); };
+
+    window.openPriceTagSelectModal = function() {
+        const selectEl = document.getElementById('pt-gender-select');
+        selectEl.innerHTML = perfumeGroups.map(g => `<option value="${g.id}">${g.label}</option>`).join('');
+        window.renderPriceTagPerfumeCheckboxes(); window.openModal('priceTagSelectModal');
+    };
+
+    window.renderPriceTagPerfumeCheckboxes = function() {
+        const genderId = document.getElementById('pt-gender-select').value;
+        const container = document.getElementById('pt-perfume-checkboxes');
+        if (!genderId) { container.innerHTML = '<p style="text-align:center; color:#888;">يرجى اختيار مجموعة أولاً.</p>'; return; }
+        const filteredPerfumes = currentPerfumes.filter(p => p.gender_id == genderId && !currentPriceTagPerfumes.includes(p.id));
+        if (filteredPerfumes.length === 0) { container.innerHTML = '<p style="text-align:center; color:#888;">لا توجد عطور متاحة في هذه المجموعة (أو تمت إضافتها بالفعل).</p>'; return; }
+        container.innerHTML = filteredPerfumes.map(p => `<label style="display:flex; align-items:center; gap:10px; padding:8px; border-bottom:1px solid #eee; cursor:pointer;"><input type="checkbox" value="${p.id}" class="pt-perfume-checkbox" style="width:18px; height:18px; accent-color:var(--gold);"><span style="font-weight:700; color:var(--navy); font-size:0.95rem;">${p.name}</span></label>`).join('');
+    };
+
+    window.confirmAddPerfumesToPriceTag = function() {
+        const checkboxes = document.querySelectorAll('.pt-perfume-checkbox:checked');
+        if (checkboxes.length === 0) { alert('لم تقم باختيار أي عطر.'); return; }
+        checkboxes.forEach(cb => { if (!currentPriceTagPerfumes.includes(cb.value)) currentPriceTagPerfumes.push(cb.value); });
+        window.closeModalAndPopHistory('priceTagSelectModal'); window.renderPriceTagItems(); window.showToast('تمت إضافة العطور للقائمة');
+    };
+
+    window.savePriceTag = async function() {
+        const name = document.getElementById('pt-name').value.trim();
+        if (!name) return alert('Lütfen bir liste adı girin.');
+        if (currentPriceTagPerfumes.length === 0) return alert('Lütfen en az bir parfüm ekleyin.');
+        if (Object.keys(currentPriceTagBulkPrices).length === 0) return alert('Lütfen en az bir toplu fiyat girin.');
+        const editId = document.getElementById('priceTagFormModal').getAttribute('data-edit-id');
+        let newList = { id: editId || 'list_' + Date.now(), name: name, perfume_ids: [...currentPriceTagPerfumes], bulk_prices: { ...currentPriceTagBulkPrices } };
+        const btn = document.getElementById('pt-save-btn'); const oldText = btn.innerText; btn.innerText = 'Kaydediliyor...'; btn.disabled = true;
+        try {
+            let updatedLists = [...siteSettings.pricing_lists];
+            if (editId) { const idx = updatedLists.findIndex(l => l.id === editId); if (idx !== -1) updatedLists[idx] = newList; }
+            else updatedLists.push(newList);
+            const { error } = await _supabase.from('site_settings').update({ pricing_lists: updatedLists }).eq('id', 1);
+            if (error) throw error;
+            siteSettings.pricing_lists = updatedLists; window.closeModalAndPopHistory('priceTagFormModal'); window.showToast('Liste kaydedildi.'); window.renderPriceTagsTab();
+        } catch (err) { alert('Hata: ' + err.message); } finally { btn.innerText = oldText; btn.disabled = false; }
+    };
+
+    window.deletePriceTag = async function(id) {
+        if (!confirm('Bu fiyat listesini silmek istediğinize emin misiniz?')) return;
+        try {
+            const updatedLists = siteSettings.pricing_lists.filter(l => l.id !== id);
+            const { error } = await _supabase.from('site_settings').update({ pricing_lists: updatedLists }).eq('id', 1);
+            if (error) throw error;
+            siteSettings.pricing_lists = updatedLists; window.showToast('Liste silindi.'); window.renderPriceTagsTab();
+        } catch (err) { alert('Hata: ' + err.message); }
+    };
+
+    window.applyPriceTag = async function(id) {
+        const list = siteSettings.pricing_lists.find(l => l.id === id);
+        if (!list) return;
+        if (!confirm(`"${list.name}" listesindeki fiyatları tüm ürünlere uygulamak istediğinize emin misiniz?`)) return;
+        try {
+            const perfumeIds = list.perfume_ids || (list.items ? list.items.map(i => i.perfume_id) : []);
+            const bulkPrices = list.bulk_prices || (list.items && list.items.length > 0 ? list.items[0].prices : {});
+            for (const perfumeId of perfumeIds) {
+                for (const intensityId in bulkPrices) {
+                    const priceVal = bulkPrices[intensityId];
+                    const existing = prices.find(pr => pr.perfume_id === perfumeId && pr.intensity_id == intensityId && pr.size_id === 2);
+                    if (existing) await _supabase.from('perfume_prices').update({ price: priceVal }).eq('id', existing.id);
+                    else await _supabase.from('perfume_prices').insert([{ perfume_id: perfumeId, intensity_id: intensityId, size_id: 2, price: priceVal }]);
+                }
+            }
+            await window.loadAllData(); window.applyLocalFilter(); window.showToast('Fiyatlar başarıyla uygulandı!');
+        } catch (err) { alert('Hata oluştu: ' + err.message); }
+    };
+
+    window.moveCategory = async function(id, direction) {
+        let currentOrder = siteSettings.custom_categories_order || [];
+        const allCats = getAllCategoriesUnified().map(item => item.id);
+        if (currentOrder.length === 0) currentOrder = [...allCats];
+        allCats.forEach(cId => { if (!currentOrder.includes(cId)) currentOrder.push(cId); });
+        const index = currentOrder.indexOf(id);
+        if (index === -1) return;
+        const targetIndex = index + direction;
+        if (targetIndex < 0 || targetIndex >= currentOrder.length) return;
+        [currentOrder[index], currentOrder[targetIndex]] = [currentOrder[targetIndex], currentOrder[index]];
+        try {
+            const { error } = await _supabase.from('site_settings').update({ custom_categories_order: currentOrder }).eq('id', 1);
+            if (error) throw error;
+            siteSettings.custom_categories_order = currentOrder; window.switchAdminTab('groups'); window.renderCategories();
+        } catch(err) { alert('Hata: ' + err.message); }
+    };
+
+    window.editCategoryName = async function(originalId, type) {
+        if (type === 'perfume_group') {
+            window.openGroupForm(originalId);
+        } else {
+            const currentName = originalId;
+            const newName = prompt('اسم القسم الجديد:', currentName);
+            if (!newName || newName.trim() === '' || newName === currentName) return;
+            if (!confirm('سيتم تغيير اسم القسم في جميع المنتجات المرتبطة به. متابعة؟')) return;
+            try {
+                const productsToUpdate = currentProducts.filter(p => p.category && p.category.split(/[,;\/|]+/).map(c=>c.trim()).includes(currentName));
+                for (const p of productsToUpdate) {
+                    const cats = p.category.split(/[,;\/|]+/).map(c => c.trim());
+                    const newCats = cats.map(c => c === currentName ? newName.trim() : c);
+                    await _supabase.from('whatsapp_products').update({ category: newCats.join(', ') }).eq('id', p.id);
+                }
+                let customOrder = siteSettings.custom_categories_order || [];
+                const oldId = 'cat_' + currentName;
+                const newId = 'cat_' + newName.trim();
+                const idx = customOrder.indexOf(oldId);
+                if (idx !== -1) {
+                    customOrder[idx] = newId;
+                    await _supabase.from('site_settings').update({ custom_categories_order: customOrder }).eq('id', 1);
+                    siteSettings.custom_categories_order = customOrder;
+                }
+                if (selectedCategory === currentName) selectedCategory = newName.trim();
+                await window.loadAllData(); window.renderCategories(); window.applyLocalFilter(); window.switchAdminTab('groups'); window.showToast('تم تعديل اسم القسم بنجاح');
+            } catch (err) { alert('Hata: ' + err.message); }
+        }
+    };
+
+    window.deleteCategoryByName = async function(originalId, type) {
+        if (!confirm('تأكيد حذف هذا القسم/المجموعة؟\n\nملاحظة: سيتم إزالة هذا القسم من جميع المنتجات المرتبطة به.')) return;
+        try {
+            if (type === 'perfume_group') { await window.deleteGroup(originalId); }
+            else {
+                const catName = originalId;
+                const productsToUpdate = currentProducts.filter(p => p.category && p.category.includes(catName));
+                for (const p of productsToUpdate) {
+                    const newCat = p.category.split(/[,;\/|]+/).map(c=>c.trim()).filter(c => c !== catName).join(', ');
+                    await _supabase.from('whatsapp_products').update({ category: newCat }).eq('id', p.id);
+                }
+                let customOrder = siteSettings.custom_categories_order || [];
+                customOrder = customOrder.filter(id => id !== 'cat_' + catName);
+                await _supabase.from('site_settings').update({ custom_categories_order: customOrder }).eq('id', 1);
+                siteSettings.custom_categories_order = customOrder;
+                await window.loadAllData(); window.renderCategories(); window.applyLocalFilter(); window.switchAdminTab('groups'); window.showToast('تم حذف القسم بنجاح');
+            }
+        } catch (err) { alert('Hata: ' + err.message); }
+    };
+
+    window.downloadPerfumesAsWord = function() {
+        if (currentPerfumes.length === 0) return alert("Listelenecek parfüm bulunamadı.");
+        let html = `
+        <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+        <head>
+            <meta charset="UTF-8">
+            <style>
+                table { border-collapse: collapse; width: 100%; font-family: 'Tajawal', Arial, sans-serif; }
+                th, td { border: 1px solid #aaa; padding: 8px; text-align: right; }
+                th { background-color: #D4AF37; color: #1a2942; font-weight: bold; }
+            </style>
+        </head>
+        <body>
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>المجموعة (Grup)</th>
+                        <th>اسم العطر (Parfüm Adı)</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+        const targetGroups = ['عطور رجالية', 'عطور نسائية', 'عطور للجنسين'];
+        let counter = 1;
+
+        targetGroups.forEach(groupName => {
+            const groupPerfumes = currentPerfumes.filter(p => {
+                const group = perfumeGroups.find(g => g.id === p.gender_id);
+                return group && group.label === groupName;
+            }).sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ar'));
+
+            groupPerfumes.forEach(p => {
+                html += `
+                    <tr>
+                        <td>${counter++}</td>
+                        <td>${groupName}</td>
+                        <td>${p.name}</td>
+                    </tr>
+                `;
+            });
+        });
+
+        html += `</tbody></table></body></html>`;
+
+        const blob = new Blob(["\uFEFF" + html], { type: 'application/vnd.ms-excel;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Parfum_Listesi_${new Date().toISOString().slice(0,10)}.xls`;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+        window.showToast('Excel dosyası başarıyla indirildi!');
+    };
+
+    window.openBottleForm = function(id = null) {
+        let b = { name: '', price_diff: 0, size_id: 2, image_url: '' };
+        if (id) b = bottles.find(x => String(x.id) === String(id)) || b;
+        const html = `
+            <div class="modal open" id="bottleFormModal" onclick="window.closeModalOnBackdrop(event, 'bottleFormModal')" style="display:flex; z-index:1001;">
+                <div class="modal-content" onclick="event.stopPropagation()">
+                    <h2 style="margin-bottom: 20px;">${id ? 'تعديل زجاجة' : 'إضافة زجاجة جديدة'}</h2>
+                    <input type="hidden" id="bottle-form-id" value="${id || ''}"><input type="hidden" id="bottle-form-existing-image" value="${b.image_url || ''}">
+                    <div class="form-group">
+                        <label>صورة الزجاجة</label>
+                        <div style="display:flex; gap:10px; margin-bottom:10px;">
+                            <button type="button" class="btn-gold" onclick="document.getElementById('bottle-form-image').click()" style="flex:1;"><svg class="icon" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg> اختيار صورة</button>
+                            <button type="button" class="btn-success" onclick="window.pasteImage('bottle-form-image', 'previewBottleImage')" style="flex:1;"><svg class="icon" viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg> لصق صورة</button>
+                        </div>
+                        <input type="file" id="bottle-form-image" accept="image/*" onchange="window.previewBottleImage(this)" style="display:none;">
+                        <img id="bottle-form-preview" class="img-preview" src="${b.image_url ? window.imageUrl(b.image_url) : ''}" style="display:${b.image_url ? 'block' : 'none'};" onerror="this.style.display='none'">
+                    </div>
+                    <div class="form-group"><label>اسم الزجاجة (مثال: زجاجة 50 مل) *</label><input type="text" id="bottle-form-name" value="${b.name}"></div>
+                    <div class="form-group"><label>فرق السعر (₺)</label><input type="number" id="bottle-form-price" value="${b.price_diff}" step="1"></div>
+                    <div style="display: flex; gap: 10px; margin-top: 20px;">
+                        <button class="btn-success" id="bottle-save-btn" style="flex:1; padding:12px;" onclick="window.saveBottle()">حفظ</button>
+                        <button class="btn-danger" style="flex:1; padding:12px;" onclick="document.getElementById('bottleFormModal').remove()">إلغاء</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', html);
+    };
+
+    window.previewBottleImage = function(input) {
+        const file = input.files[0]; const preview = document.getElementById('bottle-form-preview');
+        if (file) { const reader = new FileReader(); reader.onload = e => { preview.src = e.target.result; preview.style.display = 'block'; }; reader.readAsDataURL(file); }
+    };
+
+    window.saveBottle = async function() {
+        const id = document.getElementById('bottle-form-id').value;
+        const existingImage = document.getElementById('bottle-form-existing-image').value;
+        const name = document.getElementById('bottle-form-name').value.trim();
+        const price_diff = parseFloat(document.getElementById('bottle-form-price').value) || 0;
+        const fileInput = document.getElementById('bottle-form-image');
+        if (!name) return alert('اسم الزجاجة مطلوب!');
+        const btn = document.getElementById('bottle-save-btn'); const oldText = btn.innerText; btn.innerText = '... جاري الحفظ'; btn.disabled = true;
+        try {
+            let imgUrl = existingImage;
+            if (fileInput.files[0]) imgUrl = await window.uploadToB2(fileInput.files[0]);
+            const payload = { name, price_diff, size_id: 2, active: true, image_url: imgUrl };
+            if (id) await _supabase.from('perfume_bottles').update(payload).eq('id', id);
+            else await _supabase.from('perfume_bottles').insert([payload]);
+            document.getElementById('bottleFormModal').remove(); await window.loadAllData(); window.switchAdminTab('bottles'); window.showToast('تم حفظ الزجاجة');
+        } catch (err) { alert('Hata: ' + err.message); btn.innerText = oldText; btn.disabled = false; }
+    };
+
+    window.deleteBottle = async function(id) {
+        if (!confirm('تأكيد حذف الزجاجة؟')) return;
+        try { await _supabase.from('perfume_bottles').delete().eq('id', id); await window.loadAllData(); window.switchAdminTab('bottles'); } catch (err) { alert('Hata: ' + err.message); }
+    };
+
+    window.renderSettingsTab = function() {
+        return `
+            <div class="form-group">
+                <label>شعار الموقع (Logo)</label>
+                <div style="display:flex; gap:10px; margin-bottom:10px;">
+                    <button type="button" class="btn-gold" onclick="document.getElementById('setting-logo-file').click()" style="flex:1;"><svg class="icon" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg> اختيار صورة</button>
+                    <button type="button" class="btn-success" onclick="window.pasteImage('setting-logo-file', 'previewSettingLogo')" style="flex:1;"><svg class="icon" viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg> لصق صورة</button>
+                </div>
+                <input type="file" id="setting-logo-file" accept="image/*" onchange="window.previewSettingLogo(this)" style="display:none;">
+                <img id="setting-logo-preview" class="img-preview" src="${siteSettings.logo_url ? window.imageUrl(siteSettings.logo_url) : ''}" style="display:${siteSettings.logo_url ? 'block' : 'none'};" onerror="this.style.display='none'">
+            </div>
+            <div class="form-group"><label>عنوان الموقع الرئيسي (Hero Title)</label><input type="text" id="setting-hero-title" value="${siteSettings.hero_title}"></div>
+            <div class="form-group"><label>العنوان الفرعي (Hero Subtitle)</label><input type="text" id="setting-hero-subtitle" value="${siteSettings.hero_subtitle}"></div>
+            <div class="form-group"><label>نص الشحن المجاني (Shipping Text)</label><input type="text" id="setting-shipping-text" value="${siteSettings.free_shipping_text}"></div>
+            <div class="form-group"><label>الحد الأدنى للشحن المجاني (Shipping Min Price)</label><input type="number" id="setting-shipping-min" value="${siteSettings.free_shipping_min}"></div>
+            <div class="form-group"><label>رقم الواتساب (WhatsApp Number)</label><input type="text" id="setting-whatsapp" value="${siteSettings.whatsapp_number}" dir="ltr"></div>
+            <div class="form-group">
+                <label>صور البانر (Slider Images)</label>
+                <input type="file" id="setting-slider-files" multiple accept="image/*" onchange="window.previewSettingSlider(this)">
+                <div id="setting-slider-preview" style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
+                    ${siteSettings.slider_images.map(img => `
+                        <div style="position:relative;">
+                            <img src="${window.imageUrl(img)}" style="width:80px; height:50px; object-fit:cover; border-radius:6px; border:1px solid #ccc;" onerror="this.style.display='none'">
+                            <button onclick="window.removeBannerImage('${img}')" style="position:absolute; top:-5px; right:-5px; background:var(--danger); color:#fff; border:none; border-radius:50%; width:20px; height:20px; font-size:0.7rem; cursor:pointer; display:flex; align-items:center; justify-content:center; min-height: unset; padding:0;"><svg class="icon" viewBox="0 0 24 24" style="width:12px;height:12px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+            <button class="btn-success" style="width:100%; padding:15px; font-size:1.1rem; margin-top:20px;" onclick="window.saveSettings()" id="setting-save-btn">حفظ الإعدادات</button>
+        `;
+    };
+
+    window.previewSettingLogo = function(input) {
+        if (input.files && input.files[0]) {
+            settingLogoFile = input.files[0];
+            const reader = new FileReader();
+            reader.onload = e => { const preview = document.getElementById('setting-logo-preview'); preview.src = e.target.result; preview.style.display = 'block'; };
+            reader.readAsDataURL(settingLogoFile);
+        }
+    };
+
+    window.previewSettingSlider = function(input) {
+        if (input.files && input.files.length > 0) {
+            settingSliderFiles = Array.from(input.files);
+            const preview = document.getElementById('setting-slider-preview');
+            preview.innerHTML = settingSliderFiles.map(file => `<span style="font-size:0.8rem; background:#f0f0f0; padding:4px 8px; border-radius:4px;">${file.name}</span>`).join('');
+        }
+    };
+
+    window.removeBannerImage = async function(imgUrl) {
+        if (!confirm('هل أنت متأكد من حذف هذه الصورة من البانر؟')) return;
+        const newSliderImages = siteSettings.slider_images.filter(img => img !== imgUrl);
+        try {
+            const { error } = await _supabase.from('site_settings').update({ slider_images: newSliderImages }).eq('id', 1);
+            if (error) throw error;
+            siteSettings.slider_images = newSliderImages; window.renderSlider(); window.switchAdminTab('settings'); window.showToast('تم حذف الصورة');
+        } catch (err) { alert('Hata: ' + err.message); }
+    };
+
+    window.saveSettings = async function() {
+        if (!_supabase) return alert('Supabase bağlantısı yok');
+        const btn = document.getElementById('setting-save-btn'); const oldText = btn.innerText; btn.innerText = '... جاري الحفظ'; btn.disabled = true;
+        try {
+            let finalLogoUrl = siteSettings.logo_url;
+            let finalSliderImages = [...siteSettings.slider_images];
+            if (settingLogoFile) finalLogoUrl = await window.uploadToB2(settingLogoFile);
+            if (settingSliderFiles.length > 0) {
+                for (const file of settingSliderFiles) { const finalUrl = await window.uploadToB2(file); finalSliderImages.push(finalUrl); }
+            }
+            const payload = {
+                logo_url: finalLogoUrl,
+                hero_title: document.getElementById('setting-hero-title').value.trim(),
+                hero_subtitle: document.getElementById('setting-hero-subtitle').value.trim(),
+                free_shipping_text: document.getElementById('setting-shipping-text').value.trim(),
+                free_shipping_min: parseFloat(document.getElementById('setting-shipping-min').value) || 800,
+                whatsapp_number: document.getElementById('setting-whatsapp').value.trim(),
+                slider_images: finalSliderImages, updated_at: new Date().toISOString()
+            };
+            const { error } = await _supabase.from('site_settings').update(payload).eq('id', 1);
+            if (error) throw error;
+            siteSettings.logo_url = payload.logo_url; siteSettings.hero_title = payload.hero_title; siteSettings.hero_subtitle = payload.hero_subtitle;
+            siteSettings.free_shipping_text = payload.free_shipping_text; siteSettings.free_shipping_min = payload.free_shipping_min;
+            siteSettings.whatsapp_number = payload.whatsapp_number; siteSettings.slider_images = payload.slider_images;
+            window.applySiteSettingsToUI(); settingLogoFile = null; settingSliderFiles = []; window.showToast('تم حفظ الإعدادات'); window.switchAdminTab('settings');
+        } catch (err) { alert('Hata: ' + err.message); } finally { btn.innerText = oldText; btn.disabled = false; }
     };
 
     window.toggleProductActive = async function(id, event) { if (event) event.stopPropagation(); if (!confirm('تغيير حالة ظهور المنتج؟')) return; const product = currentProducts.find(p => String(p.id) === String(id)); if (!product) return; const newState = product.active !== false ? false : true; try { const { error } = await _supabase.from('whatsapp_products').update({ active: newState }).eq('id', id); if (error) throw error; product.active = newState; window.applyLocalFilter(); if (document.getElementById('adminModal').classList.contains('open')) window.switchAdminTab('products'); window.showToast('تم تحديث حالة المنتج'); } catch (err) { alert('Hata: ' + err.message); } };
-    window.deleteProduct = async function(id) { if (!confirm('تأكيد الحذف؟')) return; const { error } = await _supabase.from('whatsapp_products').delete().eq('id', id); if (error) return alert('Hata: ' + error.message); await window.loadAllData(); window.renderCategories(); window.applyLocalFilter(); window.switchAdminTab('products'); };
-    window.deletePerfume = async function(id) { if (!confirm('تأكيد حذف العطر؟')) return; try { await _supabase.from('perfumes').delete().eq('id', id); await window.loadAllData(); window.applyLocalFilter(); window.switchAdminTab('perfumes'); } catch (err) { alert('Hata: ' + err.message); } };
 
-    window.saveProduct = async function() {
-        const id = document.getElementById('pf-id').value;
-        const name = document.getElementById('pf-name').value.trim();
-        const price = parseFloat(document.getElementById('pf-price').value) || 0;
-        const oldPrice = parseFloat(document.getElementById('pf-old-price').value) || 0;
-        const category = document.getElementById('pf-category').value.trim();
-        const description = document.getElementById('pf-description').value.trim();
-        const fileInput = document.getElementById('pf-image-file');
-        if (!name) return alert('اسم المنتج مطلوب');
-        const btn = document.getElementById('pf-save-btn'); const oldText = btn.innerText; btn.innerText = '... جاري الحفظ'; btn.disabled = true;
+    window.openGroupForm = async function(groupId = null) {
+        document.getElementById('groupFormTitle').innerText = groupId ? 'تعديل المجموعة' : 'إضافة مجموعة';
+        document.getElementById('gf-id').value = groupId || '';
+        let group = { label: '' };
+        if (groupId) group = perfumeGroups.find(g => String(g.id) === String(groupId));
+        document.getElementById('gf-name').value = group.label;
+        document.getElementById('gf-perfumes').innerHTML = '<p style="color:#888; font-size:0.9rem;">يتم ربط العطور بهذه المجموعة تلقائياً بناءً على الجنس المحدد في بطاقة العطر.</p>';
+        window.openModal('groupFormModal');
+    };
+
+    window.saveGroup = async function() {
+        const id = document.getElementById('gf-id').value;
+        const name = document.getElementById('gf-name').value.trim();
+        if (!name) return alert('اسم المجموعة مطلوب');
         try {
-            let imgUrl = currentProductImageUrl;
-            if (fileInput.files[0]) imgUrl = await window.uploadToB2(fileInput.files[0]);
-            const payload = { id: id || 'admin_' + Date.now(), name: name, price: price, original_price: oldPrice, category: category, description: description, img: imgUrl, active: true, synced_at: new Date().toISOString() };
-            if (id) { const { error } = await _supabase.from('whatsapp_products').update(payload).eq('id', id); if (error) throw error; }
-            else { const { error } = await _supabase.from('whatsapp_products').insert([payload]); if (error) throw error; }
-            window.closeModalAndPopHistory('productFormModal'); await window.loadAllData(); window.renderCategories(); window.applyLocalFilter(); window.showToast('تم حفظ المنتج'); window.switchAdminTab('products');
-        } catch (err) { alert('Hata: ' + err.message); } finally { btn.innerText = oldText; btn.disabled = false; }
+            if (id) await _supabase.from('categories').update({ label: name }).eq('id', id);
+            else await _supabase.from('categories').insert([{ type: 'gender', value: 'grup_' + Date.now(), label: name, active: true, sort_order: 99 }]);
+            window.closeModalAndPopHistory('groupFormModal'); await window.loadAllData(); window.renderCategories(); window.switchAdminTab('groups');
+        } catch (err) { alert('Hata: ' + err.message); }
+    };
+
+    window.deleteGroup = async function(id) {
+        if (!confirm('تأكيد حذف المجموعة؟')) return;
+        const perfumesInGroup = currentPerfumes.filter(p => String(p.gender_id) === String(id));
+        if (perfumesInGroup.length > 0) { alert(`لا يمكن حذف هذه المجموعة لأنها تحتوي على ${perfumesInGroup.length} عطر.\n\nيرجى حذف العطور أو نقلها إلى مجموعة أخرى أولاً.`); return; }
+        try {
+            await _supabase.from('categories').delete().eq('id', id); await window.loadAllData(); window.renderCategories(); window.switchAdminTab('groups'); window.showToast('تم حذف المجموعة بنجاح');
+        } catch (err) { alert('Hata: ' + err.message); }
     };
 
     window.openProductForm = function(id = null) {
@@ -498,7 +1035,6 @@
                 if (isAdmin) document.getElementById('adminBar').style.display = 'flex'; 
             }
             
-            // Veri yüklemede hata olsa bile devam et
             try {
                 await Promise.all([window.loadSiteSettings(), window.loadAllData()]);
             } catch (e) {
@@ -521,11 +1057,10 @@
             }
         } catch (globalError) {
             console.error("Kritik init hatası:", globalError);
-            window.hideLoadingScreen(); // Her durumda yükleme ekranını kapat
+            window.hideLoadingScreen();
         }
     };
 
-    // Pencere yüklendiğinde init'i güvenli bir şekilde çağır
     window.addEventListener('load', function() {
         try {
             if (typeof window.init === 'function') {
